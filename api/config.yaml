@@ -1,0 +1,10 @@
+log:
+  format: text # text / json
+  level: debug # debug / info / warn / error
+  caller: true
+postgres:
+  host: localhost
+  port: 28100
+  user: admin
+  password: admin123123
+  database: tasks
