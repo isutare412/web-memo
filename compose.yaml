@@ -1,0 +1,22 @@
+name: tasks
+
+volumes:
+  postgres-storage:
+
+networks:
+  app-tier:
+
+services:
+  postgres:
+    image: bitnami/postgresql:16-debian-11
+    networks:
+      - app-tier
+    ports:
+      - ${POSTGRESQL_PORT}:5432
+    volumes:
+      - postgres-storage:/bitnami/postgresql
+    environment:
+      POSTGRESQL_DATABASE: tasks
+      POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME}
+      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRESQL_POSTGRES_PASSWORD: ${POSTGRESQL_POSTGRES_PASSWORD}
