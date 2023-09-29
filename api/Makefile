@@ -16,6 +16,10 @@ run: ## Run server locally.
 test: ## Run tests.
 	go test ./...
 
+.PHONY: mocks
+mocks: mockgen ## Generate mock implementations.
+	$(MOCKGEN) -source=internal/core/port/repository.go -destination=internal/core/port/mockport/mock_repository.go -package=mockport
+
 ##@ Entity
 
 .PHONY: ent-new
@@ -29,3 +33,18 @@ ent-gen: ## Generate Go code for entities.
 .PHONY: ent-desc
 ent-desc: ## Describe schemas.
 	go run -mod=mod entgo.io/ent/cmd/ent describe ./internal/core/ent/schema
+
+##@ Tool Dependencies
+
+## Location to install dependencies to.
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	@mkdir -p $(LOCALBIN)
+
+## Tool Binaries
+MOCKGEN ?= $(LOCALBIN)/mockgen
+
+.PHONY: mockgen
+mockgen: $(MOCKGEN) ## Install mockgen.
+$(MOCKGEN): $(LOCALBIN)
+	@test -s $(MOCKGEN) || GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@latest
