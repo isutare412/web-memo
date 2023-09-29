@@ -1,11 +1,14 @@
 package config
 
 import (
+	"time"
+
 	"github.com/isutare412/tasks/api/internal/log"
 	"github.com/isutare412/tasks/api/internal/postgres"
 )
 
 type Config struct {
+	Wire     WireConfig     `mapstructure:"wire"`
 	Log      LogConfig      `mapstructure:"log"`
 	Postgres PostgresConfig `mapstructure:"postgres"`
 }
@@ -16,6 +19,11 @@ func (c *Config) ToLogConfig() log.Config {
 
 func (c *Config) ToPostgresConfig() postgres.Config {
 	return postgres.Config(c.Postgres)
+}
+
+type WireConfig struct {
+	InitializeTimeout time.Duration `mapstructure:"initializeTimeout" validate:"required"`
+	ShutdownTimeout   time.Duration `mapstructure:"shutdownTimeout" validate:"required"`
 }
 
 type LogConfig struct {

@@ -30,8 +30,6 @@ func (c *Client) MigrateSchemas(ctx context.Context) error {
 	if err := c.entClient.Schema.Create(ctx); err != nil {
 		return fmt.Errorf("creating schema: %w", err)
 	}
-
-	slog.Info("finished schema migration")
 	return nil
 }
 

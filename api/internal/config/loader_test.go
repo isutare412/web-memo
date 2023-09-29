@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -20,7 +21,10 @@ func TestLoadValidated(t *testing.T) {
 	}{
 		{
 			name: "normal_case",
-			rawConfig: `log:
+			rawConfig: `wire:
+  initializeTimeout: 1h30m
+  shutdownTimeout: 90s
+log:
   format: text
   level: debug
   caller: true
@@ -31,6 +35,10 @@ postgres:
   password: password
   database: fake`,
 			want: &Config{
+				Wire: WireConfig{
+					InitializeTimeout: 90 * time.Minute,
+					ShutdownTimeout:   90 * time.Second,
+				},
 				Log: LogConfig{
 					Format: log.FormatText,
 					Level:  log.LevelDebug,
@@ -47,7 +55,10 @@ postgres:
 		},
 		{
 			name: "overriden_by_env",
-			rawConfig: `log:
+			rawConfig: `wire:
+  initializeTimeout: 1h30m
+  shutdownTimeout: 90s
+log:
   format: text
   level: debug
   caller: true
@@ -61,6 +72,10 @@ postgres:
 				"APP_POSTGRES_HOST": "1.2.3.4",
 			},
 			want: &Config{
+				Wire: WireConfig{
+					InitializeTimeout: 90 * time.Minute,
+					ShutdownTimeout:   90 * time.Second,
+				},
 				Log: LogConfig{
 					Format: log.FormatText,
 					Level:  log.LevelDebug,
