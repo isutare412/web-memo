@@ -1,6 +1,9 @@
 package config
 
-import "github.com/isutare412/tasks/api/internal/log"
+import (
+	"github.com/isutare412/tasks/api/internal/log"
+	"github.com/isutare412/tasks/api/internal/postgres"
+)
 
 type Config struct {
 	Log      LogConfig      `mapstructure:"log"`
@@ -8,11 +11,11 @@ type Config struct {
 }
 
 func (c *Config) ToLogConfig() log.Config {
-	return log.Config{
-		Format: c.Log.Format,
-		Level:  c.Log.Level,
-		Caller: c.Log.Caller,
-	}
+	return log.Config(c.Log)
+}
+
+func (c *Config) ToPostgresConfig() postgres.Config {
+	return postgres.Config(c.Postgres)
 }
 
 type LogConfig struct {
@@ -27,4 +30,5 @@ type PostgresConfig struct {
 	User     string `mapstructure:"user" validate:"required"`
 	Password string `mapstructure:"password" validate:"required"`
 	Database string `mapstructure:"database" validate:"required"`
+	QueryLog bool   `mapstructure:"queryLog"`
 }

@@ -8,3 +8,4 @@ postgres:
   user: admin
   password: admin123123
   database: tasks
+  queryLog: false

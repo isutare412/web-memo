@@ -1,0 +1,104 @@
+package postgres
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+
+	"github.com/isutare412/tasks/api/internal/core/ent"
+)
+
+type Client struct {
+	entClient *ent.Client
+}
+
+func NewClient(cfg Config) (*Client, error) {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database)
+	client, err := ent.Open("postgres", dsn, buildEntOptions(cfg.QueryLog)...)
+	if err != nil {
+		return nil, fmt.Errorf("opening PostgreSQL connection: %w", err)
+	}
+
+	return &Client{entClient: client}, nil
+}
+
+func (c *Client) Shutdown(ctx context.Context) error {
+	return c.entClient.Close()
+}
+
+func (c *Client) MigrateSchemas(ctx context.Context) error {
+	if err := c.entClient.Schema.Create(ctx); err != nil {
+		return fmt.Errorf("creating schema: %w", err)
+	}
+
+	slog.Info("finished schema migration")
+	return nil
+}
+
+func (c *Client) BeginTx(ctx context.Context) (ctxWithTx context.Context, commit, rollback func() error) {
+	tx, err := c.entClient.Tx(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	ctxWithTx = context.WithValue(ctx, contextTransactionKey{}, tx.Client())
+
+	commit = func() error {
+		return tx.Commit()
+	}
+	rollback = func() error {
+		return tx.Rollback()
+	}
+
+	return ctxWithTx, commit, rollback
+}
+
+func (c *Client) WithTx(ctx context.Context, fn func(ctxWithTx context.Context) error) (err error) {
+	ctxWithTx, commit, rollback := c.BeginTx(ctx)
+
+	defer func() {
+		if v := recover(); v != nil {
+			slog.Error("panicked during transaction", "recover", v)
+
+			if err := rollback(); err != nil {
+				slog.Error("failed to rollback transaction", "error", err)
+			}
+
+			panic(v)
+		}
+	}()
+
+	if ferr := fn(ctxWithTx); ferr != nil {
+		if rerr := rollback(); rerr != nil {
+			err = fmt.Errorf("%w: rolling back transaction: %v", ferr, rerr)
+		}
+		return err
+	}
+
+	if err := commit(); err != nil {
+		return fmt.Errorf("committing transaction: %w", err)
+	}
+	return nil
+}
+
+type contextTransactionKey struct{}
+
+func transactionClient(ctx context.Context, client *ent.Client) *ent.Client {
+	if txClient, ok := ctx.Value(contextTransactionKey{}).(*ent.Client); ok {
+		client = txClient
+	}
+	return client
+}
+
+func buildEntOptions(queryLog bool) []ent.Option {
+	if !queryLog {
+		return nil
+	}
+
+	return []ent.Option{
+		ent.Debug(),
+		ent.Log(func(args ...any) {
+			slog.Debug("query database", "ent", args[0])
+		}),
+	}
+}
