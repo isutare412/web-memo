@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 
 	"github.com/isutare412/tasks/api/internal/core/ent"
 	"github.com/isutare412/tasks/api/internal/core/ent/user"
@@ -47,9 +48,9 @@ func (r *UserRepository) Upsert(ctx context.Context, usr *ent.User) (*ent.User, 
 		Create().
 		SetEmail(usr.Email).
 		SetUserName(usr.UserName).
-		SetNillableGivenName(pointerIfNotZero(usr.GivenName)).
-		SetNillableFamilyName(pointerIfNotZero(usr.FamilyName)).
-		SetNillablePhotoURL(pointerIfNotZero(usr.PhotoURL)).
+		SetNillableGivenName(lo.EmptyableToPtr(usr.GivenName)).
+		SetNillableFamilyName(lo.EmptyableToPtr(usr.FamilyName)).
+		SetNillablePhotoURL(lo.EmptyableToPtr(usr.PhotoURL)).
 		OnConflict(
 			sql.ConflictColumns(user.FieldEmail),
 			sql.ResolveWithNewValues(),

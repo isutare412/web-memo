@@ -11,6 +11,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lmittmann/tint v1.0.2
 	github.com/mattn/go-isatty v0.0.19
+	github.com/samber/lo v1.38.1
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/mock v0.3.0
@@ -40,6 +41,7 @@ require (
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
