@@ -1,27 +1,21 @@
-package config
+package config_test
 
 import (
 	"os"
 	"path/filepath"
-	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
+	"github.com/isutare412/web-memo/api/internal/config"
 	"github.com/isutare412/web-memo/api/internal/log"
 )
 
-func TestLoadValidated(t *testing.T) {
-	tests := []struct {
-		name      string
-		rawConfig string
-		envs      map[string]string
-		want      *Config
-		wantErr   bool
-	}{
-		{
-			name: "normal_case",
-			rawConfig: `wire:
+var _ = Describe("Loader", func() {
+	Context("LoadValidated", func() {
+		var (
+			givenConfigText = `wire:
   initializeTimeout: 1h30m
   shutdownTimeout: 90s
 log:
@@ -33,84 +27,80 @@ postgres:
   port: 1234
   user: tester
   password: password
-  database: fake`,
-			want: &Config{
-				Wire: WireConfig{
-					InitializeTimeout: 90 * time.Minute,
-					ShutdownTimeout:   90 * time.Second,
-				},
-				Log: LogConfig{
-					Format: log.FormatText,
-					Level:  log.LevelDebug,
-					Caller: true,
-				},
-				Postgres: PostgresConfig{
-					Host:     "127.0.0.1",
-					Port:     1234,
-					User:     "tester",
-					Password: "password",
-					Database: "fake",
-				},
-			},
-		},
-		{
-			name: "overriden_by_env",
-			rawConfig: `wire:
-  initializeTimeout: 1h30m
-  shutdownTimeout: 90s
-log:
-  format: text
-  level: debug
-  caller: true
-postgres:
-  host: 127.0.0.1
-  port: 1234
-  user: tester
-  password: password
-  database: fake`,
-			envs: map[string]string{
-				"APP_POSTGRES_HOST": "1.2.3.4",
-			},
-			want: &Config{
-				Wire: WireConfig{
-					InitializeTimeout: 90 * time.Minute,
-					ShutdownTimeout:   90 * time.Second,
-				},
-				Log: LogConfig{
-					Format: log.FormatText,
-					Level:  log.LevelDebug,
-					Caller: true,
-				},
-				Postgres: PostgresConfig{
-					Host:     "1.2.3.4",
-					Port:     1234,
-					User:     "tester",
-					Password: "password",
-					Database: "fake",
-				},
-			},
-		},
-	}
+  database: fake`
+		)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			file := filepath.Join(t.TempDir(), "config.yaml")
-			if err := os.WriteFile(file, []byte(tt.rawConfig), 0644); err != nil {
-				require.NoError(t, err)
-			}
+		It("loads valid config", func() {
+			var (
+				wantConfig = config.Config{
+					Wire: config.WireConfig{
+						InitializeTimeout: 90 * time.Minute,
+						ShutdownTimeout:   90 * time.Second,
+					},
+					Log: config.LogConfig{
+						Format: log.FormatText,
+						Level:  log.LevelDebug,
+						Caller: true,
+					},
+					Postgres: config.PostgresConfig{
+						Host:     "127.0.0.1",
+						Port:     1234,
+						User:     "tester",
+						Password: "password",
+						Database: "fake",
+					},
+				}
+			)
 
-			for k, v := range tt.envs {
-				t.Setenv(k, v)
-			}
+			file := filepath.Join(GinkgoT().TempDir(), "config.yaml")
+			err := os.WriteFile(file, []byte(givenConfigText), 0644)
+			Expect(err).ShouldNot(HaveOccurred())
 
-			got, err := LoadValidated(file)
-			if tt.wantErr {
-				require.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			require.Equal(t, tt.want, got)
+			cfg, err := config.LoadValidated(file)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(*cfg).Should(Equal(wantConfig))
 		})
-	}
-}
+
+		It("loads config overwritten by env", func() {
+			var (
+				givenEnvs = map[string]string{
+					"APP_POSTGRES_HOST":        "1.2.3.4",
+					"APP_WIRE_SHUTDOWNTIMEOUT": "1s",
+				}
+			)
+
+			var (
+				wantConfig = config.Config{
+					Wire: config.WireConfig{
+						InitializeTimeout: 90 * time.Minute,
+						ShutdownTimeout:   time.Second,
+					},
+					Log: config.LogConfig{
+						Format: log.FormatText,
+						Level:  log.LevelDebug,
+						Caller: true,
+					},
+					Postgres: config.PostgresConfig{
+						Host:     "1.2.3.4",
+						Port:     1234,
+						User:     "tester",
+						Password: "password",
+						Database: "fake",
+					},
+				}
+			)
+
+			file := filepath.Join(GinkgoT().TempDir(), "config.yaml")
+			err := os.WriteFile(file, []byte(givenConfigText), 0644)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			for k, v := range givenEnvs {
+				GinkgoT().Setenv(k, v)
+			}
+
+			cfg, err := config.LoadValidated(file)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(*cfg).Should(Equal(wantConfig))
+		})
+	})
+})

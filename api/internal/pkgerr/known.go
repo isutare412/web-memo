@@ -1,6 +1,9 @@
 package pkgerr
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Known struct {
 	Code   Code
@@ -20,6 +23,16 @@ func (k Known) Error() string {
 
 func (k Known) Unwrap() error {
 	return k.Origin
+}
+
+func AsKnown(err error) (Known, bool) {
+	var kerr Known
+	switch errors.As(err, &kerr) {
+	case true:
+		return kerr, true
+	default:
+		return Known{}, false
+	}
 }
 
 type Code int

@@ -1,47 +1,40 @@
-package pkgerr
+package pkgerr_test
 
 import (
 	"errors"
 	"fmt"
-	"testing"
 
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
-var errTest = errors.New("error only for test")
-
-func TestKnown_Unwrap(t *testing.T) {
-	type fields struct {
-		Code   Code
-		Simple error
-		Origin error
-	}
-
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr error
-	}{
-		{
-			name: "unwrap_origin",
-			fields: fields{
-				Origin: errTest,
-			},
-			wantErr: errTest,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			kerr := Known{
-				Code:   tt.fields.Code,
-				Simple: tt.fields.Simple,
-				Origin: tt.fields.Origin,
+var _ = Describe("Known", func() {
+	It("unwraps into origin error", func() {
+		var (
+			givenOriginErr = errors.New("origin error")
+			givenKnown     = pkgerr.Known{
+				Origin: givenOriginErr,
 			}
-			err := fmt.Errorf("unwrapped: %w", kerr)
+			givenWrappedErr = fmt.Errorf("wrapped: %w", givenKnown)
+		)
 
-			assert.ErrorIs(t, err, tt.wantErr)
-			assert.ErrorAs(t, err, &tt.wantErr)
-		})
-	}
-}
+		Expect(errors.Is(givenWrappedErr, givenOriginErr)).Should(BeTrue())
+	})
+
+	It("casts to known error", func() {
+		var (
+			givenOriginErr = errors.New("origin error")
+			givenKnown     = pkgerr.Known{
+				Code:   pkgerr.CodeUnauthenticated,
+				Simple: givenOriginErr,
+			}
+			givenWrappedErr = fmt.Errorf("wrapped: %w", givenKnown)
+		)
+
+		kerr, ok := pkgerr.AsKnown(givenWrappedErr)
+		Expect(ok).Should(BeTrue())
+		Expect(kerr).Should(Equal(givenKnown))
+	})
+})

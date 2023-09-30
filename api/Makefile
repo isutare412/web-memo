@@ -13,8 +13,8 @@ run: ## Run server locally.
 	go run ./cmd/...
 
 .PHONY: test
-test: ## Run tests.
-	go test ./...
+test: ginkgo ## Run tests.
+	$(GINKGO) ./...
 
 .PHONY: mocks
 mocks: mockgen ## Generate mock implementations.
@@ -46,8 +46,14 @@ $(LOCALBIN):
 
 ## Tool Binaries
 MOCKGEN ?= $(LOCALBIN)/mockgen
+GINKGO ?= $(LOCALBIN)/ginkgo
 
 .PHONY: mockgen
 mockgen: $(MOCKGEN) ## Install mockgen.
 $(MOCKGEN): $(LOCALBIN)
 	@test -s $(MOCKGEN) || GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@latest
+
+.PHONY: ginkgo
+ginkgo: $(GINKGO) ## Install ginkgo.
+$(GINKGO): $(LOCALBIN)
+	@test -s $(GINKGO) || GOBIN=$(LOCALBIN) go install github.com/onsi/ginkgo/v2/ginkgo@v2.12.1

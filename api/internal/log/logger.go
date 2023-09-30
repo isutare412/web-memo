@@ -7,6 +7,7 @@ import (
 
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-isatty"
+	"github.com/onsi/ginkgo/v2"
 )
 
 func init() {
@@ -41,5 +42,14 @@ func Init(cfg Config) {
 		}))
 	}
 
+	slog.SetDefault(logger)
+}
+
+func AdaptGinkgo() {
+	logger := slog.New(tint.NewHandler(ginkgo.GinkgoWriter, &tint.Options{
+		Level:      slog.LevelDebug,
+		TimeFormat: time.RFC3339,
+		NoColor:    !isatty.IsTerminal(os.Stdout.Fd()),
+	}))
 	slog.SetDefault(logger)
 }
