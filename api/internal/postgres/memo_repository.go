@@ -29,7 +29,10 @@ func (r *MemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uui
 	memos, err := client.Memo.
 		Query().
 		Where(memo.HasOwnerWith(user.ID(userID))).
-		WithTags().
+		WithTags(func(tq *ent.TagQuery) {
+			tq.Order(tag.ByName())
+		}).
+		Order(memo.ByCreateTime()).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -53,7 +56,10 @@ func (r *MemoRepository) FindAllByUserIDAndTagIDWithTags(
 				memo.HasTagsWith(tag.ID(tagID)),
 			),
 		).
-		WithTags().
+		WithTags(func(tq *ent.TagQuery) {
+			tq.Order(tag.ByName())
+		}).
+		Order(memo.ByCreateTime()).
 		All(ctx)
 	if err != nil {
 		return nil, err
