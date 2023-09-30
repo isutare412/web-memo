@@ -41,18 +41,18 @@ func (m *MockMemoService) EXPECT() *MockMemoServiceMockRecorder {
 }
 
 // CreateMemo mocks base method.
-func (m *MockMemoService) CreateMemo(ctx context.Context, memo *ent.Memo, tags []*ent.Tag, userID uuid.UUID) (*ent.Memo, error) {
+func (m *MockMemoService) CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, userID uuid.UUID) (*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateMemo", ctx, memo, tags, userID)
+	ret := m.ctrl.Call(m, "CreateMemo", ctx, memo, tagNames, userID)
 	ret0, _ := ret[0].(*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateMemo indicates an expected call of CreateMemo.
-func (mr *MockMemoServiceMockRecorder) CreateMemo(ctx, memo, tags, userID any) *gomock.Call {
+func (mr *MockMemoServiceMockRecorder) CreateMemo(ctx, memo, tagNames, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMemo", reflect.TypeOf((*MockMemoService)(nil).CreateMemo), ctx, memo, tags, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMemo", reflect.TypeOf((*MockMemoService)(nil).CreateMemo), ctx, memo, tagNames, userID)
 }
 
 // DeleteMemo mocks base method.
@@ -100,16 +100,16 @@ func (mr *MockMemoServiceMockRecorder) ListMemos(ctx, userID any) *gomock.Call {
 }
 
 // ReplaceTags mocks base method.
-func (m *MockMemoService) ReplaceTags(ctx context.Context, memoID uuid.UUID, tags []*ent.Tag) ([]*ent.Tag, error) {
+func (m *MockMemoService) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagNames []string) ([]*ent.Tag, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReplaceTags", ctx, memoID, tags)
+	ret := m.ctrl.Call(m, "ReplaceTags", ctx, memoID, tagNames)
 	ret0, _ := ret[0].([]*ent.Tag)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ReplaceTags indicates an expected call of ReplaceTags.
-func (mr *MockMemoServiceMockRecorder) ReplaceTags(ctx, memoID, tags any) *gomock.Call {
+func (mr *MockMemoServiceMockRecorder) ReplaceTags(ctx, memoID, tagNames any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoService)(nil).ReplaceTags), ctx, memoID, tags)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoService)(nil).ReplaceTags), ctx, memoID, tagNames)
 }
