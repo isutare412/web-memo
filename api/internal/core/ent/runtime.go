@@ -34,7 +34,21 @@ func init() {
 	// memoDescTitle is the schema descriptor for title field.
 	memoDescTitle := memoFields[1].Descriptor()
 	// memo.TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	memo.TitleValidator = memoDescTitle.Validators[0].(func(string) error)
+	memo.TitleValidator = func() func(string) error {
+		validators := memoDescTitle.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(title string) error {
+			for _, fn := range fns {
+				if err := fn(title); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// memoDescContent is the schema descriptor for content field.
 	memoDescContent := memoFields[2].Descriptor()
 	// memo.ContentValidator is a validator for the "content" field. It is called by the builders before save.
