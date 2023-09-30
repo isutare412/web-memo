@@ -19,6 +19,7 @@ test: ginkgo ## Run tests.
 .PHONY: mocks
 mocks: mockgen ## Generate mock implementations.
 	$(MOCKGEN) -source=internal/core/port/repository.go -destination=internal/core/port/mockport/mock_repository.go -package=mockport
+	$(MOCKGEN) -source=internal/core/port/service.go -destination=internal/core/port/mockport/mock_service.go -package=mockport
 
 ##@ Entity
 
