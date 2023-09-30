@@ -29,7 +29,7 @@ ent-new: ## Create new entity.
 
 .PHONY: ent-gen
 ent-gen: ## Generate Go code for entities.
-	go run -mod=mod entgo.io/ent/cmd/ent generate --feature=sql/upsert ./internal/core/ent/schema
+	go run -mod=mod entgo.io/ent/cmd/ent generate --feature=sql/upsert --feature=sql/execquery ./internal/core/ent/schema
 	@go mod tidy
 
 .PHONY: ent-desc

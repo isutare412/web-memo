@@ -32,6 +32,13 @@ func (c *Client) MigrateSchemas(ctx context.Context) error {
 	if err := c.entClient.Schema.Create(ctx); err != nil {
 		return fmt.Errorf("creating schema: %w", err)
 	}
+
+	if _, err := c.entClient.ExecContext(
+		ctx,
+		`CREATE INDEX IF NOT EXISTS memo_tags_tag_id ON memo_tags (tag_id)`,
+	); err != nil {
+		return fmt.Errorf("creating index: %w", err)
+	}
 	return nil
 }
 
