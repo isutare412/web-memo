@@ -526,21 +526,21 @@ func PhotoURLContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldPhotoURL, v))
 }
 
-// HasTasks applies the HasEdge predicate on the "tasks" edge.
-func HasTasks() predicate.User {
+// HasMemos applies the HasEdge predicate on the "memos" edge.
+func HasMemos() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TasksTable, TasksColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, MemosTable, MemosColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasTasksWith applies the HasEdge predicate on the "tasks" edge with a given conditions (other predicates).
-func HasTasksWith(preds ...predicate.Task) predicate.User {
+// HasMemosWith applies the HasEdge predicate on the "memos" edge with a given conditions (other predicates).
+func HasMemosWith(preds ...predicate.Memo) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newTasksStep()
+		step := newMemosStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

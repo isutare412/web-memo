@@ -10,12 +10,12 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/isutare412/tasks/api/internal/core/ent/task"
+	"github.com/isutare412/tasks/api/internal/core/ent/memo"
 	"github.com/isutare412/tasks/api/internal/core/ent/user"
 )
 
-// Task is the model entity for the Task schema.
-type Task struct {
+// Memo is the model entity for the Memo schema.
+type Memo struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
@@ -23,29 +23,29 @@ type Task struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
-	// Tag holds the value of the "tag" field.
-	Tag string `json:"tag,omitempty"`
 	// Content holds the value of the "content" field.
 	Content string `json:"content,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the TaskQuery when eager-loading is set.
-	Edges        TaskEdges `json:"edges"`
-	user_tasks   *uuid.UUID
+	// The values are being populated by the MemoQuery when eager-loading is set.
+	Edges        MemoEdges `json:"edges"`
+	user_memos   *uuid.UUID
 	selectValues sql.SelectValues
 }
 
-// TaskEdges holds the relations/edges for other nodes in the graph.
-type TaskEdges struct {
+// MemoEdges holds the relations/edges for other nodes in the graph.
+type MemoEdges struct {
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
+	// Tags holds the value of the tags edge.
+	Tags []*Tag `json:"tags,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e TaskEdges) OwnerOrErr() (*User, error) {
+func (e MemoEdges) OwnerOrErr() (*User, error) {
 	if e.loadedTypes[0] {
 		if e.Owner == nil {
 			// Edge was loaded but was not found.
@@ -56,18 +56,27 @@ func (e TaskEdges) OwnerOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "owner"}
 }
 
+// TagsOrErr returns the Tags value or an error if the edge
+// was not loaded in eager-loading.
+func (e MemoEdges) TagsOrErr() ([]*Tag, error) {
+	if e.loadedTypes[1] {
+		return e.Tags, nil
+	}
+	return nil, &NotLoadedError{edge: "tags"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Task) scanValues(columns []string) ([]any, error) {
+func (*Memo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case task.FieldTag, task.FieldContent:
+		case memo.FieldContent:
 			values[i] = new(sql.NullString)
-		case task.FieldCreateTime, task.FieldUpdateTime:
+		case memo.FieldCreateTime, memo.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case task.FieldID:
+		case memo.FieldID:
 			values[i] = new(uuid.UUID)
-		case task.ForeignKeys[0]: // user_tasks
+		case memo.ForeignKeys[0]: // user_memos
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
@@ -77,105 +86,101 @@ func (*Task) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Task fields.
-func (t *Task) assignValues(columns []string, values []any) error {
+// to the Memo fields.
+func (m *Memo) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case task.FieldID:
+		case memo.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				t.ID = *value
+				m.ID = *value
 			}
-		case task.FieldCreateTime:
+		case memo.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field create_time", values[i])
 			} else if value.Valid {
-				t.CreateTime = value.Time
+				m.CreateTime = value.Time
 			}
-		case task.FieldUpdateTime:
+		case memo.FieldUpdateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
-				t.UpdateTime = value.Time
+				m.UpdateTime = value.Time
 			}
-		case task.FieldTag:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field tag", values[i])
-			} else if value.Valid {
-				t.Tag = value.String
-			}
-		case task.FieldContent:
+		case memo.FieldContent:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
 			} else if value.Valid {
-				t.Content = value.String
+				m.Content = value.String
 			}
-		case task.ForeignKeys[0]:
+		case memo.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_tasks", values[i])
+				return fmt.Errorf("unexpected type %T for field user_memos", values[i])
 			} else if value.Valid {
-				t.user_tasks = new(uuid.UUID)
-				*t.user_tasks = *value.S.(*uuid.UUID)
+				m.user_memos = new(uuid.UUID)
+				*m.user_memos = *value.S.(*uuid.UUID)
 			}
 		default:
-			t.selectValues.Set(columns[i], values[i])
+			m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the Task.
+// Value returns the ent.Value that was dynamically selected and assigned to the Memo.
 // This includes values selected through modifiers, order, etc.
-func (t *Task) Value(name string) (ent.Value, error) {
-	return t.selectValues.Get(name)
+func (m *Memo) Value(name string) (ent.Value, error) {
+	return m.selectValues.Get(name)
 }
 
-// QueryOwner queries the "owner" edge of the Task entity.
-func (t *Task) QueryOwner() *UserQuery {
-	return NewTaskClient(t.config).QueryOwner(t)
+// QueryOwner queries the "owner" edge of the Memo entity.
+func (m *Memo) QueryOwner() *UserQuery {
+	return NewMemoClient(m.config).QueryOwner(m)
 }
 
-// Update returns a builder for updating this Task.
-// Note that you need to call Task.Unwrap() before calling this method if this Task
+// QueryTags queries the "tags" edge of the Memo entity.
+func (m *Memo) QueryTags() *TagQuery {
+	return NewMemoClient(m.config).QueryTags(m)
+}
+
+// Update returns a builder for updating this Memo.
+// Note that you need to call Memo.Unwrap() before calling this method if this Memo
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (t *Task) Update() *TaskUpdateOne {
-	return NewTaskClient(t.config).UpdateOne(t)
+func (m *Memo) Update() *MemoUpdateOne {
+	return NewMemoClient(m.config).UpdateOne(m)
 }
 
-// Unwrap unwraps the Task entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the Memo entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (t *Task) Unwrap() *Task {
-	_tx, ok := t.config.driver.(*txDriver)
+func (m *Memo) Unwrap() *Memo {
+	_tx, ok := m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: Task is not a transactional entity")
+		panic("ent: Memo is not a transactional entity")
 	}
-	t.config.driver = _tx.drv
-	return t
+	m.config.driver = _tx.drv
+	return m
 }
 
 // String implements the fmt.Stringer.
-func (t *Task) String() string {
+func (m *Memo) String() string {
 	var builder strings.Builder
-	builder.WriteString("Task(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
+	builder.WriteString("Memo(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", m.ID))
 	builder.WriteString("create_time=")
-	builder.WriteString(t.CreateTime.Format(time.ANSIC))
+	builder.WriteString(m.CreateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
-	builder.WriteString(t.UpdateTime.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("tag=")
-	builder.WriteString(t.Tag)
+	builder.WriteString(m.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("content=")
-	builder.WriteString(t.Content)
+	builder.WriteString(m.Content)
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// Tasks is a parsable slice of Task.
-type Tasks []*Task
+// Memos is a parsable slice of Memo.
+type Memos []*Memo

@@ -8,28 +8,40 @@ import (
 )
 
 var (
-	// TasksColumns holds the columns for the "tasks" table.
-	TasksColumns = []*schema.Column{
+	// MemosColumns holds the columns for the "memos" table.
+	MemosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "tag", Type: field.TypeString, Nullable: true, Size: 64, Default: "default"},
 		{Name: "content", Type: field.TypeString, Size: 20000},
-		{Name: "user_tasks", Type: field.TypeUUID},
+		{Name: "user_memos", Type: field.TypeUUID},
 	}
-	// TasksTable holds the schema information for the "tasks" table.
-	TasksTable = &schema.Table{
-		Name:       "tasks",
-		Columns:    TasksColumns,
-		PrimaryKey: []*schema.Column{TasksColumns[0]},
+	// MemosTable holds the schema information for the "memos" table.
+	MemosTable = &schema.Table{
+		Name:       "memos",
+		Columns:    MemosColumns,
+		PrimaryKey: []*schema.Column{MemosColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "tasks_users_tasks",
-				Columns:    []*schema.Column{TasksColumns[5]},
+				Symbol:     "memos_users_memos",
+				Columns:    []*schema.Column{MemosColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
+	}
+	// TagsColumns holds the columns for the "tags" table.
+	TagsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true, Size: 64},
+	}
+	// TagsTable holds the schema information for the "tags" table.
+	TagsTable = &schema.Table{
+		Name:       "tags",
+		Columns:    TagsColumns,
+		PrimaryKey: []*schema.Column{TagsColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -48,13 +60,42 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// MemoTagsColumns holds the columns for the "memo_tags" table.
+	MemoTagsColumns = []*schema.Column{
+		{Name: "memo_id", Type: field.TypeUUID},
+		{Name: "tag_id", Type: field.TypeInt},
+	}
+	// MemoTagsTable holds the schema information for the "memo_tags" table.
+	MemoTagsTable = &schema.Table{
+		Name:       "memo_tags",
+		Columns:    MemoTagsColumns,
+		PrimaryKey: []*schema.Column{MemoTagsColumns[0], MemoTagsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "memo_tags_memo_id",
+				Columns:    []*schema.Column{MemoTagsColumns[0]},
+				RefColumns: []*schema.Column{MemosColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "memo_tags_tag_id",
+				Columns:    []*schema.Column{MemoTagsColumns[1]},
+				RefColumns: []*schema.Column{TagsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		TasksTable,
+		MemosTable,
+		TagsTable,
 		UsersTable,
+		MemoTagsTable,
 	}
 )
 
 func init() {
-	TasksTable.ForeignKeys[0].RefTable = UsersTable
+	MemosTable.ForeignKeys[0].RefTable = UsersTable
+	MemoTagsTable.ForeignKeys[0].RefTable = MemosTable
+	MemoTagsTable.ForeignKeys[1].RefTable = TagsTable
 }

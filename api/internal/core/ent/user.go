@@ -40,20 +40,20 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Tasks holds the value of the tasks edge.
-	Tasks []*Task `json:"tasks,omitempty"`
+	// Memos holds the value of the memos edge.
+	Memos []*Memo `json:"memos,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// TasksOrErr returns the Tasks value or an error if the edge
+// MemosOrErr returns the Memos value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) TasksOrErr() ([]*Task, error) {
+func (e UserEdges) MemosOrErr() ([]*Memo, error) {
 	if e.loadedTypes[0] {
-		return e.Tasks, nil
+		return e.Memos, nil
 	}
-	return nil, &NotLoadedError{edge: "tasks"}
+	return nil, &NotLoadedError{edge: "memos"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -143,9 +143,9 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
-// QueryTasks queries the "tasks" edge of the User entity.
-func (u *User) QueryTasks() *TaskQuery {
-	return NewUserClient(u.config).QueryTasks(u)
+// QueryMemos queries the "memos" edge of the User entity.
+func (u *User) QueryMemos() *MemoQuery {
+	return NewUserClient(u.config).QueryMemos(u)
 }
 
 // Update returns a builder for updating this User.

@@ -9,16 +9,28 @@ import (
 	"github.com/isutare412/tasks/api/internal/core/ent"
 )
 
-// The TaskFunc type is an adapter to allow the use of ordinary
-// function as Task mutator.
-type TaskFunc func(context.Context, *ent.TaskMutation) (ent.Value, error)
+// The MemoFunc type is an adapter to allow the use of ordinary
+// function as Memo mutator.
+type MemoFunc func(context.Context, *ent.MemoMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f TaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.TaskMutation); ok {
+func (f MemoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MemoMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TaskMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MemoMutation", m)
+}
+
+// The TagFunc type is an adapter to allow the use of ordinary
+// function as Tag mutator.
+type TagFunc func(context.Context, *ent.TagMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TagMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TagMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

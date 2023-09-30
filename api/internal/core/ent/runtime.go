@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/isutare412/tasks/api/internal/core/ent/memo"
 	"github.com/isutare412/tasks/api/internal/core/ent/schema"
-	"github.com/isutare412/tasks/api/internal/core/ent/task"
+	"github.com/isutare412/tasks/api/internal/core/ent/tag"
 	"github.com/isutare412/tasks/api/internal/core/ent/user"
 )
 
@@ -15,49 +16,62 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	taskMixin := schema.Task{}.Mixin()
-	taskMixinFields0 := taskMixin[0].Fields()
-	_ = taskMixinFields0
-	taskFields := schema.Task{}.Fields()
-	_ = taskFields
-	// taskDescCreateTime is the schema descriptor for create_time field.
-	taskDescCreateTime := taskMixinFields0[0].Descriptor()
-	// task.DefaultCreateTime holds the default value on creation for the create_time field.
-	task.DefaultCreateTime = taskDescCreateTime.Default.(func() time.Time)
-	// taskDescUpdateTime is the schema descriptor for update_time field.
-	taskDescUpdateTime := taskMixinFields0[1].Descriptor()
-	// task.DefaultUpdateTime holds the default value on creation for the update_time field.
-	task.DefaultUpdateTime = taskDescUpdateTime.Default.(func() time.Time)
-	// task.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	task.UpdateDefaultUpdateTime = taskDescUpdateTime.UpdateDefault.(func() time.Time)
-	// taskDescTag is the schema descriptor for tag field.
-	taskDescTag := taskFields[1].Descriptor()
-	// task.DefaultTag holds the default value on creation for the tag field.
-	task.DefaultTag = taskDescTag.Default.(string)
-	// task.TagValidator is a validator for the "tag" field. It is called by the builders before save.
-	task.TagValidator = func() func(string) error {
-		validators := taskDescTag.Validators
+	memoMixin := schema.Memo{}.Mixin()
+	memoMixinFields0 := memoMixin[0].Fields()
+	_ = memoMixinFields0
+	memoFields := schema.Memo{}.Fields()
+	_ = memoFields
+	// memoDescCreateTime is the schema descriptor for create_time field.
+	memoDescCreateTime := memoMixinFields0[0].Descriptor()
+	// memo.DefaultCreateTime holds the default value on creation for the create_time field.
+	memo.DefaultCreateTime = memoDescCreateTime.Default.(func() time.Time)
+	// memoDescUpdateTime is the schema descriptor for update_time field.
+	memoDescUpdateTime := memoMixinFields0[1].Descriptor()
+	// memo.DefaultUpdateTime holds the default value on creation for the update_time field.
+	memo.DefaultUpdateTime = memoDescUpdateTime.Default.(func() time.Time)
+	// memo.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	memo.UpdateDefaultUpdateTime = memoDescUpdateTime.UpdateDefault.(func() time.Time)
+	// memoDescContent is the schema descriptor for content field.
+	memoDescContent := memoFields[1].Descriptor()
+	// memo.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	memo.ContentValidator = memoDescContent.Validators[0].(func(string) error)
+	// memoDescID is the schema descriptor for id field.
+	memoDescID := memoFields[0].Descriptor()
+	// memo.DefaultID holds the default value on creation for the id field.
+	memo.DefaultID = memoDescID.Default.(func() uuid.UUID)
+	tagMixin := schema.Tag{}.Mixin()
+	tagMixinFields0 := tagMixin[0].Fields()
+	_ = tagMixinFields0
+	tagFields := schema.Tag{}.Fields()
+	_ = tagFields
+	// tagDescCreateTime is the schema descriptor for create_time field.
+	tagDescCreateTime := tagMixinFields0[0].Descriptor()
+	// tag.DefaultCreateTime holds the default value on creation for the create_time field.
+	tag.DefaultCreateTime = tagDescCreateTime.Default.(func() time.Time)
+	// tagDescUpdateTime is the schema descriptor for update_time field.
+	tagDescUpdateTime := tagMixinFields0[1].Descriptor()
+	// tag.DefaultUpdateTime holds the default value on creation for the update_time field.
+	tag.DefaultUpdateTime = tagDescUpdateTime.Default.(func() time.Time)
+	// tag.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	tag.UpdateDefaultUpdateTime = tagDescUpdateTime.UpdateDefault.(func() time.Time)
+	// tagDescName is the schema descriptor for name field.
+	tagDescName := tagFields[0].Descriptor()
+	// tag.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	tag.NameValidator = func() func(string) error {
+		validators := tagDescName.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
 		}
-		return func(tag string) error {
+		return func(name string) error {
 			for _, fn := range fns {
-				if err := fn(tag); err != nil {
+				if err := fn(name); err != nil {
 					return err
 				}
 			}
 			return nil
 		}
 	}()
-	// taskDescContent is the schema descriptor for content field.
-	taskDescContent := taskFields[2].Descriptor()
-	// task.ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	task.ContentValidator = taskDescContent.Validators[0].(func(string) error)
-	// taskDescID is the schema descriptor for id field.
-	taskDescID := taskFields[0].Descriptor()
-	// task.DefaultID holds the default value on creation for the id field.
-	task.DefaultID = taskDescID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

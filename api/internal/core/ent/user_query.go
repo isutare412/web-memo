@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/isutare412/tasks/api/internal/core/ent/memo"
 	"github.com/isutare412/tasks/api/internal/core/ent/predicate"
-	"github.com/isutare412/tasks/api/internal/core/ent/task"
 	"github.com/isutare412/tasks/api/internal/core/ent/user"
 )
 
@@ -24,7 +24,7 @@ type UserQuery struct {
 	order      []user.OrderOption
 	inters     []Interceptor
 	predicates []predicate.User
-	withTasks  *TaskQuery
+	withMemos  *MemoQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -61,9 +61,9 @@ func (uq *UserQuery) Order(o ...user.OrderOption) *UserQuery {
 	return uq
 }
 
-// QueryTasks chains the current query on the "tasks" edge.
-func (uq *UserQuery) QueryTasks() *TaskQuery {
-	query := (&TaskClient{config: uq.config}).Query()
+// QueryMemos chains the current query on the "memos" edge.
+func (uq *UserQuery) QueryMemos() *MemoQuery {
+	query := (&MemoClient{config: uq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -74,8 +74,8 @@ func (uq *UserQuery) QueryTasks() *TaskQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(task.Table, task.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.TasksTable, user.TasksColumn),
+			sqlgraph.To(memo.Table, memo.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MemosTable, user.MemosColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -275,21 +275,21 @@ func (uq *UserQuery) Clone() *UserQuery {
 		order:      append([]user.OrderOption{}, uq.order...),
 		inters:     append([]Interceptor{}, uq.inters...),
 		predicates: append([]predicate.User{}, uq.predicates...),
-		withTasks:  uq.withTasks.Clone(),
+		withMemos:  uq.withMemos.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
 	}
 }
 
-// WithTasks tells the query-builder to eager-load the nodes that are connected to
-// the "tasks" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithTasks(opts ...func(*TaskQuery)) *UserQuery {
-	query := (&TaskClient{config: uq.config}).Query()
+// WithMemos tells the query-builder to eager-load the nodes that are connected to
+// the "memos" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithMemos(opts ...func(*MemoQuery)) *UserQuery {
+	query := (&MemoClient{config: uq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withTasks = query
+	uq.withMemos = query
 	return uq
 }
 
@@ -372,7 +372,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
 		loadedTypes = [1]bool{
-			uq.withTasks != nil,
+			uq.withMemos != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -393,17 +393,17 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := uq.withTasks; query != nil {
-		if err := uq.loadTasks(ctx, query, nodes,
-			func(n *User) { n.Edges.Tasks = []*Task{} },
-			func(n *User, e *Task) { n.Edges.Tasks = append(n.Edges.Tasks, e) }); err != nil {
+	if query := uq.withMemos; query != nil {
+		if err := uq.loadMemos(ctx, query, nodes,
+			func(n *User) { n.Edges.Memos = []*Memo{} },
+			func(n *User, e *Memo) { n.Edges.Memos = append(n.Edges.Memos, e) }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (uq *UserQuery) loadTasks(ctx context.Context, query *TaskQuery, nodes []*User, init func(*User), assign func(*User, *Task)) error {
+func (uq *UserQuery) loadMemos(ctx context.Context, query *MemoQuery, nodes []*User, init func(*User), assign func(*User, *Memo)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
@@ -414,21 +414,21 @@ func (uq *UserQuery) loadTasks(ctx context.Context, query *TaskQuery, nodes []*U
 		}
 	}
 	query.withFKs = true
-	query.Where(predicate.Task(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.TasksColumn), fks...))
+	query.Where(predicate.Memo(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.MemosColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_tasks
+		fk := n.user_memos
 		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_tasks" is nil for node %v`, n.ID)
+			return fmt.Errorf(`foreign-key "user_memos" is nil for node %v`, n.ID)
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_tasks" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "user_memos" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -13,7 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/isutare412/tasks/api/internal/core/ent/task"
+	"github.com/isutare412/tasks/api/internal/core/ent/memo"
 	"github.com/isutare412/tasks/api/internal/core/ent/user"
 )
 
@@ -121,19 +121,19 @@ func (uc *UserCreate) SetNillableID(u *uuid.UUID) *UserCreate {
 	return uc
 }
 
-// AddTaskIDs adds the "tasks" edge to the Task entity by IDs.
-func (uc *UserCreate) AddTaskIDs(ids ...uuid.UUID) *UserCreate {
-	uc.mutation.AddTaskIDs(ids...)
+// AddMemoIDs adds the "memos" edge to the Memo entity by IDs.
+func (uc *UserCreate) AddMemoIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddMemoIDs(ids...)
 	return uc
 }
 
-// AddTasks adds the "tasks" edges to the Task entity.
-func (uc *UserCreate) AddTasks(t ...*Task) *UserCreate {
-	ids := make([]uuid.UUID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddMemos adds the "memos" edges to the Memo entity.
+func (uc *UserCreate) AddMemos(m ...*Memo) *UserCreate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
 	}
-	return uc.AddTaskIDs(ids...)
+	return uc.AddMemoIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -288,15 +288,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldPhotoURL, field.TypeString, value)
 		_node.PhotoURL = value
 	}
-	if nodes := uc.mutation.TasksIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.MemosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TasksTable,
-			Columns: []string{user.TasksColumn},
+			Table:   user.MemosTable,
+			Columns: []string{user.MemosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

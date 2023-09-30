@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/isutare412/tasks/api/internal/core/ent/memo"
 	"github.com/isutare412/tasks/api/internal/core/ent/predicate"
-	"github.com/isutare412/tasks/api/internal/core/ent/task"
 	"github.com/isutare412/tasks/api/internal/core/ent/user"
 )
 
@@ -108,19 +108,19 @@ func (uu *UserUpdate) ClearPhotoURL() *UserUpdate {
 	return uu
 }
 
-// AddTaskIDs adds the "tasks" edge to the Task entity by IDs.
-func (uu *UserUpdate) AddTaskIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.AddTaskIDs(ids...)
+// AddMemoIDs adds the "memos" edge to the Memo entity by IDs.
+func (uu *UserUpdate) AddMemoIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddMemoIDs(ids...)
 	return uu
 }
 
-// AddTasks adds the "tasks" edges to the Task entity.
-func (uu *UserUpdate) AddTasks(t ...*Task) *UserUpdate {
-	ids := make([]uuid.UUID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddMemos adds the "memos" edges to the Memo entity.
+func (uu *UserUpdate) AddMemos(m ...*Memo) *UserUpdate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
 	}
-	return uu.AddTaskIDs(ids...)
+	return uu.AddMemoIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -128,25 +128,25 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearTasks clears all "tasks" edges to the Task entity.
-func (uu *UserUpdate) ClearTasks() *UserUpdate {
-	uu.mutation.ClearTasks()
+// ClearMemos clears all "memos" edges to the Memo entity.
+func (uu *UserUpdate) ClearMemos() *UserUpdate {
+	uu.mutation.ClearMemos()
 	return uu
 }
 
-// RemoveTaskIDs removes the "tasks" edge to Task entities by IDs.
-func (uu *UserUpdate) RemoveTaskIDs(ids ...uuid.UUID) *UserUpdate {
-	uu.mutation.RemoveTaskIDs(ids...)
+// RemoveMemoIDs removes the "memos" edge to Memo entities by IDs.
+func (uu *UserUpdate) RemoveMemoIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveMemoIDs(ids...)
 	return uu
 }
 
-// RemoveTasks removes "tasks" edges to Task entities.
-func (uu *UserUpdate) RemoveTasks(t ...*Task) *UserUpdate {
-	ids := make([]uuid.UUID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveMemos removes "memos" edges to Memo entities.
+func (uu *UserUpdate) RemoveMemos(m ...*Memo) *UserUpdate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
 	}
-	return uu.RemoveTaskIDs(ids...)
+	return uu.RemoveMemoIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -254,28 +254,28 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if uu.mutation.PhotoURLCleared() {
 		_spec.ClearField(user.FieldPhotoURL, field.TypeString)
 	}
-	if uu.mutation.TasksCleared() {
+	if uu.mutation.MemosCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TasksTable,
-			Columns: []string{user.TasksColumn},
+			Table:   user.MemosTable,
+			Columns: []string{user.MemosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedTasksIDs(); len(nodes) > 0 && !uu.mutation.TasksCleared() {
+	if nodes := uu.mutation.RemovedMemosIDs(); len(nodes) > 0 && !uu.mutation.MemosCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TasksTable,
-			Columns: []string{user.TasksColumn},
+			Table:   user.MemosTable,
+			Columns: []string{user.MemosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -283,15 +283,15 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.TasksIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.MemosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TasksTable,
-			Columns: []string{user.TasksColumn},
+			Table:   user.MemosTable,
+			Columns: []string{user.MemosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -397,19 +397,19 @@ func (uuo *UserUpdateOne) ClearPhotoURL() *UserUpdateOne {
 	return uuo
 }
 
-// AddTaskIDs adds the "tasks" edge to the Task entity by IDs.
-func (uuo *UserUpdateOne) AddTaskIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.AddTaskIDs(ids...)
+// AddMemoIDs adds the "memos" edge to the Memo entity by IDs.
+func (uuo *UserUpdateOne) AddMemoIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddMemoIDs(ids...)
 	return uuo
 }
 
-// AddTasks adds the "tasks" edges to the Task entity.
-func (uuo *UserUpdateOne) AddTasks(t ...*Task) *UserUpdateOne {
-	ids := make([]uuid.UUID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// AddMemos adds the "memos" edges to the Memo entity.
+func (uuo *UserUpdateOne) AddMemos(m ...*Memo) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
 	}
-	return uuo.AddTaskIDs(ids...)
+	return uuo.AddMemoIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -417,25 +417,25 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearTasks clears all "tasks" edges to the Task entity.
-func (uuo *UserUpdateOne) ClearTasks() *UserUpdateOne {
-	uuo.mutation.ClearTasks()
+// ClearMemos clears all "memos" edges to the Memo entity.
+func (uuo *UserUpdateOne) ClearMemos() *UserUpdateOne {
+	uuo.mutation.ClearMemos()
 	return uuo
 }
 
-// RemoveTaskIDs removes the "tasks" edge to Task entities by IDs.
-func (uuo *UserUpdateOne) RemoveTaskIDs(ids ...uuid.UUID) *UserUpdateOne {
-	uuo.mutation.RemoveTaskIDs(ids...)
+// RemoveMemoIDs removes the "memos" edge to Memo entities by IDs.
+func (uuo *UserUpdateOne) RemoveMemoIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveMemoIDs(ids...)
 	return uuo
 }
 
-// RemoveTasks removes "tasks" edges to Task entities.
-func (uuo *UserUpdateOne) RemoveTasks(t ...*Task) *UserUpdateOne {
-	ids := make([]uuid.UUID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// RemoveMemos removes "memos" edges to Memo entities.
+func (uuo *UserUpdateOne) RemoveMemos(m ...*Memo) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
 	}
-	return uuo.RemoveTaskIDs(ids...)
+	return uuo.RemoveMemoIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -573,28 +573,28 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if uuo.mutation.PhotoURLCleared() {
 		_spec.ClearField(user.FieldPhotoURL, field.TypeString)
 	}
-	if uuo.mutation.TasksCleared() {
+	if uuo.mutation.MemosCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TasksTable,
-			Columns: []string{user.TasksColumn},
+			Table:   user.MemosTable,
+			Columns: []string{user.MemosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedTasksIDs(); len(nodes) > 0 && !uuo.mutation.TasksCleared() {
+	if nodes := uuo.mutation.RemovedMemosIDs(); len(nodes) > 0 && !uuo.mutation.MemosCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TasksTable,
-			Columns: []string{user.TasksColumn},
+			Table:   user.MemosTable,
+			Columns: []string{user.MemosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -602,15 +602,15 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.TasksIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.MemosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.TasksTable,
-			Columns: []string{user.TasksColumn},
+			Table:   user.MemosTable,
+			Columns: []string{user.MemosColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

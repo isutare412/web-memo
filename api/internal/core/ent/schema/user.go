@@ -50,7 +50,7 @@ func (User) Mixin() []ent.Mixin {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("tasks", Task.Type).
+		edge.To("memos", Memo.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

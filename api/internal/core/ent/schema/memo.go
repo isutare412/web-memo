@@ -8,39 +8,35 @@ import (
 	"github.com/google/uuid"
 )
 
-// Task holds the schema definition for the Task entity.
-type Task struct {
+// Memo holds the schema definition for the Memo entity.
+type Memo struct {
 	ent.Schema
 }
 
-// Fields of the Task.
-func (Task) Fields() []ent.Field {
+// Fields of the Memo.
+func (Memo) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
-		field.String("tag").
-			Optional().
-			Default("default").
-			NotEmpty().
-			MaxLen(64),
 		field.String("content").
 			MaxLen(20_000),
 	}
 }
 
-// Mixin of the Task.
-func (Task) Mixin() []ent.Mixin {
+// Mixin of the Memo.
+func (Memo) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Time{},
 	}
 }
 
-// Edges of the Task.
-func (Task) Edges() []ent.Edge {
+// Edges of the Memo.
+func (Memo) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("owner", User.Type).
-			Ref("tasks").
+			Ref("memos").
 			Required().
 			Unique(),
+		edge.To("tags", Tag.Type),
 	}
 }

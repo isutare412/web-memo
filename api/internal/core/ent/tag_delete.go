@@ -9,29 +9,29 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/isutare412/tasks/api/internal/core/ent/predicate"
-	"github.com/isutare412/tasks/api/internal/core/ent/task"
+	"github.com/isutare412/tasks/api/internal/core/ent/tag"
 )
 
-// TaskDelete is the builder for deleting a Task entity.
-type TaskDelete struct {
+// TagDelete is the builder for deleting a Tag entity.
+type TagDelete struct {
 	config
 	hooks    []Hook
-	mutation *TaskMutation
+	mutation *TagMutation
 }
 
-// Where appends a list predicates to the TaskDelete builder.
-func (td *TaskDelete) Where(ps ...predicate.Task) *TaskDelete {
+// Where appends a list predicates to the TagDelete builder.
+func (td *TagDelete) Where(ps ...predicate.Tag) *TagDelete {
 	td.mutation.Where(ps...)
 	return td
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (td *TaskDelete) Exec(ctx context.Context) (int, error) {
+func (td *TagDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, td.sqlExec, td.mutation, td.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (td *TaskDelete) ExecX(ctx context.Context) int {
+func (td *TagDelete) ExecX(ctx context.Context) int {
 	n, err := td.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (td *TaskDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (td *TaskDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(task.Table, sqlgraph.NewFieldSpec(task.FieldID, field.TypeUUID))
+func (td *TagDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(tag.Table, sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt))
 	if ps := td.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (td *TaskDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// TaskDeleteOne is the builder for deleting a single Task entity.
-type TaskDeleteOne struct {
-	td *TaskDelete
+// TagDeleteOne is the builder for deleting a single Tag entity.
+type TagDeleteOne struct {
+	td *TagDelete
 }
 
-// Where appends a list predicates to the TaskDelete builder.
-func (tdo *TaskDeleteOne) Where(ps ...predicate.Task) *TaskDeleteOne {
+// Where appends a list predicates to the TagDelete builder.
+func (tdo *TagDeleteOne) Where(ps ...predicate.Tag) *TagDeleteOne {
 	tdo.td.mutation.Where(ps...)
 	return tdo
 }
 
 // Exec executes the deletion query.
-func (tdo *TaskDeleteOne) Exec(ctx context.Context) error {
+func (tdo *TagDeleteOne) Exec(ctx context.Context) error {
 	n, err := tdo.td.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{task.Label}
+		return &NotFoundError{tag.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (tdo *TaskDeleteOne) ExecX(ctx context.Context) {
+func (tdo *TagDeleteOne) ExecX(ctx context.Context) {
 	if err := tdo.Exec(ctx); err != nil {
 		panic(err)
 	}
