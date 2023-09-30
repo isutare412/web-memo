@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/isutare412/tasks/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/ent"
 )
 
 // The MemoFunc type is an adapter to allow the use of ordinary

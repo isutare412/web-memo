@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/isutare412/tasks/api/internal/validate"
+	"github.com/isutare412/web-memo/api/internal/validate"
 )
 
 func LoadValidated(path string) (*Config, error) {

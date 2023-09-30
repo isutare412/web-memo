@@ -3,8 +3,8 @@ package config
 import (
 	"time"
 
-	"github.com/isutare412/tasks/api/internal/log"
-	"github.com/isutare412/tasks/api/internal/postgres"
+	"github.com/isutare412/web-memo/api/internal/log"
+	"github.com/isutare412/web-memo/api/internal/postgres"
 )
 
 type Config struct {

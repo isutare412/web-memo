@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/isutare412/tasks/api/internal/config"
-	"github.com/isutare412/tasks/api/internal/postgres"
+	"github.com/isutare412/web-memo/api/internal/config"
+	"github.com/isutare412/web-memo/api/internal/postgres"
 )
 
 type Components struct {

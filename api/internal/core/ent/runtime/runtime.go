@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/isutare412/tasks/api/internal/core/ent/runtime.go
+// The schema-stitching logic is generated in github.com/isutare412/web-memo/api/internal/core/ent/runtime.go
 
 const (
 	Version = "v0.12.4"                                         // Version of ent codegen.

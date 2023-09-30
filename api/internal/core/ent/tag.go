@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/isutare412/tasks/api/internal/core/ent/tag"
+	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 )
 
 // Tag is the model entity for the Tag schema.

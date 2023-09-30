@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/isutare412/tasks/api/internal/core/ent/memo"
-	"github.com/isutare412/tasks/api/internal/core/ent/predicate"
+	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 )
 
 // MemoDelete is the builder for deleting a Memo entity.

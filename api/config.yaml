@@ -10,5 +10,5 @@ postgres:
   port: 28100
   user: admin
   password: admin123123
-  database: tasks
+  database: web_memo
   queryLog: false

@@ -5,11 +5,9 @@ import (
 	"log/slog"
 	"os"
 
-	_ "github.com/lib/pq"
-
-	"github.com/isutare412/tasks/api/internal/config"
-	"github.com/isutare412/tasks/api/internal/log"
-	"github.com/isutare412/tasks/api/internal/wire"
+	"github.com/isutare412/web-memo/api/internal/config"
+	"github.com/isutare412/web-memo/api/internal/log"
+	"github.com/isutare412/web-memo/api/internal/wire"
 )
 
 var configPath = flag.String("config", "config.yaml", "YAML config file path")

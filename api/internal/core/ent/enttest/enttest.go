@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/isutare412/tasks/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/ent"
 	// required by schema hooks.
-	_ "github.com/isutare412/tasks/api/internal/core/ent/runtime"
+	_ "github.com/isutare412/web-memo/api/internal/core/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/isutare412/tasks/api/internal/core/ent/migrate"
+	"github.com/isutare412/web-memo/api/internal/core/ent/migrate"
 )
 
 type (

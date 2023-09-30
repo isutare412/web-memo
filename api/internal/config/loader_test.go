@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/isutare412/tasks/api/internal/log"
+	"github.com/isutare412/web-memo/api/internal/log"
 )
 
 func TestLoadValidated(t *testing.T) {

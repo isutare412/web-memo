@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 
-	"github.com/isutare412/tasks/api/internal/core/ent"
-	"github.com/isutare412/tasks/api/internal/core/ent/user"
-	"github.com/isutare412/tasks/api/internal/pkgerr"
+	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
 type UserRepository struct {

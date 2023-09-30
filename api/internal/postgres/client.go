@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/isutare412/tasks/api/internal/core/ent"
+	_ "github.com/lib/pq"
+
+	"github.com/isutare412/web-memo/api/internal/core/ent"
 )
 
 type Client struct {

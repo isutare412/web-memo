@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/isutare412/tasks/api/internal/core/ent/memo"
-	"github.com/isutare412/tasks/api/internal/core/ent/schema"
-	"github.com/isutare412/tasks/api/internal/core/ent/tag"
-	"github.com/isutare412/tasks/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/schema"
+	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
+	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code

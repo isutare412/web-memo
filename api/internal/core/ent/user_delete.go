@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/isutare412/tasks/api/internal/core/ent/predicate"
-	"github.com/isutare412/tasks/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
+	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
 
 // UserDelete is the builder for deleting a User entity.

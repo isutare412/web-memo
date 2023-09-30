@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/isutare412/tasks/api/internal/core/ent/memo"
-	"github.com/isutare412/tasks/api/internal/core/ent/tag"
-	"github.com/isutare412/tasks/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
+	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
 
 // ent aliases to avoid import conflicts in user's code.

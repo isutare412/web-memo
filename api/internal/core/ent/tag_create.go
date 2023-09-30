@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/isutare412/tasks/api/internal/core/ent/memo"
-	"github.com/isutare412/tasks/api/internal/core/ent/tag"
+	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 )
 
 // TagCreate is the builder for creating a Tag entity.

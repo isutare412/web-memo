@@ -1,4 +1,4 @@
-module github.com/isutare412/tasks/api
+module github.com/isutare412/web-memo/api
 
 go 1.21.1
 

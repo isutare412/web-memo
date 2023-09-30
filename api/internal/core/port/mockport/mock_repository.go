@@ -13,7 +13,7 @@ import (
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
-	ent "github.com/isutare412/tasks/api/internal/core/ent"
+	ent "github.com/isutare412/web-memo/api/internal/core/ent"
 	gomock "go.uber.org/mock/gomock"
 )
 

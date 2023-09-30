@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/isutare412/tasks/api/internal/core/ent/memo"
-	"github.com/isutare412/tasks/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
 
 // Memo is the model entity for the Memo schema.

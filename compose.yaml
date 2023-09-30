@@ -1,4 +1,4 @@
-name: tasks
+name: web-memo
 
 volumes:
   postgres-storage:
@@ -16,7 +16,7 @@ services:
     volumes:
       - postgres-storage:/bitnami/postgresql
     environment:
-      POSTGRESQL_DATABASE: tasks
+      POSTGRESQL_DATABASE: web_memo
       POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME}
       POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
       POSTGRESQL_POSTGRES_PASSWORD: ${POSTGRESQL_POSTGRES_PASSWORD}

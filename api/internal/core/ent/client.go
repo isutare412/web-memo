@@ -10,15 +10,15 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/isutare412/tasks/api/internal/core/ent/migrate"
+	"github.com/isutare412/web-memo/api/internal/core/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/isutare412/tasks/api/internal/core/ent/memo"
-	"github.com/isutare412/tasks/api/internal/core/ent/tag"
-	"github.com/isutare412/tasks/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
+	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
 
 // Client is the client that holds all ent builders.
