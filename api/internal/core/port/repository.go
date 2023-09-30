@@ -8,16 +8,23 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 )
 
+type TransactionManager interface {
+	BeginTx(context.Context) (ctxWithTx context.Context, commit, rollback func() error)
+	WithTx(context.Context, func(ctxWithTx context.Context) error) error
+}
+
 type UserRepository interface {
-	FindByID(context.Context, uuid.UUID) (*ent.User, error)
+	FindByID(ctx context.Context, userID uuid.UUID) (*ent.User, error)
 	Upsert(context.Context, *ent.User) (*ent.User, error)
 }
 
 type MemoRepository interface {
-	FindAllByUserIDWithTags(context.Context, uuid.UUID) ([]*ent.Memo, error)
+	FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
+	FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID) ([]*ent.Memo, error)
 	FindAllByUserIDAndTagIDWithTags(ctx context.Context, userID uuid.UUID, tagID int) ([]*ent.Memo, error)
 	Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error)
 	Update(context.Context, *ent.Memo) (*ent.Memo, error)
+	Delete(ctx context.Context, memoID uuid.UUID) error
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error
 }
 

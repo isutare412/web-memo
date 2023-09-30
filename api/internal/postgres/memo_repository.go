@@ -23,6 +23,30 @@ func NewMemoRepository(client *Client) *MemoRepository {
 	}
 }
 
+func (r *MemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
+	client := transactionClient(ctx, r.client)
+
+	memo, err := client.Memo.
+		Query().
+		Where(memo.ID(memoID)).
+		WithTags(func(tq *ent.TagQuery) {
+			tq.Order(tag.ByName())
+		}).
+		First(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return nil, pkgerr.Known{
+			Code:   pkgerr.CodeNotFound,
+			Simple: fmt.Errorf("memo with id(%s) not found", memoID.String()),
+			Origin: err,
+		}
+	case err != nil:
+		return nil, err
+	}
+
+	return memo, nil
+}
+
 func (r *MemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID) ([]*ent.Memo, error) {
 	client := transactionClient(ctx, r.client)
 
@@ -110,6 +134,26 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 	}
 
 	return memoUpdated, nil
+}
+
+func (r *MemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {
+	client := transactionClient(ctx, r.client)
+
+	err := client.Memo.
+		DeleteOneID(memoID).
+		Exec(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return pkgerr.Known{
+			Code:   pkgerr.CodeNotFound,
+			Simple: fmt.Errorf("memo with id(%s) does not exist", memoID.String()),
+			Origin: err,
+		}
+	case err != nil:
+		return err
+	}
+
+	return nil
 }
 
 func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error {

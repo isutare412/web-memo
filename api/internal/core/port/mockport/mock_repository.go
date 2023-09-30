@@ -17,6 +17,59 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
+// MockTransactionManager is a mock of TransactionManager interface.
+type MockTransactionManager struct {
+	ctrl     *gomock.Controller
+	recorder *MockTransactionManagerMockRecorder
+}
+
+// MockTransactionManagerMockRecorder is the mock recorder for MockTransactionManager.
+type MockTransactionManagerMockRecorder struct {
+	mock *MockTransactionManager
+}
+
+// NewMockTransactionManager creates a new mock instance.
+func NewMockTransactionManager(ctrl *gomock.Controller) *MockTransactionManager {
+	mock := &MockTransactionManager{ctrl: ctrl}
+	mock.recorder = &MockTransactionManagerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTransactionManager) EXPECT() *MockTransactionManagerMockRecorder {
+	return m.recorder
+}
+
+// BeginTx mocks base method.
+func (m *MockTransactionManager) BeginTx(arg0 context.Context) (context.Context, func() error, func() error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BeginTx", arg0)
+	ret0, _ := ret[0].(context.Context)
+	ret1, _ := ret[1].(func() error)
+	ret2, _ := ret[2].(func() error)
+	return ret0, ret1, ret2
+}
+
+// BeginTx indicates an expected call of BeginTx.
+func (mr *MockTransactionManagerMockRecorder) BeginTx(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BeginTx", reflect.TypeOf((*MockTransactionManager)(nil).BeginTx), arg0)
+}
+
+// WithTx mocks base method.
+func (m *MockTransactionManager) WithTx(arg0 context.Context, arg1 func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithTx", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithTx indicates an expected call of WithTx.
+func (mr *MockTransactionManagerMockRecorder) WithTx(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockTransactionManager)(nil).WithTx), arg0, arg1)
+}
+
 // MockUserRepository is a mock of UserRepository interface.
 type MockUserRepository struct {
 	ctrl     *gomock.Controller
@@ -41,18 +94,18 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 }
 
 // FindByID mocks base method.
-func (m *MockUserRepository) FindByID(arg0 context.Context, arg1 uuid.UUID) (*ent.User, error) {
+func (m *MockUserRepository) FindByID(ctx context.Context, userID uuid.UUID) (*ent.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByID", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindByID", ctx, userID)
 	ret0, _ := ret[0].(*ent.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindByID indicates an expected call of FindByID.
-func (mr *MockUserRepositoryMockRecorder) FindByID(arg0, arg1 any) *gomock.Call {
+func (mr *MockUserRepositoryMockRecorder) FindByID(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockUserRepository)(nil).FindByID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockUserRepository)(nil).FindByID), ctx, userID)
 }
 
 // Upsert mocks base method.
@@ -108,6 +161,20 @@ func (mr *MockMemoRepositoryMockRecorder) Create(ctx, memo, userID, tagIDs any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockMemoRepository)(nil).Create), ctx, memo, userID, tagIDs)
 }
 
+// Delete mocks base method.
+func (m *MockMemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, memoID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockMemoRepositoryMockRecorder) Delete(ctx, memoID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockMemoRepository)(nil).Delete), ctx, memoID)
+}
+
 // FindAllByUserIDAndTagIDWithTags mocks base method.
 func (m *MockMemoRepository) FindAllByUserIDAndTagIDWithTags(ctx context.Context, userID uuid.UUID, tagID int) ([]*ent.Memo, error) {
 	m.ctrl.T.Helper()
@@ -124,18 +191,33 @@ func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDAndTagIDWithTags(ctx, u
 }
 
 // FindAllByUserIDWithTags mocks base method.
-func (m *MockMemoRepository) FindAllByUserIDWithTags(arg0 context.Context, arg1 uuid.UUID) ([]*ent.Memo, error) {
+func (m *MockMemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID) ([]*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByUserIDWithTags", arg0, arg1)
+	ret := m.ctrl.Call(m, "FindAllByUserIDWithTags", ctx, userID)
 	ret0, _ := ret[0].([]*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAllByUserIDWithTags indicates an expected call of FindAllByUserIDWithTags.
-func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDWithTags(arg0, arg1 any) *gomock.Call {
+func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDWithTags(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDWithTags), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDWithTags), ctx, userID)
+}
+
+// FindByID mocks base method.
+func (m *MockMemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, memoID)
+	ret0, _ := ret[0].(*ent.Memo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockMemoRepositoryMockRecorder) FindByID(ctx, memoID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockMemoRepository)(nil).FindByID), ctx, memoID)
 }
 
 // ReplaceTags mocks base method.
