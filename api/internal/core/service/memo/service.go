@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
@@ -49,25 +48,25 @@ func (s *Service) ListMemos(ctx context.Context, userID uuid.UUID) ([]*ent.Memo,
 	return memos, nil
 }
 
-func (s *Service) CreateMemo(ctx context.Context, memo *ent.Memo, tags []*ent.Tag, userID uuid.UUID) (*ent.Memo, error) {
-	tags = sortUniqueTags(tags)
+func (s *Service) CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, userID uuid.UUID) (*ent.Memo, error) {
+	tagNames = sortDedupTags(tagNames)
 
 	var memoCreated *ent.Memo
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		tagsCreated, err := s.ensureTags(ctx, tags)
+		tags, err := s.ensureTags(ctx, tagNames)
 		if err != nil {
 			return fmt.Errorf("ensuring tags: %w", err)
 		}
 
-		tagIDs := lo.Map(tagsCreated, func(tag *ent.Tag, _ int) int { return tag.ID })
+		tagIDs := lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
 		memo, err := s.memoRepository.Create(ctx, memo, userID, tagIDs)
 		if err != nil {
 			return fmt.Errorf("creating memo: %w", err)
 		}
 
 		memoCreated = memo
-		memoCreated.Edges.Tags = tagsCreated
+		memoCreated.Edges.Tags = tags
 		return nil
 	})
 	if err != nil {
@@ -84,13 +83,13 @@ func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID) error {
 	return nil
 }
 
-func (s *Service) ReplaceTags(ctx context.Context, memoID uuid.UUID, tags []*ent.Tag) ([]*ent.Tag, error) {
-	tags = sortUniqueTags(tags)
+func (s *Service) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagNames []string) ([]*ent.Tag, error) {
+	tagNames = sortDedupTags(tagNames)
 
 	var tagsReplaced []*ent.Tag
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		tags, err := s.ensureTags(ctx, tags)
+		tags, err := s.ensureTags(ctx, tagNames)
 		if err != nil {
 			return fmt.Errorf("ensuring tags: %w", err)
 		}
@@ -110,10 +109,10 @@ func (s *Service) ReplaceTags(ctx context.Context, memoID uuid.UUID, tags []*ent
 	return tagsReplaced, nil
 }
 
-func (s *Service) ensureTags(ctx context.Context, tags []*ent.Tag) ([]*ent.Tag, error) {
-	tagsCreated := make([]*ent.Tag, 0, len(tags))
-	for _, tag := range tags {
-		tag, err := s.tagRepository.CreateIfNotExist(ctx, tag.Name)
+func (s *Service) ensureTags(ctx context.Context, tagNames []string) ([]*ent.Tag, error) {
+	tagsCreated := make([]*ent.Tag, 0, len(tagNames))
+	for _, tagName := range tagNames {
+		tag, err := s.tagRepository.CreateIfNotExist(ctx, tagName)
 		if err != nil {
 			return nil, fmt.Errorf("creating tag if not exist: %w", err)
 		}
@@ -124,7 +123,8 @@ func (s *Service) ensureTags(ctx context.Context, tags []*ent.Tag) ([]*ent.Tag, 
 	return tagsCreated, nil
 }
 
-func sortUniqueTags(tags []*ent.Tag) []*ent.Tag {
-	slices.SortStableFunc(tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
-	return lo.UniqBy(tags, func(tag *ent.Tag) string { return tag.Name })
+func sortDedupTags(tags []string) []string {
+	tags = lo.Uniq(tags)
+	slices.Sort(tags)
+	return tags
 }
