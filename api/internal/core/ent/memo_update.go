@@ -37,6 +37,12 @@ func (mu *MemoUpdate) SetUpdateTime(t time.Time) *MemoUpdate {
 	return mu
 }
 
+// SetTitle sets the "title" field.
+func (mu *MemoUpdate) SetTitle(s string) *MemoUpdate {
+	mu.mutation.SetTitle(s)
+	return mu
+}
+
 // SetContent sets the "content" field.
 func (mu *MemoUpdate) SetContent(s string) *MemoUpdate {
 	mu.mutation.SetContent(s)
@@ -139,6 +145,11 @@ func (mu *MemoUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mu *MemoUpdate) check() error {
+	if v, ok := mu.mutation.Title(); ok {
+		if err := memo.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Memo.title": %w`, err)}
+		}
+	}
 	if v, ok := mu.mutation.Content(); ok {
 		if err := memo.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Memo.content": %w`, err)}
@@ -164,6 +175,9 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.UpdateTime(); ok {
 		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := mu.mutation.Title(); ok {
+		_spec.SetField(memo.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)
@@ -265,6 +279,12 @@ type MemoUpdateOne struct {
 // SetUpdateTime sets the "update_time" field.
 func (muo *MemoUpdateOne) SetUpdateTime(t time.Time) *MemoUpdateOne {
 	muo.mutation.SetUpdateTime(t)
+	return muo
+}
+
+// SetTitle sets the "title" field.
+func (muo *MemoUpdateOne) SetTitle(s string) *MemoUpdateOne {
+	muo.mutation.SetTitle(s)
 	return muo
 }
 
@@ -383,6 +403,11 @@ func (muo *MemoUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (muo *MemoUpdateOne) check() error {
+	if v, ok := muo.mutation.Title(); ok {
+		if err := memo.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Memo.title": %w`, err)}
+		}
+	}
 	if v, ok := muo.mutation.Content(); ok {
 		if err := memo.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Memo.content": %w`, err)}
@@ -425,6 +450,9 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 	}
 	if value, ok := muo.mutation.UpdateTime(); ok {
 		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := muo.mutation.Title(); ok {
+		_spec.SetField(memo.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)

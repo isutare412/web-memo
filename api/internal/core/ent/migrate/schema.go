@@ -13,6 +13,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "title", Type: field.TypeString, Size: 512},
 		{Name: "content", Type: field.TypeString, Size: 20000},
 		{Name: "user_memos", Type: field.TypeUUID},
 	}
@@ -24,7 +25,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "memos_users_memos",
-				Columns:    []*schema.Column{MemosColumns[4]},
+				Columns:    []*schema.Column{MemosColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

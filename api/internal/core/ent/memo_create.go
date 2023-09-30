@@ -54,6 +54,12 @@ func (mc *MemoCreate) SetNillableUpdateTime(t *time.Time) *MemoCreate {
 	return mc
 }
 
+// SetTitle sets the "title" field.
+func (mc *MemoCreate) SetTitle(s string) *MemoCreate {
+	mc.mutation.SetTitle(s)
+	return mc
+}
+
 // SetContent sets the "content" field.
 func (mc *MemoCreate) SetContent(s string) *MemoCreate {
 	mc.mutation.SetContent(s)
@@ -157,6 +163,14 @@ func (mc *MemoCreate) check() error {
 	if _, ok := mc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Memo.update_time"`)}
 	}
+	if _, ok := mc.mutation.Title(); !ok {
+		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Memo.title"`)}
+	}
+	if v, ok := mc.mutation.Title(); ok {
+		if err := memo.TitleValidator(v); err != nil {
+			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Memo.title": %w`, err)}
+		}
+	}
 	if _, ok := mc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Memo.content"`)}
 	}
@@ -211,6 +225,10 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.UpdateTime(); ok {
 		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
+	}
+	if value, ok := mc.mutation.Title(); ok {
+		_spec.SetField(memo.FieldTitle, field.TypeString, value)
+		_node.Title = value
 	}
 	if value, ok := mc.mutation.Content(); ok {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)
@@ -313,6 +331,18 @@ func (u *MemoUpsert) UpdateUpdateTime() *MemoUpsert {
 	return u
 }
 
+// SetTitle sets the "title" field.
+func (u *MemoUpsert) SetTitle(v string) *MemoUpsert {
+	u.Set(memo.FieldTitle, v)
+	return u
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *MemoUpsert) UpdateTitle() *MemoUpsert {
+	u.SetExcluded(memo.FieldTitle)
+	return u
+}
+
 // SetContent sets the "content" field.
 func (u *MemoUpsert) SetContent(v string) *MemoUpsert {
 	u.Set(memo.FieldContent, v)
@@ -387,6 +417,20 @@ func (u *MemoUpsertOne) SetUpdateTime(v time.Time) *MemoUpsertOne {
 func (u *MemoUpsertOne) UpdateUpdateTime() *MemoUpsertOne {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetTitle sets the "title" field.
+func (u *MemoUpsertOne) SetTitle(v string) *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetTitle(v)
+	})
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *MemoUpsertOne) UpdateTitle() *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateTitle()
 	})
 }
 
@@ -633,6 +677,20 @@ func (u *MemoUpsertBulk) SetUpdateTime(v time.Time) *MemoUpsertBulk {
 func (u *MemoUpsertBulk) UpdateUpdateTime() *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetTitle sets the "title" field.
+func (u *MemoUpsertBulk) SetTitle(v string) *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetTitle(v)
+	})
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *MemoUpsertBulk) UpdateTitle() *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateTitle()
 	})
 }
 

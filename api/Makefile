@@ -25,14 +25,17 @@ mocks: mockgen ## Generate mock implementations.
 .PHONY: ent-new
 ent-new: ## Create new entity.
 	go run -mod=mod entgo.io/ent/cmd/ent new --target ./internal/core/ent/schema $(ENTITY)
+	@go mod tidy
 
 .PHONY: ent-gen
 ent-gen: ## Generate Go code for entities.
-	go run -mod=mod entgo.io/ent/cmd/ent generate --feature sql/upsert ./internal/core/ent/schema
+	go run -mod=mod entgo.io/ent/cmd/ent generate --feature=sql/upsert ./internal/core/ent/schema
+	@go mod tidy
 
 .PHONY: ent-desc
 ent-desc: ## Describe schemas.
 	go run -mod=mod entgo.io/ent/cmd/ent describe ./internal/core/ent/schema
+	@go mod tidy
 
 ##@ Tool Dependencies
 

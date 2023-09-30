@@ -40,6 +40,7 @@ type MemoMutation struct {
 	id            *uuid.UUID
 	create_time   *time.Time
 	update_time   *time.Time
+	title         *string
 	content       *string
 	clearedFields map[string]struct{}
 	owner         *uuid.UUID
@@ -228,6 +229,42 @@ func (m *MemoMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
+// SetTitle sets the "title" field.
+func (m *MemoMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *MemoMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the Memo entity.
+// If the Memo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *MemoMutation) ResetTitle() {
+	m.title = nil
+}
+
 // SetContent sets the "content" field.
 func (m *MemoMutation) SetContent(s string) {
 	m.content = &s
@@ -391,12 +428,15 @@ func (m *MemoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemoMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.create_time != nil {
 		fields = append(fields, memo.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, memo.FieldUpdateTime)
+	}
+	if m.title != nil {
+		fields = append(fields, memo.FieldTitle)
 	}
 	if m.content != nil {
 		fields = append(fields, memo.FieldContent)
@@ -413,6 +453,8 @@ func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case memo.FieldUpdateTime:
 		return m.UpdateTime()
+	case memo.FieldTitle:
+		return m.Title()
 	case memo.FieldContent:
 		return m.Content()
 	}
@@ -428,6 +470,8 @@ func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCreateTime(ctx)
 	case memo.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case memo.FieldTitle:
+		return m.OldTitle(ctx)
 	case memo.FieldContent:
 		return m.OldContent(ctx)
 	}
@@ -452,6 +496,13 @@ func (m *MemoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case memo.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
 		return nil
 	case memo.FieldContent:
 		v, ok := value.(string)
@@ -514,6 +565,9 @@ func (m *MemoMutation) ResetField(name string) error {
 		return nil
 	case memo.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case memo.FieldTitle:
+		m.ResetTitle()
 		return nil
 	case memo.FieldContent:
 		m.ResetContent()

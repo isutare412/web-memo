@@ -18,6 +18,8 @@ func (Memo) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
+		field.String("title").
+			MaxLen(512),
 		field.String("content").
 			MaxLen(20_000),
 	}

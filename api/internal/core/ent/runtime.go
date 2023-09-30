@@ -31,8 +31,12 @@ func init() {
 	memo.DefaultUpdateTime = memoDescUpdateTime.Default.(func() time.Time)
 	// memo.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	memo.UpdateDefaultUpdateTime = memoDescUpdateTime.UpdateDefault.(func() time.Time)
+	// memoDescTitle is the schema descriptor for title field.
+	memoDescTitle := memoFields[1].Descriptor()
+	// memo.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	memo.TitleValidator = memoDescTitle.Validators[0].(func(string) error)
 	// memoDescContent is the schema descriptor for content field.
-	memoDescContent := memoFields[1].Descriptor()
+	memoDescContent := memoFields[2].Descriptor()
 	// memo.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	memo.ContentValidator = memoDescContent.Validators[0].(func(string) error)
 	// memoDescID is the schema descriptor for id field.
