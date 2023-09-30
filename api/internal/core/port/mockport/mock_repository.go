@@ -69,3 +69,138 @@ func (mr *MockUserRepositoryMockRecorder) Upsert(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upsert", reflect.TypeOf((*MockUserRepository)(nil).Upsert), arg0, arg1)
 }
+
+// MockMemoRepository is a mock of MemoRepository interface.
+type MockMemoRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockMemoRepositoryMockRecorder
+}
+
+// MockMemoRepositoryMockRecorder is the mock recorder for MockMemoRepository.
+type MockMemoRepositoryMockRecorder struct {
+	mock *MockMemoRepository
+}
+
+// NewMockMemoRepository creates a new mock instance.
+func NewMockMemoRepository(ctrl *gomock.Controller) *MockMemoRepository {
+	mock := &MockMemoRepository{ctrl: ctrl}
+	mock.recorder = &MockMemoRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMemoRepository) EXPECT() *MockMemoRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockMemoRepository) Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, memo, userID, tagIDs)
+	ret0, _ := ret[0].(*ent.Memo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockMemoRepositoryMockRecorder) Create(ctx, memo, userID, tagIDs any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockMemoRepository)(nil).Create), ctx, memo, userID, tagIDs)
+}
+
+// FindAllByUserIDAndTagIDWithTags mocks base method.
+func (m *MockMemoRepository) FindAllByUserIDAndTagIDWithTags(ctx context.Context, userID uuid.UUID, tagID int) ([]*ent.Memo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAllByUserIDAndTagIDWithTags", ctx, userID, tagID)
+	ret0, _ := ret[0].([]*ent.Memo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAllByUserIDAndTagIDWithTags indicates an expected call of FindAllByUserIDAndTagIDWithTags.
+func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDAndTagIDWithTags(ctx, userID, tagID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDAndTagIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDAndTagIDWithTags), ctx, userID, tagID)
+}
+
+// FindAllByUserIDWithTags mocks base method.
+func (m *MockMemoRepository) FindAllByUserIDWithTags(arg0 context.Context, arg1 uuid.UUID) ([]*ent.Memo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAllByUserIDWithTags", arg0, arg1)
+	ret0, _ := ret[0].([]*ent.Memo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAllByUserIDWithTags indicates an expected call of FindAllByUserIDWithTags.
+func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDWithTags(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDWithTags), arg0, arg1)
+}
+
+// ReplaceTags mocks base method.
+func (m *MockMemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceTags", ctx, memoID, tagIDs)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReplaceTags indicates an expected call of ReplaceTags.
+func (mr *MockMemoRepositoryMockRecorder) ReplaceTags(ctx, memoID, tagIDs any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoRepository)(nil).ReplaceTags), ctx, memoID, tagIDs)
+}
+
+// Update mocks base method.
+func (m *MockMemoRepository) Update(arg0 context.Context, arg1 *ent.Memo) (*ent.Memo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret0, _ := ret[0].(*ent.Memo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockMemoRepositoryMockRecorder) Update(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMemoRepository)(nil).Update), arg0, arg1)
+}
+
+// MockTagRepository is a mock of TagRepository interface.
+type MockTagRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockTagRepositoryMockRecorder
+}
+
+// MockTagRepositoryMockRecorder is the mock recorder for MockTagRepository.
+type MockTagRepositoryMockRecorder struct {
+	mock *MockTagRepository
+}
+
+// NewMockTagRepository creates a new mock instance.
+func NewMockTagRepository(ctrl *gomock.Controller) *MockTagRepository {
+	mock := &MockTagRepository{ctrl: ctrl}
+	mock.recorder = &MockTagRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTagRepository) EXPECT() *MockTagRepositoryMockRecorder {
+	return m.recorder
+}
+
+// CreateIfNotExist mocks base method.
+func (m *MockTagRepository) CreateIfNotExist(ctx context.Context, tagName string) (*ent.Tag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateIfNotExist", ctx, tagName)
+	ret0, _ := ret[0].(*ent.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateIfNotExist indicates an expected call of CreateIfNotExist.
+func (mr *MockTagRepositoryMockRecorder) CreateIfNotExist(ctx, tagName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIfNotExist", reflect.TypeOf((*MockTagRepository)(nil).CreateIfNotExist), ctx, tagName)
+}
