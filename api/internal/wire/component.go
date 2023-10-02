@@ -10,12 +10,17 @@ import (
 	"time"
 
 	"github.com/isutare412/web-memo/api/internal/config"
+	"github.com/isutare412/web-memo/api/internal/core/service/memo"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 )
 
 type Components struct {
 	cfg            *config.Config
 	postgresClient *postgres.Client
+	userRepository *postgres.UserRepository
+	memoRepository *postgres.MemoRepository
+	tagRepository  *postgres.TagRepository
+	memoService    *memo.Service
 }
 
 func NewComponents(cfg *config.Config) (*Components, error) {
@@ -24,13 +29,23 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 		return nil, fmt.Errorf("creating PostgreSQL client: %w", err)
 	}
 
+	userRepository := postgres.NewUserRepository(postgresClient)
+	memoRepository := postgres.NewMemoRepository(postgresClient)
+	tagRepository := postgres.NewTagRepository(postgresClient)
+
+	memoService := memo.NewService(postgresClient, memoRepository, tagRepository)
+
 	return &Components{
 		cfg:            cfg,
 		postgresClient: postgresClient,
+		userRepository: userRepository,
+		memoRepository: memoRepository,
+		tagRepository:  tagRepository,
+		memoService:    memoService,
 	}, nil
 }
 
-func (c *Components) Initialize() error {
+func (c *Components) Initialize() (err error) {
 	slog.Info("component initialization start", "timeout", c.cfg.Wire.InitializeTimeout)
 	start := time.Now()
 	defer func() {
@@ -44,6 +59,7 @@ func (c *Components) Initialize() error {
 	if err := c.postgresClient.MigrateSchemas(ctx); err != nil {
 		return fmt.Errorf("migrating schemas: %w", err)
 	}
+
 	return nil
 }
 
