@@ -10,7 +10,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/wire"
 )
 
-var configPath = flag.String("config", "config.yaml", "YAML config file path")
+var configPath = flag.String("configs", ".", "path to config directory")
 
 func init() {
 	flag.Parse()

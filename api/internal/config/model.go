@@ -3,6 +3,7 @@ package config
 import (
 	"time"
 
+	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
@@ -11,12 +12,17 @@ import (
 type Config struct {
 	Wire     WireConfig     `mapstructure:"wire"`
 	Log      LogConfig      `mapstructure:"log"`
+	HTTP     HTTPConfig     `mapstructure:"http"`
 	Postgres PostgresConfig `mapstructure:"postgres"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
 	return log.Config(c.Log)
+}
+
+func (c *Config) ToHTTPConfig() http.Config {
+	return http.Config(c.HTTP)
 }
 
 func (c *Config) ToPostgresConfig() postgres.Config {
@@ -36,6 +42,10 @@ type LogConfig struct {
 	Format log.Format `mapstructure:"format" validate:"required,oneof=json text"`
 	Level  log.Level  `mapstructure:"level" validate:"required,oneof=debug info warn error"`
 	Caller bool       `mapstructure:"caller"`
+}
+
+type HTTPConfig struct {
+	Port int `json:"port" validate:"required"`
 }
 
 type PostgresConfig struct {

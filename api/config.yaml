@@ -5,6 +5,8 @@ log:
   format: text # text / json
   level: debug # debug / info / warn / error
   caller: true
+http:
+  port: 8412
 postgres:
   host: localhost
   port: 28100

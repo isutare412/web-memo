@@ -1,7 +1,10 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -9,8 +12,12 @@ import (
 	"github.com/isutare412/web-memo/api/internal/validate"
 )
 
+var overrideFiles = []string{
+	"config.local.yaml",
+}
+
 func LoadValidated(path string) (*Config, error) {
-	if err := readFile(path); err != nil {
+	if err := readFiles(path); err != nil {
 		return nil, err
 	}
 	readEnv()
@@ -26,12 +33,34 @@ func LoadValidated(path string) (*Config, error) {
 	return &cfg, nil
 }
 
-func readFile(path string) error {
-	viper.SetConfigFile(path)
+func readFiles(dirPath string) error {
+	viper.SetConfigFile(filepath.Join(dirPath, "config.yaml"))
 	if err := viper.ReadInConfig(); err != nil {
 		return fmt.Errorf("reading in config: %w", err)
 	}
+
+	for _, fileName := range overrideFiles {
+		if _, err := mergeFileIfExist(filepath.Join(dirPath, fileName)); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func mergeFileIfExist(path string) (bool, error) {
+	if _, err := os.Stat(path); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, fmt.Errorf("checking if config exists: %w", err)
+	}
+
+	viper.SetConfigFile(path)
+	if err := viper.MergeInConfig(); err != nil {
+		return false, fmt.Errorf("merging in config: %w", err)
+	}
+
+	return true, nil
 }
 
 func readEnv() {
