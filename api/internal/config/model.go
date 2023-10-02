@@ -28,8 +28,8 @@ func (c *Config) ToRedisConfig() redis.Config {
 }
 
 type WireConfig struct {
-	InitializeTimeout time.Duration `mapstructure:"initializeTimeout" validate:"required"`
-	ShutdownTimeout   time.Duration `mapstructure:"shutdownTimeout" validate:"required"`
+	InitializeTimeout time.Duration `mapstructure:"initialize-timeout" validate:"required"`
+	ShutdownTimeout   time.Duration `mapstructure:"shutdown-timeout" validate:"required"`
 }
 
 type LogConfig struct {
@@ -44,7 +44,7 @@ type PostgresConfig struct {
 	User     string `mapstructure:"user" validate:"required"`
 	Password string `mapstructure:"password" validate:"required"`
 	Database string `mapstructure:"database" validate:"required"`
-	QueryLog bool   `mapstructure:"queryLog"`
+	QueryLog bool   `mapstructure:"query-log"`
 }
 
 type RedisConfig struct {

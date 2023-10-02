@@ -1,6 +1,6 @@
 wire:
-  initializeTimeout: 10s
-  shutdownTimeout: 10s
+  initialize-timeout: 10s
+  shutdown-timeout: 10s
 log:
   format: text # text / json
   level: debug # debug / info / warn / error
@@ -11,7 +11,7 @@ postgres:
   user: admin
   password: admin123123
   database: web_memo
-  queryLog: false
+  query-log: false
 redis:
   addr: localhost:28200
   password: webmemooo

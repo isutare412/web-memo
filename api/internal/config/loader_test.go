@@ -16,8 +16,8 @@ var _ = Describe("Loader", func() {
 	Context("LoadValidated", func() {
 		var (
 			givenConfigText = `wire:
-  initializeTimeout: 1h30m
-  shutdownTimeout: 90s
+  initialize-timeout: 1h30m
+  shutdown-timeout: 90s
 log:
   format: text
   level: debug
@@ -71,8 +71,8 @@ redis:
 		It("loads config overwritten by env", func() {
 			var (
 				givenEnvs = map[string]string{
-					"APP_POSTGRES_HOST":        "1.2.3.4",
-					"APP_WIRE_SHUTDOWNTIMEOUT": "1s",
+					"APP_POSTGRES_HOST":         "1.2.3.4",
+					"APP_WIRE_SHUTDOWN-TIMEOUT": "1s",
 				}
 			)
 
