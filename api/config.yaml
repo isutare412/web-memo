@@ -12,3 +12,6 @@ postgres:
   password: admin123123
   database: web_memo
   queryLog: false
+redis:
+  addr: localhost:28200
+  password: webmemooo

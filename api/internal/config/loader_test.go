@@ -27,7 +27,10 @@ postgres:
   port: 1234
   user: tester
   password: password
-  database: fake`
+  database: fake
+redis:
+  addr: localhost:4120
+  password: memcached`
 		)
 
 		It("loads valid config", func() {
@@ -48,6 +51,10 @@ postgres:
 						User:     "tester",
 						Password: "password",
 						Database: "fake",
+					},
+					Redis: config.RedisConfig{
+						Addr:     "localhost:4120",
+						Password: "memcached",
 					},
 				}
 			)
@@ -86,6 +93,10 @@ postgres:
 						User:     "tester",
 						Password: "password",
 						Database: "fake",
+					},
+					Redis: config.RedisConfig{
+						Addr:     "localhost:4120",
+						Password: "memcached",
 					},
 				}
 			)

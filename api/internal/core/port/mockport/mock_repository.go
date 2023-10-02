@@ -11,6 +11,7 @@ package mockport
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	uuid "github.com/google/uuid"
 	ent "github.com/isutare412/web-memo/api/internal/core/ent"
@@ -285,4 +286,91 @@ func (m *MockTagRepository) CreateIfNotExist(ctx context.Context, tagName string
 func (mr *MockTagRepositoryMockRecorder) CreateIfNotExist(ctx, tagName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIfNotExist", reflect.TypeOf((*MockTagRepository)(nil).CreateIfNotExist), ctx, tagName)
+}
+
+// MockKVRepository is a mock of KVRepository interface.
+type MockKVRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockKVRepositoryMockRecorder
+}
+
+// MockKVRepositoryMockRecorder is the mock recorder for MockKVRepository.
+type MockKVRepositoryMockRecorder struct {
+	mock *MockKVRepository
+}
+
+// NewMockKVRepository creates a new mock instance.
+func NewMockKVRepository(ctrl *gomock.Controller) *MockKVRepository {
+	mock := &MockKVRepository{ctrl: ctrl}
+	mock.recorder = &MockKVRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockKVRepository) EXPECT() *MockKVRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Delete mocks base method.
+func (m *MockKVRepository) Delete(ctx context.Context, keys ...string) (int64, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range keys {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Delete", varargs...)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockKVRepositoryMockRecorder) Delete(ctx any, keys ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, keys...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockKVRepository)(nil).Delete), varargs...)
+}
+
+// Get mocks base method.
+func (m *MockKVRepository) Get(ctx context.Context, key string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, key)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockKVRepositoryMockRecorder) Get(ctx, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockKVRepository)(nil).Get), ctx, key)
+}
+
+// GetThenDelete mocks base method.
+func (m *MockKVRepository) GetThenDelete(ctx context.Context, key string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetThenDelete", ctx, key)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetThenDelete indicates an expected call of GetThenDelete.
+func (mr *MockKVRepositoryMockRecorder) GetThenDelete(ctx, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetThenDelete", reflect.TypeOf((*MockKVRepository)(nil).GetThenDelete), ctx, key)
+}
+
+// Set mocks base method.
+func (m *MockKVRepository) Set(ctx context.Context, key, val string, exp time.Duration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Set", ctx, key, val, exp)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Set indicates an expected call of Set.
+func (mr *MockKVRepositoryMockRecorder) Set(ctx, key, val, exp any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockKVRepository)(nil).Set), ctx, key, val, exp)
 }

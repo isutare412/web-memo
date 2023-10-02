@@ -12,6 +12,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/config"
 	"github.com/isutare412/web-memo/api/internal/core/service/memo"
 	"github.com/isutare412/web-memo/api/internal/postgres"
+	"github.com/isutare412/web-memo/api/internal/redis"
 )
 
 type Components struct {
@@ -20,6 +21,8 @@ type Components struct {
 	userRepository *postgres.UserRepository
 	memoRepository *postgres.MemoRepository
 	tagRepository  *postgres.TagRepository
+	redisClient    *redis.Client
+	kvRepository   *redis.KVRepository
 	memoService    *memo.Service
 }
 
@@ -33,6 +36,9 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 	memoRepository := postgres.NewMemoRepository(postgresClient)
 	tagRepository := postgres.NewTagRepository(postgresClient)
 
+	redisClient := redis.NewClient(cfg.ToRedisConfig())
+	kvRepository := redis.NewKVRepository(redisClient)
+
 	memoService := memo.NewService(postgresClient, memoRepository, tagRepository)
 
 	return &Components{
@@ -41,6 +47,8 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 		userRepository: userRepository,
 		memoRepository: memoRepository,
 		tagRepository:  tagRepository,
+		redisClient:    redisClient,
+		kvRepository:   kvRepository,
 		memoService:    memoService,
 	}, nil
 }
@@ -80,6 +88,11 @@ func (c *Components) Shutdown() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.cfg.Wire.ShutdownTimeout)
 	defer cancel()
+
+	slog.Info("shutdown redisClient")
+	if err := c.redisClient.Shutdown(ctx); err != nil {
+		slog.Error("failed to shutdown redisClient", "error", err)
+	}
 
 	slog.Info("shutdown postgresClient")
 	if err := c.postgresClient.Shutdown(ctx); err != nil {

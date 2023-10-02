@@ -1,0 +1,70 @@
+package redis
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+
+	"github.com/isutare412/web-memo/api/internal/pkgerr"
+)
+
+type KVRepository struct {
+	client *redis.Client
+}
+
+func NewKVRepository(client *Client) *KVRepository {
+	return &KVRepository{
+		client: client.innerClient,
+	}
+}
+
+func (r *KVRepository) Get(ctx context.Context, key string) (string, error) {
+	val, err := r.client.Get(ctx, key).Result()
+	switch {
+	case errors.Is(err, redis.Nil):
+		return "", pkgerr.Known{
+			Code:   pkgerr.CodeNotFound,
+			Simple: fmt.Errorf("value of key(%s) does not exist", key),
+			Origin: err,
+		}
+	case err != nil:
+		return "", fmt.Errorf("getting value of key: %w", err)
+	}
+
+	return val, nil
+}
+
+func (r *KVRepository) GetThenDelete(ctx context.Context, key string) (string, error) {
+	val, err := r.client.GetDel(ctx, key).Result()
+	switch {
+	case errors.Is(err, redis.Nil):
+		return "", pkgerr.Known{
+			Code:   pkgerr.CodeNotFound,
+			Simple: fmt.Errorf("value of key(%s) does not exist", key),
+			Origin: err,
+		}
+	case err != nil:
+		return "", fmt.Errorf("getting value of key: %w", err)
+	}
+
+	return val, nil
+}
+
+func (r *KVRepository) Set(ctx context.Context, key, val string, exp time.Duration) error {
+	_, err := r.client.Set(ctx, key, val, exp).Result()
+	if err != nil {
+		return fmt.Errorf("setting value of key: %w", err)
+	}
+	return nil
+}
+
+func (r *KVRepository) Delete(ctx context.Context, keys ...string) (delCount int64, err error) {
+	count, err := r.client.Del(ctx, keys...).Result()
+	if err != nil {
+		return 0, fmt.Errorf("deleting keys: %w", err)
+	}
+	return count, nil
+}

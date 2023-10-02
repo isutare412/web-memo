@@ -2,6 +2,7 @@ package port
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -30,4 +31,11 @@ type MemoRepository interface {
 
 type TagRepository interface {
 	CreateIfNotExist(ctx context.Context, tagName string) (*ent.Tag, error)
+}
+
+type KVRepository interface {
+	Get(ctx context.Context, key string) (string, error)
+	GetThenDelete(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key, val string, exp time.Duration) error
+	Delete(ctx context.Context, keys ...string) (delCount int64, err error)
 }
