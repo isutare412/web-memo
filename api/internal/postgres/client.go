@@ -25,7 +25,25 @@ func NewClient(cfg Config) (*Client, error) {
 }
 
 func (c *Client) Shutdown(ctx context.Context) error {
-	return c.entClient.Close()
+	errs := make(chan error)
+	success := make(chan struct{})
+	go func() {
+		if err := c.entClient.Close(); err != nil {
+			errs <- fmt.Errorf("closing ent client: %w", err)
+			return
+		}
+
+		close(success)
+	}()
+
+	select {
+	case err := <-errs:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-success:
+		return nil
+	}
 }
 
 func (c *Client) MigrateSchemas(ctx context.Context) error {
