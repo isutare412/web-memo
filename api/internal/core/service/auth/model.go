@@ -8,6 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	queryRedirectURI = "redirect_uri"
+	queryState       = "state"
+)
+
 // googleOIDCRequest holds every data to start OpenID Connect flow.
 // Check this out https://developers.google.com/identity/openid-connect/openid-connect#authenticationuriparameters.
 type googleOIDCRequest struct {
@@ -35,8 +40,8 @@ func (r *googleOIDCRequest) buildURL() (string, error) {
 	q.Add("prompt", "consent select_account")
 	q.Add("nonce", uuid.NewString())
 	q.Add("client_id", r.clientID)
-	q.Add("redirect_uri", r.redirectURI)
-	q.Add("state", string(stateBytes))
+	q.Add(queryRedirectURI, r.redirectURI)
+	q.Add(queryState, string(stateBytes))
 	uri.RawQuery = q.Encode()
 
 	return uri.String(), nil

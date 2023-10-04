@@ -12,6 +12,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/config"
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/core/service/memo"
+	"github.com/isutare412/web-memo/api/internal/google"
 	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
@@ -21,17 +22,8 @@ type Components struct {
 	cfg *config.Config
 
 	postgresClient *postgres.Client
-	userRepository *postgres.UserRepository
-	memoRepository *postgres.MemoRepository
-	tagRepository  *postgres.TagRepository
-
-	redisClient  *redis.Client
-	kvRepository *redis.KVRepository
-
-	authService *auth.Service
-	memoService *memo.Service
-
-	httpServer *http.Server
+	redisClient    *redis.Client
+	httpServer     *http.Server
 }
 
 func NewComponents(cfg *config.Config) (*Components, error) {
@@ -47,8 +39,10 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 	redisClient := redis.NewClient(cfg.ToRedisConfig())
 	kvRepository := redis.NewKVRepository(redisClient)
 
-	authService := auth.NewService(cfg.ToAuthServiceConfig(), kvRepository)
-	memoService := memo.NewService(postgresClient, memoRepository, tagRepository)
+	googleClient := google.NewClient(cfg.ToGoogleClientConfig())
+
+	authService := auth.NewService(cfg.ToAuthServiceConfig(), kvRepository, userRepository, googleClient)
+	_ = memo.NewService(postgresClient, memoRepository, tagRepository)
 
 	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService)
 
@@ -56,17 +50,8 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 		cfg: cfg,
 
 		postgresClient: postgresClient,
-		userRepository: userRepository,
-		memoRepository: memoRepository,
-		tagRepository:  tagRepository,
-
-		redisClient:  redisClient,
-		kvRepository: kvRepository,
-
-		authService: authService,
-		memoService: memoService,
-
-		httpServer: httpServer,
+		redisClient:    redisClient,
+		httpServer:     httpServer,
 	}, nil
 }
 

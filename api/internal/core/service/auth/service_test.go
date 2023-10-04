@@ -19,8 +19,10 @@ var _ = Describe("Service", func() {
 		var authService *auth.Service
 
 		var (
-			mockController   *gomock.Controller
-			mockKVRepository *mockport.MockKVRepository
+			mockController     *gomock.Controller
+			mockKVRepository   *mockport.MockKVRepository
+			mockUserRepository *mockport.MockUserRepository
+			mockGoogleClient   *mockport.MockGoogleClient
 		)
 
 		var (
@@ -37,10 +39,12 @@ var _ = Describe("Service", func() {
 		BeforeEach(func() {
 			mockController = gomock.NewController(GinkgoT())
 			mockKVRepository = mockport.NewMockKVRepository(mockController)
-			authService = auth.NewService(givenAuthConfig, mockKVRepository)
+			mockUserRepository = mockport.NewMockUserRepository(mockController)
+			mockGoogleClient = mockport.NewMockGoogleClient(mockController)
+			authService = auth.NewService(givenAuthConfig, mockKVRepository, mockUserRepository, mockGoogleClient)
 		})
 
-		Context("GoogleSignIn", func() {
+		Context("StartGoogleSignIn", func() {
 			It("builds redirect URL as expected", func(ctx SpecContext) {
 				var (
 					givenHost        = "my-web-memo.com:1234"

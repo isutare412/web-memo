@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,10 +11,13 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
+	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
 type Service struct {
-	kvRepository port.KVRepository
+	kvRepository   port.KVRepository
+	userRepository port.UserRepository
+	googleClient   port.GoogleClient
 
 	googleOAuthEndpoint     string
 	googleOAuthClientID     string
@@ -21,9 +25,16 @@ type Service struct {
 	oauthStateTimeout       time.Duration
 }
 
-func NewService(cfg Config, kvRepository port.KVRepository) *Service {
+func NewService(
+	cfg Config,
+	kvRepository port.KVRepository,
+	userRepository port.UserRepository,
+	googleClient port.GoogleClient,
+) *Service {
 	return &Service{
-		kvRepository: kvRepository,
+		kvRepository:   kvRepository,
+		userRepository: userRepository,
+		googleClient:   googleClient,
 
 		googleOAuthEndpoint:     cfg.Google.OAuthEndpoint,
 		googleOAuthClientID:     cfg.Google.OAuthClientID,
@@ -33,9 +44,9 @@ func NewService(cfg Config, kvRepository port.KVRepository) *Service {
 }
 
 func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL string, err error) {
-	callbackURL, err := url.JoinPath(baseURL(req), s.googleOAuthCallbackPath)
+	callbackURL, err := s.googleCallbackURL(req)
 	if err != nil {
-		return "", fmt.Errorf("joining callback URL: %w", err)
+		return "", fmt.Errorf("getting google callback URL: %w", err)
 	}
 
 	stateID, err := s.generateOAuthStateID(ctx)
@@ -61,12 +72,66 @@ func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (red
 	return redirectURL, nil
 }
 
+func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL string, err error) {
+	state, err := parseGoogleOAuthState(req.URL.Query())
+	if err != nil {
+		return "", fmt.Errorf("getting google oauth state: %w", err)
+	}
+
+	if _, err := s.kvRepository.GetThenDelete(ctx, state.ID); err != nil {
+		if pkgerr.IsErrNotFound(err) {
+			return "", pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: "OAuth2.0 state not found",
+				Origin:    err,
+			}
+		}
+		return "", fmt.Errorf("get then deleting state: %w", err)
+	}
+
+	authCode := req.URL.Query().Get("code")
+	if authCode == "" {
+		return "", pkgerr.Known{
+			ClientMsg: "no authorization code",
+		}
+	}
+
+	callbackURL, err := s.googleCallbackURL(req)
+	if err != nil {
+		return "", fmt.Errorf("getting google callback URL: %w", err)
+	}
+
+	// TODO: change response to ID token
+	_, err = s.googleClient.ExchangeAuthCode(ctx, authCode, callbackURL)
+	if err != nil {
+		return "", fmt.Errorf("exchanging auth code: %w", err)
+	}
+
+	// TODO: parse google ID token
+	// TODO: create custom token
+
+	redirectURL = baseURL(req)
+	if state.Referer != "" {
+		redirectURL = state.Referer
+	}
+
+	return redirectURL, nil
+}
+
 func (s *Service) generateOAuthStateID(ctx context.Context) (string, error) {
 	id := uuid.NewString()
 	if err := s.kvRepository.Set(ctx, id, "", s.oauthStateTimeout); err != nil {
 		return "", fmt.Errorf("setting oauth state: %w", err)
 	}
 	return id, nil
+}
+
+func (s *Service) googleCallbackURL(r *http.Request) (string, error) {
+	url, err := url.JoinPath(baseURL(r), s.googleOAuthCallbackPath)
+	if err != nil {
+		return "", err
+	}
+	return url, nil
 }
 
 func baseURL(r *http.Request) string {
@@ -78,4 +143,25 @@ func baseURL(r *http.Request) string {
 		scheme = "https"
 	}
 	return fmt.Sprintf("%s://%s", scheme, r.Host)
+}
+
+func parseGoogleOAuthState(query url.Values) (oauthState, error) {
+	stateStr := query.Get(queryState)
+	if stateStr == "" {
+		return oauthState{}, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: "state not found from query",
+		}
+	}
+
+	var state oauthState
+	if err := json.Unmarshal([]byte(stateStr), &state); err != nil {
+		return oauthState{}, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: "state is not a valid format",
+			Origin:    err,
+		}
+	}
+
+	return state, nil
 }
