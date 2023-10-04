@@ -2,11 +2,16 @@ package port
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 )
+
+type AuthService interface {
+	StartGoogleSignIn(context.Context, *http.Request) (redirectURL string, err error)
+}
 
 type MemoService interface {
 	GetMemo(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)

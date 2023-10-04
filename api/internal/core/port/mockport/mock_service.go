@@ -10,12 +10,51 @@ package mockport
 
 import (
 	context "context"
+	http "net/http"
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
 	ent "github.com/isutare412/web-memo/api/internal/core/ent"
 	gomock "go.uber.org/mock/gomock"
 )
+
+// MockAuthService is a mock of AuthService interface.
+type MockAuthService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthServiceMockRecorder
+}
+
+// MockAuthServiceMockRecorder is the mock recorder for MockAuthService.
+type MockAuthServiceMockRecorder struct {
+	mock *MockAuthService
+}
+
+// NewMockAuthService creates a new mock instance.
+func NewMockAuthService(ctrl *gomock.Controller) *MockAuthService {
+	mock := &MockAuthService{ctrl: ctrl}
+	mock.recorder = &MockAuthServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthService) EXPECT() *MockAuthServiceMockRecorder {
+	return m.recorder
+}
+
+// StartGoogleSignIn mocks base method.
+func (m *MockAuthService) StartGoogleSignIn(arg0 context.Context, arg1 *http.Request) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartGoogleSignIn", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartGoogleSignIn indicates an expected call of StartGoogleSignIn.
+func (mr *MockAuthServiceMockRecorder) StartGoogleSignIn(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartGoogleSignIn", reflect.TypeOf((*MockAuthService)(nil).StartGoogleSignIn), arg0, arg1)
+}
 
 // MockMemoService is a mock of MemoService interface.
 type MockMemoService struct {
