@@ -36,9 +36,9 @@ func (r *MemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.M
 	switch {
 	case ent.IsNotFound(err):
 		return nil, pkgerr.Known{
-			Code:   pkgerr.CodeNotFound,
-			Simple: fmt.Errorf("memo with id(%s) not found", memoID.String()),
-			Origin: err,
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memoID.String()),
 		}
 	case err != nil:
 		return nil, err
@@ -125,9 +125,9 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 	switch {
 	case ent.IsNotFound(err):
 		return nil, pkgerr.Known{
-			Code:   pkgerr.CodeNotFound,
-			Simple: fmt.Errorf("memo with id(%s) not found", memo.ID.String()),
-			Origin: err,
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memo.ID.String()),
 		}
 	case err != nil:
 		return nil, err
@@ -145,9 +145,9 @@ func (r *MemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {
 	switch {
 	case ent.IsNotFound(err):
 		return pkgerr.Known{
-			Code:   pkgerr.CodeNotFound,
-			Simple: fmt.Errorf("memo with id(%s) does not exist", memoID.String()),
-			Origin: err,
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("memo with id(%s) does not exist", memoID.String()),
 		}
 	case err != nil:
 		return err
@@ -167,9 +167,9 @@ func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagI
 	switch {
 	case ent.IsNotFound(err):
 		return pkgerr.Known{
-			Code:   pkgerr.CodeNotFound,
-			Simple: fmt.Errorf("memo with id(%s) not found", memoID.String()),
-			Origin: err,
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memoID.String()),
 		}
 	case err != nil:
 		return err

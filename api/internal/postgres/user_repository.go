@@ -30,9 +30,9 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*ent.User,
 	switch {
 	case ent.IsNotFound(err):
 		return nil, pkgerr.Known{
-			Code:   pkgerr.CodeNotFound,
-			Origin: err,
-			Simple: fmt.Errorf("user with id(%s) does not exist", id.String()),
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("user with id(%s) does not exist", id.String()),
 		}
 	case err != nil:
 		return nil, err

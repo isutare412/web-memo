@@ -26,12 +26,12 @@ func (r *KVRepository) Get(ctx context.Context, key string) (string, error) {
 	switch {
 	case errors.Is(err, redis.Nil):
 		return "", pkgerr.Known{
-			Code:   pkgerr.CodeNotFound,
-			Simple: fmt.Errorf("value of key(%s) does not exist", key),
-			Origin: err,
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("key(%s) does not exist", key),
 		}
 	case err != nil:
-		return "", fmt.Errorf("getting value of key: %w", err)
+		return "", fmt.Errorf("getting key: %w", err)
 	}
 
 	return val, nil
@@ -42,12 +42,12 @@ func (r *KVRepository) GetThenDelete(ctx context.Context, key string) (string, e
 	switch {
 	case errors.Is(err, redis.Nil):
 		return "", pkgerr.Known{
-			Code:   pkgerr.CodeNotFound,
-			Simple: fmt.Errorf("value of key(%s) does not exist", key),
-			Origin: err,
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("key(%s) does not exist", key),
 		}
 	case err != nil:
-		return "", fmt.Errorf("getting value of key: %w", err)
+		return "", fmt.Errorf("getting key: %w", err)
 	}
 
 	return val, nil
@@ -56,7 +56,7 @@ func (r *KVRepository) GetThenDelete(ctx context.Context, key string) (string, e
 func (r *KVRepository) Set(ctx context.Context, key, val string, exp time.Duration) error {
 	_, err := r.client.Set(ctx, key, val, exp).Result()
 	if err != nil {
-		return fmt.Errorf("setting value of key: %w", err)
+		return fmt.Errorf("setting key-value: %w", err)
 	}
 	return nil
 }

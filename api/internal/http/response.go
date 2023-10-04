@@ -24,8 +24,8 @@ func responseError(w http.ResponseWriter, r *http.Request, err error) {
 			slog.Error("5xx error occurred", "error", kerr.Error(), "code", kerr.Code, "httpStatusCode", statusCode)
 		}
 
-		if kerr.Simple != nil {
-			body.Msg = kerr.Simple.Error()
+		if kerr.ClientMsg != "" {
+			body.Msg = kerr.ClientMsg
 		}
 	} else {
 		slog.Error("unknown error occurred", "error", err, "httpStatusCode", statusCode)

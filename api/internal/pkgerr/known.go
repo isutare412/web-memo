@@ -7,17 +7,17 @@ import (
 )
 
 type Known struct {
-	Code   Code
-	Simple error
-	Origin error
+	Code      Code
+	Origin    error
+	ClientMsg string
 }
 
 func (k Known) Error() string {
 	switch {
 	case k.Origin != nil:
 		return k.Origin.Error()
-	case k.Simple != nil:
-		return k.Simple.Error()
+	case k.ClientMsg != "":
+		return k.ClientMsg
 	}
 	return fmt.Sprintf("errno(%d)", k.Code)
 }
@@ -34,6 +34,39 @@ func AsKnown(err error) (Known, bool) {
 	default:
 		return Known{}, false
 	}
+}
+func IsErrBadRequest(err error) bool {
+	if kerr, ok := AsKnown(err); ok {
+		return kerr.Code == CodeBadRequest
+	}
+	return false
+}
+
+func IsErrNotFound(err error) bool {
+	if kerr, ok := AsKnown(err); ok {
+		return kerr.Code == CodeNotFound
+	}
+	return false
+}
+func IsErrAlreadyExists(err error) bool {
+	if kerr, ok := AsKnown(err); ok {
+		return kerr.Code == CodeAlreadyExists
+	}
+	return false
+}
+
+func IsErrUnauthenticated(err error) bool {
+	if kerr, ok := AsKnown(err); ok {
+		return kerr.Code == CodeUnauthenticated
+	}
+	return false
+}
+
+func IsErrPermissionDenied(err error) bool {
+	if kerr, ok := AsKnown(err); ok {
+		return kerr.Code == CodePermissionDenied
+	}
+	return false
 }
 
 type Code int

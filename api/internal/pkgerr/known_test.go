@@ -25,10 +25,10 @@ var _ = Describe("Known", func() {
 
 	It("casts to known error", func() {
 		var (
-			givenOriginErr = errors.New("origin error")
+			givenClientMsg = "something bad happened"
 			givenKnown     = pkgerr.Known{
-				Code:   pkgerr.CodeUnauthenticated,
-				Simple: givenOriginErr,
+				Code:      pkgerr.CodeUnauthenticated,
+				ClientMsg: givenClientMsg,
 			}
 			givenWrappedErr = fmt.Errorf("wrapped: %w", givenKnown)
 		)
