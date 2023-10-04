@@ -17,11 +17,14 @@ postgres:
 redis:
   addr: localhost:28200
   password: webmemooo
+google:
+  endpoints:
+    token: https://oauth2.googleapis.com/token
+    oauth: https://accounts.google.com/o/oauth2/v2/auth
+  oauth:
+    client-id: <oauth_client_id>
+    client-secret: <oauth_client_secret>
 service:
   auth:
-    google:
-      oauth-endpoint: https://accounts.google.com/o/oauth2/v2/auth
-      oauth-callback-path: /api/v1/google/sign-in/finish
-      oauth-client-id: <oauth_client_id>
-      oauth-client-secret: <oauth_client_secret>
     oauth-state-timeout: 10m
+    google-callback-path: /api/v1/google/sign-in/finish

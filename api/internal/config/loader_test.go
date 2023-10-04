@@ -9,7 +9,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/isutare412/web-memo/api/internal/config"
-	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
@@ -38,14 +37,17 @@ postgres:
 redis:
   addr: localhost:4120
   password: memcached
+google:
+  endpoints:
+    token: https://oauth2.googleapis.com/token
+    oauth: https://accounts.google.com/o/oauth2/v2/auth
+  oauth:
+    client-id: google-oauth-client-id
+    client-secret: google-oauth-client-secret
 service:
   auth:
-    google:
-      oauth-endpoint: https://accounts.google.com/o/oauth2/v2/auth
-      oauth-callback-path: /api/v1/google/sign-in/finish
-      oauth-client-id: google-oauth-client-id
-      oauth-client-secret: google-oauth-client-secret
-    oauth-state-timeout: 42m`
+    oauth-state-timeout: 42m
+    google-callback-path: /api/v1/google/sign-in/finish`
 		)
 
 		BeforeEach(func() {
@@ -82,15 +84,20 @@ service:
 						Addr:     "localhost:4120",
 						Password: "memcached",
 					},
+					Google: config.GoogleConfig{
+						Endpoints: config.GoogleEndpointsConfig{
+							Token: "https://oauth2.googleapis.com/token",
+							OAuth: "https://accounts.google.com/o/oauth2/v2/auth",
+						},
+						OAuth: config.GoogleOAuthConfig{
+							ClientID:     "google-oauth-client-id",
+							ClientSecret: "google-oauth-client-secret",
+						},
+					},
 					Service: config.ServiceConfig{
-						Auth: auth.Config{
-							Google: auth.GoogleConfig{
-								OAuthEndpoint:     "https://accounts.google.com/o/oauth2/v2/auth",
-								OAuthCallbackPath: "/api/v1/google/sign-in/finish",
-								OAuthClientID:     "google-oauth-client-id",
-								OAuthClientSecret: "google-oauth-client-secret",
-							},
-							OAuthStateTimeout: 42 * time.Minute,
+						Auth: config.AuthServiceConfig{
+							OAuthStateTimeout:  42 * time.Minute,
+							GoogleCallbackPath: "/api/v1/google/sign-in/finish",
 						},
 					},
 				}
@@ -134,15 +141,20 @@ service:
 						Addr:     "localhost:4120",
 						Password: "memcached",
 					},
+					Google: config.GoogleConfig{
+						Endpoints: config.GoogleEndpointsConfig{
+							Token: "https://oauth2.googleapis.com/token",
+							OAuth: "https://accounts.google.com/o/oauth2/v2/auth",
+						},
+						OAuth: config.GoogleOAuthConfig{
+							ClientID:     "google-oauth-client-id",
+							ClientSecret: "google-oauth-client-secret",
+						},
+					},
 					Service: config.ServiceConfig{
-						Auth: auth.Config{
-							Google: auth.GoogleConfig{
-								OAuthEndpoint:     "https://accounts.google.com/o/oauth2/v2/auth",
-								OAuthCallbackPath: "/api/v1/google/sign-in/finish",
-								OAuthClientID:     "google-oauth-client-id",
-								OAuthClientSecret: "google-oauth-client-secret",
-							},
-							OAuthStateTimeout: 42 * time.Minute,
+						Auth: config.AuthServiceConfig{
+							OAuthStateTimeout:  42 * time.Minute,
+							GoogleCallbackPath: "/api/v1/google/sign-in/finish",
 						},
 					},
 				}
@@ -160,7 +172,10 @@ service:
 		It("loads config overwritten by local config", func() {
 			var (
 				givenConfigTextOverwrite = `http:
-  port: 12345`
+  port: 12345
+service:
+  auth:
+    oauth-state-timeout: 1h`
 			)
 
 			var (
@@ -188,15 +203,20 @@ service:
 						Addr:     "localhost:4120",
 						Password: "memcached",
 					},
+					Google: config.GoogleConfig{
+						Endpoints: config.GoogleEndpointsConfig{
+							Token: "https://oauth2.googleapis.com/token",
+							OAuth: "https://accounts.google.com/o/oauth2/v2/auth",
+						},
+						OAuth: config.GoogleOAuthConfig{
+							ClientID:     "google-oauth-client-id",
+							ClientSecret: "google-oauth-client-secret",
+						},
+					},
 					Service: config.ServiceConfig{
-						Auth: auth.Config{
-							Google: auth.GoogleConfig{
-								OAuthEndpoint:     "https://accounts.google.com/o/oauth2/v2/auth",
-								OAuthCallbackPath: "/api/v1/google/sign-in/finish",
-								OAuthClientID:     "google-oauth-client-id",
-								OAuthClientSecret: "google-oauth-client-secret",
-							},
-							OAuthStateTimeout: 42 * time.Minute,
+						Auth: config.AuthServiceConfig{
+							OAuthStateTimeout:  time.Hour,
+							GoogleCallbackPath: "/api/v1/google/sign-in/finish",
 						},
 					},
 				}

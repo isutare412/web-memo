@@ -16,9 +16,8 @@ type Service struct {
 	kvRepository port.KVRepository
 
 	googleOAuthEndpoint     string
-	googleOAuthCallbackPath string
 	googleOAuthClientID     string
-	googleOAuthClientSecret string
+	googleOAuthCallbackPath string
 	oauthStateTimeout       time.Duration
 }
 
@@ -27,9 +26,8 @@ func NewService(cfg Config, kvRepository port.KVRepository) *Service {
 		kvRepository: kvRepository,
 
 		googleOAuthEndpoint:     cfg.Google.OAuthEndpoint,
-		googleOAuthCallbackPath: cfg.Google.OAuthCallbackPath,
 		googleOAuthClientID:     cfg.Google.OAuthClientID,
-		googleOAuthClientSecret: cfg.Google.OAuthClientSecret,
+		googleOAuthCallbackPath: cfg.Google.OAuthCallbackPath,
 		oauthStateTimeout:       cfg.OAuthStateTimeout,
 	}
 }

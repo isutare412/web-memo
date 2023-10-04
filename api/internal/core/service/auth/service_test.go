@@ -27,9 +27,8 @@ var _ = Describe("Service", func() {
 			givenAuthConfig = auth.Config{
 				Google: auth.GoogleConfig{
 					OAuthEndpoint:     "https://accounts.google.com/o/oauth2/v2/auth",
-					OAuthCallbackPath: "/google/callback",
 					OAuthClientID:     "google-client-id",
-					OAuthClientSecret: "google-client-secret",
+					OAuthCallbackPath: "/google/callback",
 				},
 				OAuthStateTimeout: time.Second,
 			}
