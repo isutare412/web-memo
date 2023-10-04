@@ -3,9 +3,9 @@ package log
 import "log/slog"
 
 type Config struct {
-	Format Format
-	Level  Level
-	Caller bool
+	Format Format `mapstructure:"format" validate:"required,oneof=json text"`
+	Level  Level  `mapstructure:"level" validate:"required,oneof=debug info warn error"`
+	Caller bool   `mapstructure:"caller"`
 }
 
 type Format string

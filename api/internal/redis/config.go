@@ -1,6 +1,6 @@
 package redis
 
 type Config struct {
-	Addr     string
-	Password string
+	Addr     string `mapstructure:"addr" validate:"required"`
+	Password string `mapstructure:"password" validate:"required"`
 }

@@ -9,12 +9,17 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/isutare412/web-memo/api/internal/config"
+	"github.com/isutare412/web-memo/api/internal/core/service/auth"
+	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/log"
+	"github.com/isutare412/web-memo/api/internal/postgres"
+	"github.com/isutare412/web-memo/api/internal/redis"
 )
 
 var _ = Describe("Loader", func() {
 	Context("LoadValidated", func() {
 		var (
+			givenConfigDir  string
 			givenConfigText = `wire:
   initialize-timeout: 1h30m
   shutdown-timeout: 90s
@@ -32,8 +37,24 @@ postgres:
   database: fake
 redis:
   addr: localhost:4120
-  password: memcached`
+  password: memcached
+service:
+  auth:
+    google:
+      oauth-endpoint: https://accounts.google.com/o/oauth2/v2/auth
+      oauth-callback-path: /api/v1/google/sign-in/finish
+      oauth-client-id: google-oauth-client-id
+      oauth-client-secret: google-oauth-client-secret
+    oauth-state-timeout: 42m`
 		)
+
+		BeforeEach(func() {
+			givenConfigDir = GinkgoT().TempDir()
+
+			file := filepath.Join(givenConfigDir, "config.yaml")
+			err := os.WriteFile(file, []byte(givenConfigText), 0644)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		It("loads valid config", func() {
 			var (
@@ -42,34 +63,40 @@ redis:
 						InitializeTimeout: 90 * time.Minute,
 						ShutdownTimeout:   90 * time.Second,
 					},
-					Log: config.LogConfig{
+					Log: log.Config{
 						Format: log.FormatText,
 						Level:  log.LevelDebug,
 						Caller: true,
 					},
-					HTTP: config.HTTPConfig{
+					HTTP: http.Config{
 						Port: 8412,
 					},
-					Postgres: config.PostgresConfig{
+					Postgres: postgres.Config{
 						Host:     "127.0.0.1",
 						Port:     1234,
 						User:     "tester",
 						Password: "password",
 						Database: "fake",
 					},
-					Redis: config.RedisConfig{
+					Redis: redis.Config{
 						Addr:     "localhost:4120",
 						Password: "memcached",
+					},
+					Service: config.ServiceConfig{
+						Auth: auth.Config{
+							Google: auth.GoogleConfig{
+								OAuthEndpoint:     "https://accounts.google.com/o/oauth2/v2/auth",
+								OAuthCallbackPath: "/api/v1/google/sign-in/finish",
+								OAuthClientID:     "google-oauth-client-id",
+								OAuthClientSecret: "google-oauth-client-secret",
+							},
+							OAuthStateTimeout: 42 * time.Minute,
+						},
 					},
 				}
 			)
 
-			configDir := GinkgoT().TempDir()
-			file := filepath.Join(configDir, "config.yaml")
-			err := os.WriteFile(file, []byte(givenConfigText), 0644)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			cfg, err := config.LoadValidated(configDir)
+			cfg, err := config.LoadValidated(givenConfigDir)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(*cfg).Should(Equal(wantConfig))
 		})
@@ -88,38 +115,44 @@ redis:
 						InitializeTimeout: 90 * time.Minute,
 						ShutdownTimeout:   time.Second,
 					},
-					Log: config.LogConfig{
+					Log: log.Config{
 						Format: log.FormatText,
 						Level:  log.LevelDebug,
 						Caller: true,
 					},
-					HTTP: config.HTTPConfig{
+					HTTP: http.Config{
 						Port: 8412,
 					},
-					Postgres: config.PostgresConfig{
+					Postgres: postgres.Config{
 						Host:     "1.2.3.4",
 						Port:     1234,
 						User:     "tester",
 						Password: "password",
 						Database: "fake",
 					},
-					Redis: config.RedisConfig{
+					Redis: redis.Config{
 						Addr:     "localhost:4120",
 						Password: "memcached",
 					},
+					Service: config.ServiceConfig{
+						Auth: auth.Config{
+							Google: auth.GoogleConfig{
+								OAuthEndpoint:     "https://accounts.google.com/o/oauth2/v2/auth",
+								OAuthCallbackPath: "/api/v1/google/sign-in/finish",
+								OAuthClientID:     "google-oauth-client-id",
+								OAuthClientSecret: "google-oauth-client-secret",
+							},
+							OAuthStateTimeout: 42 * time.Minute,
+						},
+					},
 				}
 			)
-
-			configDir := GinkgoT().TempDir()
-			file := filepath.Join(configDir, "config.yaml")
-			err := os.WriteFile(file, []byte(givenConfigText), 0644)
-			Expect(err).ShouldNot(HaveOccurred())
 
 			for k, v := range givenEnvs {
 				GinkgoT().Setenv(k, v)
 			}
 
-			cfg, err := config.LoadValidated(configDir)
+			cfg, err := config.LoadValidated(givenConfigDir)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(*cfg).Should(Equal(wantConfig))
 		})
@@ -136,38 +169,44 @@ redis:
 						InitializeTimeout: 90 * time.Minute,
 						ShutdownTimeout:   90 * time.Second,
 					},
-					Log: config.LogConfig{
+					Log: log.Config{
 						Format: log.FormatText,
 						Level:  log.LevelDebug,
 						Caller: true,
 					},
-					HTTP: config.HTTPConfig{
+					HTTP: http.Config{
 						Port: 12345,
 					},
-					Postgres: config.PostgresConfig{
+					Postgres: postgres.Config{
 						Host:     "127.0.0.1",
 						Port:     1234,
 						User:     "tester",
 						Password: "password",
 						Database: "fake",
 					},
-					Redis: config.RedisConfig{
+					Redis: redis.Config{
 						Addr:     "localhost:4120",
 						Password: "memcached",
+					},
+					Service: config.ServiceConfig{
+						Auth: auth.Config{
+							Google: auth.GoogleConfig{
+								OAuthEndpoint:     "https://accounts.google.com/o/oauth2/v2/auth",
+								OAuthCallbackPath: "/api/v1/google/sign-in/finish",
+								OAuthClientID:     "google-oauth-client-id",
+								OAuthClientSecret: "google-oauth-client-secret",
+							},
+							OAuthStateTimeout: 42 * time.Minute,
+						},
 					},
 				}
 			)
 
-			configDir := GinkgoT().TempDir()
-			file := filepath.Join(configDir, "config.yaml")
-			err := os.WriteFile(file, []byte(givenConfigText), 0644)
+			file := filepath.Join(givenConfigDir, "config.local.yaml")
+			err := os.WriteFile(file, []byte(givenConfigTextOverwrite), 0644)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			file = filepath.Join(configDir, "config.local.yaml")
-			err = os.WriteFile(file, []byte(givenConfigTextOverwrite), 0644)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			cfg, err := config.LoadValidated(configDir)
+			cfg, err := config.LoadValidated(givenConfigDir)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(*cfg).Should(Equal(wantConfig))
 		})

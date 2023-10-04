@@ -11,28 +11,28 @@ import (
 )
 
 type Config struct {
-	Wire     WireConfig     `mapstructure:"wire"`
-	Log      LogConfig      `mapstructure:"log"`
-	HTTP     HTTPConfig     `mapstructure:"http"`
-	Postgres PostgresConfig `mapstructure:"postgres"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	Service  ServiceConfig  `mapstructure:"service"`
+	Wire     WireConfig      `mapstructure:"wire"`
+	Log      log.Config      `mapstructure:"log"`
+	HTTP     http.Config     `mapstructure:"http"`
+	Postgres postgres.Config `mapstructure:"postgres"`
+	Redis    redis.Config    `mapstructure:"redis"`
+	Service  ServiceConfig   `mapstructure:"service"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
-	return log.Config(c.Log)
+	return c.Log
 }
 
 func (c *Config) ToHTTPConfig() http.Config {
-	return http.Config(c.HTTP)
+	return c.HTTP
 }
 
 func (c *Config) ToPostgresConfig() postgres.Config {
-	return postgres.Config(c.Postgres)
+	return c.Postgres
 }
 
 func (c *Config) ToRedisConfig() redis.Config {
-	return redis.Config(c.Redis)
+	return c.Redis
 }
 
 func (c *Config) ToAuthServiceConfig() auth.Config {
@@ -42,30 +42,6 @@ func (c *Config) ToAuthServiceConfig() auth.Config {
 type WireConfig struct {
 	InitializeTimeout time.Duration `mapstructure:"initialize-timeout" validate:"required"`
 	ShutdownTimeout   time.Duration `mapstructure:"shutdown-timeout" validate:"required"`
-}
-
-type LogConfig struct {
-	Format log.Format `mapstructure:"format" validate:"required,oneof=json text"`
-	Level  log.Level  `mapstructure:"level" validate:"required,oneof=debug info warn error"`
-	Caller bool       `mapstructure:"caller"`
-}
-
-type HTTPConfig struct {
-	Port int `json:"port" validate:"required"`
-}
-
-type PostgresConfig struct {
-	Host     string `mapstructure:"host" validate:"required"`
-	Port     int    `mapstructure:"port" validate:"required"`
-	User     string `mapstructure:"user" validate:"required"`
-	Password string `mapstructure:"password" validate:"required"`
-	Database string `mapstructure:"database" validate:"required"`
-	QueryLog bool   `mapstructure:"query-log"`
-}
-
-type RedisConfig struct {
-	Addr     string `mapstructure:"addr" validate:"required"`
-	Password string `mapstructure:"password" validate:"required"`
 }
 
 type ServiceConfig struct {
