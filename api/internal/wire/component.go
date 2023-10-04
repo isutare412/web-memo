@@ -10,20 +10,25 @@ import (
 	"time"
 
 	"github.com/isutare412/web-memo/api/internal/config"
+	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/core/service/memo"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
 )
 
 type Components struct {
-	cfg            *config.Config
+	cfg *config.Config
+
 	postgresClient *postgres.Client
 	userRepository *postgres.UserRepository
 	memoRepository *postgres.MemoRepository
 	tagRepository  *postgres.TagRepository
-	redisClient    *redis.Client
-	kvRepository   *redis.KVRepository
-	memoService    *memo.Service
+
+	redisClient  *redis.Client
+	kvRepository *redis.KVRepository
+
+	authService *auth.Service
+	memoService *memo.Service
 }
 
 func NewComponents(cfg *config.Config) (*Components, error) {
@@ -39,17 +44,22 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 	redisClient := redis.NewClient(cfg.ToRedisConfig())
 	kvRepository := redis.NewKVRepository(redisClient)
 
+	authService := auth.NewService(cfg.ToAuthServiceConfig(), kvRepository)
 	memoService := memo.NewService(postgresClient, memoRepository, tagRepository)
 
 	return &Components{
-		cfg:            cfg,
+		cfg: cfg,
+
 		postgresClient: postgresClient,
 		userRepository: userRepository,
 		memoRepository: memoRepository,
 		tagRepository:  tagRepository,
-		redisClient:    redisClient,
-		kvRepository:   kvRepository,
-		memoService:    memoService,
+
+		redisClient:  redisClient,
+		kvRepository: kvRepository,
+
+		authService: authService,
+		memoService: memoService,
 	}, nil
 }
 

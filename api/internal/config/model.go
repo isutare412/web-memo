@@ -3,6 +3,7 @@ package config
 import (
 	"time"
 
+	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
@@ -15,6 +16,7 @@ type Config struct {
 	HTTP     HTTPConfig     `mapstructure:"http"`
 	Postgres PostgresConfig `mapstructure:"postgres"`
 	Redis    RedisConfig    `mapstructure:"redis"`
+	Service  ServiceConfig  `mapstructure:"service"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
@@ -31,6 +33,10 @@ func (c *Config) ToPostgresConfig() postgres.Config {
 
 func (c *Config) ToRedisConfig() redis.Config {
 	return redis.Config(c.Redis)
+}
+
+func (c *Config) ToAuthServiceConfig() auth.Config {
+	return c.Service.Auth
 }
 
 type WireConfig struct {
@@ -60,4 +66,8 @@ type PostgresConfig struct {
 type RedisConfig struct {
 	Addr     string `mapstructure:"addr" validate:"required"`
 	Password string `mapstructure:"password" validate:"required"`
+}
+
+type ServiceConfig struct {
+	Auth auth.Config `mapstructure:"auth"`
 }
