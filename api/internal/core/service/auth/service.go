@@ -35,11 +35,10 @@ func NewService(cfg Config, kvRepository port.KVRepository) *Service {
 }
 
 func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL string, err error) {
-	callbackURL := &url.URL{
-		Scheme: req.URL.Scheme,
-		Host:   req.Host,
+	callbackURL, err := url.JoinPath(baseURL(req), s.googleOAuthCallbackPath)
+	if err != nil {
+		return "", fmt.Errorf("joining callback URL: %w", err)
 	}
-	callbackURL = callbackURL.JoinPath(s.googleOAuthCallbackPath)
 
 	stateID, err := s.generateOAuthStateID(ctx)
 	if err != nil {
@@ -49,7 +48,7 @@ func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (red
 	oidcReq := googleOIDCRequest{
 		endpoint:    s.googleOAuthEndpoint,
 		clientID:    s.googleOAuthClientID,
-		redirectURI: callbackURL.String(),
+		redirectURI: callbackURL,
 		state: oauthState{
 			ID:      stateID,
 			Referer: req.Referer(),
@@ -70,4 +69,15 @@ func (s *Service) generateOAuthStateID(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("setting oauth state: %w", err)
 	}
 	return id, nil
+}
+
+func baseURL(r *http.Request) string {
+	scheme := "http"
+	switch {
+	case r.Header.Get("X-Forwarded-Proto") == "https":
+		fallthrough
+	case r.TLS != nil:
+		scheme = "https"
+	}
+	return fmt.Sprintf("%s://%s", scheme, r.Host)
 }

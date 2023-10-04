@@ -32,7 +32,7 @@ func (r *googleOIDCRequest) buildURL() (string, error) {
 	q.Add("access_type", "online")
 	q.Add("response_type", "code")
 	q.Add("scope", "openid profile email")
-	q.Add("prompt", "none")
+	q.Add("prompt", "consent select_account")
 	q.Add("nonce", uuid.NewString())
 	q.Add("client_id", r.clientID)
 	q.Add("redirect_uri", r.redirectURI)

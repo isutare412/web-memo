@@ -12,6 +12,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/config"
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/core/service/memo"
+	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
 )
@@ -29,6 +30,8 @@ type Components struct {
 
 	authService *auth.Service
 	memoService *memo.Service
+
+	httpServer *http.Server
 }
 
 func NewComponents(cfg *config.Config) (*Components, error) {
@@ -47,6 +50,8 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 	authService := auth.NewService(cfg.ToAuthServiceConfig(), kvRepository)
 	memoService := memo.NewService(postgresClient, memoRepository, tagRepository)
 
+	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService)
+
 	return &Components{
 		cfg: cfg,
 
@@ -60,6 +65,8 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 
 		authService: authService,
 		memoService: memoService,
+
+		httpServer: httpServer,
 	}, nil
 }
 
@@ -82,11 +89,17 @@ func (c *Components) Initialize() (err error) {
 }
 
 func (c *Components) Run() {
+	httpServerErrs := c.httpServer.Run()
+
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	s := <-signals
-	slog.Info("received signal", "signal", s.String())
+	select {
+	case s := <-signals:
+		slog.Info("received signal", "signal", s.String())
+	case err := <-httpServerErrs:
+		slog.Error("fatal error from http server", "error", err)
+	}
 }
 
 func (c *Components) Shutdown() {
@@ -98,6 +111,11 @@ func (c *Components) Shutdown() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.cfg.Wire.ShutdownTimeout)
 	defer cancel()
+
+	slog.Info("shutdown httpServer")
+	if err := c.httpServer.Shutdown(ctx); err != nil {
+		slog.Error("failed to shutdown httpServer", "error", err)
+	}
 
 	slog.Info("shutdown redisClient")
 	if err := c.redisClient.Shutdown(ctx); err != nil {

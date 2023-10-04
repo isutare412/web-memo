@@ -3,6 +3,7 @@ package pkgerr
 import (
 	"errors"
 	"fmt"
+	"net/http"
 )
 
 type Known struct {
@@ -45,3 +46,24 @@ const (
 	CodeUnauthenticated
 	CodePermissionDenied
 )
+
+func (c Code) ToHTTPStatusCode() int {
+	var status int
+	switch c {
+	case CodeUnspecified:
+		status = http.StatusInternalServerError
+	case CodeBadRequest:
+		status = http.StatusBadRequest
+	case CodeNotFound:
+		status = http.StatusNotFound
+	case CodeAlreadyExists:
+		status = http.StatusConflict
+	case CodeUnauthenticated:
+		status = http.StatusUnauthorized
+	case CodePermissionDenied:
+		status = http.StatusForbidden
+	default:
+		status = http.StatusInternalServerError
+	}
+	return status
+}
