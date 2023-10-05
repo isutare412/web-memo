@@ -6,6 +6,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/google"
 	"github.com/isutare412/web-memo/api/internal/http"
+	"github.com/isutare412/web-memo/api/internal/jwt"
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
@@ -18,6 +19,7 @@ type Config struct {
 	Postgres postgres.Config `mapstructure:"postgres"`
 	Redis    redis.Config    `mapstructure:"redis"`
 	Google   GoogleConfig    `mapstructure:"google"`
+	JWT      jwt.Config      `mapstructure:"jwt"`
 	Service  ServiceConfig   `mapstructure:"service"`
 }
 
@@ -43,6 +45,10 @@ func (c *Config) ToGoogleClientConfig() google.ClientConfig {
 		OAuthClientID:     c.Google.OAuth.ClientID,
 		OAuthClientSecret: c.Google.OAuth.ClientSecret,
 	}
+}
+
+func (c *Config) ToJWTConfig() jwt.Config {
+	return jwt.Config(c.JWT)
 }
 
 func (c *Config) ToAuthServiceConfig() auth.Config {

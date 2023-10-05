@@ -33,6 +33,11 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 		return nil, fmt.Errorf("creating PostgreSQL client: %w", err)
 	}
 
+	jwtClient, err := jwt.NewClient(cfg.ToJWTConfig())
+	if err != nil {
+		return nil, fmt.Errorf("creating JWT client: %w", err)
+	}
+
 	userRepository := postgres.NewUserRepository(postgresClient)
 	memoRepository := postgres.NewMemoRepository(postgresClient)
 	tagRepository := postgres.NewTagRepository(postgresClient)
@@ -41,7 +46,6 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 	kvRepository := redis.NewKVRepository(redisClient)
 
 	googleClient := google.NewClient(cfg.ToGoogleClientConfig())
-	jwtClient := jwt.NewClient()
 
 	authService := auth.NewService(cfg.ToAuthServiceConfig(), kvRepository, userRepository, googleClient, jwtClient)
 	_ = memo.NewService(postgresClient, memoRepository, tagRepository)

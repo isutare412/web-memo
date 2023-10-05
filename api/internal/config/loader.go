@@ -24,7 +24,7 @@ func LoadValidated(path string) (*Config, error) {
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	if err := validate.Struct(&cfg); err != nil {

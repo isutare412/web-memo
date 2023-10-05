@@ -52,3 +52,33 @@ func (mr *MockJWTClientMockRecorder) ParseGoogleIDTokenUnverified(tokenString an
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseGoogleIDTokenUnverified", reflect.TypeOf((*MockJWTClient)(nil).ParseGoogleIDTokenUnverified), tokenString)
 }
+
+// SignAppIDToken mocks base method.
+func (m *MockJWTClient) SignAppIDToken(arg0 *model.AppIDToken) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignAppIDToken", arg0)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SignAppIDToken indicates an expected call of SignAppIDToken.
+func (mr *MockJWTClientMockRecorder) SignAppIDToken(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignAppIDToken", reflect.TypeOf((*MockJWTClient)(nil).SignAppIDToken), arg0)
+}
+
+// VerifyAppIDTokenString mocks base method.
+func (m *MockJWTClient) VerifyAppIDTokenString(tokenString string) (*model.AppIDToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyAppIDTokenString", tokenString)
+	ret0, _ := ret[0].(*model.AppIDToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifyAppIDTokenString indicates an expected call of VerifyAppIDTokenString.
+func (mr *MockJWTClientMockRecorder) VerifyAppIDTokenString(tokenString any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyAppIDTokenString", reflect.TypeOf((*MockJWTClient)(nil).VerifyAppIDTokenString), tokenString)
+}

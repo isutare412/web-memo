@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type GoogleTokenResponse struct {
 	AccessToken    string
@@ -19,4 +23,13 @@ type GoogleIDToken struct {
 	FamilyName string
 	GivenName  string
 	PictureURL string
+}
+
+type AppIDToken struct {
+	UserID     uuid.UUID
+	Email      string
+	UserName   string
+	FamilyName string
+	GivenName  string
+	PhotoURL   string
 }
