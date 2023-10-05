@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
@@ -18,6 +19,7 @@ type Service struct {
 	kvRepository   port.KVRepository
 	userRepository port.UserRepository
 	googleClient   port.GoogleClient
+	jwtClient      port.JWTClient
 
 	googleOAuthEndpoint     string
 	googleOAuthClientID     string
@@ -30,6 +32,7 @@ func NewService(
 	kvRepository port.KVRepository,
 	userRepository port.UserRepository,
 	googleClient port.GoogleClient,
+	jwtClient port.JWTClient,
 ) *Service {
 	return &Service{
 		kvRepository:   kvRepository,
@@ -44,7 +47,7 @@ func NewService(
 }
 
 func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL string, err error) {
-	callbackURL, err := s.googleCallbackURL(req)
+	callbackURL, err := s.getGoogleCallbackURL(req)
 	if err != nil {
 		return "", fmt.Errorf("getting google callback URL: %w", err)
 	}
@@ -96,21 +99,33 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 		}
 	}
 
-	callbackURL, err := s.googleCallbackURL(req)
+	callbackURL, err := s.getGoogleCallbackURL(req)
 	if err != nil {
 		return "", fmt.Errorf("getting google callback URL: %w", err)
 	}
 
-	// TODO: change response to ID token
-	_, err = s.googleClient.ExchangeAuthCode(ctx, authCode, callbackURL)
+	tokenResp, err := s.googleClient.ExchangeAuthCode(ctx, authCode, callbackURL)
 	if err != nil {
 		return "", fmt.Errorf("exchanging auth code: %w", err)
 	}
 
-	// TODO: parse google ID token
-	// TODO: create custom token
+	idToken, err := s.jwtClient.ParseGoogleIDTokenUnverified(tokenResp.IDToken)
+	if err != nil {
+		return "", fmt.Errorf("parsing google ID token: %w", err)
+	}
 
-	redirectURL = baseURL(req)
+	_, err = s.userRepository.Upsert(ctx, &ent.User{
+		Email:      idToken.Email,
+		UserName:   idToken.Name,
+		GivenName:  idToken.GivenName,
+		FamilyName: idToken.FamilyName,
+		PhotoURL:   idToken.PictureURL,
+	})
+	if err != nil {
+		return "", fmt.Errorf("creating user: %w", err)
+	}
+
+	redirectURL = getBaseURL(req)
 	if state.Referer != "" {
 		redirectURL = state.Referer
 	}
@@ -126,15 +141,15 @@ func (s *Service) generateOAuthStateID(ctx context.Context) (string, error) {
 	return id, nil
 }
 
-func (s *Service) googleCallbackURL(r *http.Request) (string, error) {
-	url, err := url.JoinPath(baseURL(r), s.googleOAuthCallbackPath)
+func (s *Service) getGoogleCallbackURL(r *http.Request) (string, error) {
+	url, err := url.JoinPath(getBaseURL(r), s.googleOAuthCallbackPath)
 	if err != nil {
 		return "", err
 	}
 	return url, nil
 }
 
-func baseURL(r *http.Request) string {
+func getBaseURL(r *http.Request) string {
 	scheme := "http"
 	switch {
 	case r.Header.Get("X-Forwarded-Proto") == "https":

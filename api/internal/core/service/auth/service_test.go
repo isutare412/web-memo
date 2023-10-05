@@ -23,6 +23,7 @@ var _ = Describe("Service", func() {
 			mockKVRepository   *mockport.MockKVRepository
 			mockUserRepository *mockport.MockUserRepository
 			mockGoogleClient   *mockport.MockGoogleClient
+			mockJWTClient      *mockport.MockJWTClient
 		)
 
 		var (
@@ -41,7 +42,8 @@ var _ = Describe("Service", func() {
 			mockKVRepository = mockport.NewMockKVRepository(mockController)
 			mockUserRepository = mockport.NewMockUserRepository(mockController)
 			mockGoogleClient = mockport.NewMockGoogleClient(mockController)
-			authService = auth.NewService(givenAuthConfig, mockKVRepository, mockUserRepository, mockGoogleClient)
+			mockJWTClient = mockport.NewMockJWTClient(mockController)
+			authService = auth.NewService(givenAuthConfig, mockKVRepository, mockUserRepository, mockGoogleClient, mockJWTClient)
 		})
 
 		Context("StartGoogleSignIn", func() {

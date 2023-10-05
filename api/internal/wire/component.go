@@ -14,6 +14,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/service/memo"
 	"github.com/isutare412/web-memo/api/internal/google"
 	"github.com/isutare412/web-memo/api/internal/http"
+	"github.com/isutare412/web-memo/api/internal/jwt"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
 )
@@ -40,8 +41,9 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 	kvRepository := redis.NewKVRepository(redisClient)
 
 	googleClient := google.NewClient(cfg.ToGoogleClientConfig())
+	jwtClient := jwt.NewClient()
 
-	authService := auth.NewService(cfg.ToAuthServiceConfig(), kvRepository, userRepository, googleClient)
+	authService := auth.NewService(cfg.ToAuthServiceConfig(), kvRepository, userRepository, googleClient, jwtClient)
 	_ = memo.NewService(postgresClient, memoRepository, tagRepository)
 
 	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService)
