@@ -21,6 +21,7 @@ mocks: mockgen ## Generate mock implementations.
 	$(MOCKGEN) -source=internal/core/port/repository.go -destination=internal/core/port/mockport/mock_repository.go -package=mockport
 	$(MOCKGEN) -source=internal/core/port/service.go -destination=internal/core/port/mockport/mock_service.go -package=mockport
 	$(MOCKGEN) -source=internal/core/port/google.go -destination=internal/core/port/mockport/mock_google.go -package=mockport
+	$(MOCKGEN) -source=internal/core/port/jwt.go -destination=internal/core/port/mockport/mock_jwt.go -package=mockport
 
 ##@ Entity
 
