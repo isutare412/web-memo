@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
@@ -75,7 +76,7 @@ func (c *appClaims) toAppIDToken() (*model.AppIDToken, error) {
 
 	return &model.AppIDToken{
 		UserID:     userID,
-		UserType:   model.UserType(c.UserType),
+		UserType:   enum.UserType(c.UserType),
 		Email:      c.Email,
 		UserName:   c.UserName,
 		FamilyName: c.FamilyName,

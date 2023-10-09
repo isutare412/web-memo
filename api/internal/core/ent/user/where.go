@@ -9,7 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
-	"github.com/isutare412/web-memo/api/internal/core/model"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // ID filters vertices based on their ID field.
@@ -528,19 +528,19 @@ func PhotoURLContainsFold(v string) predicate.User {
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v model.UserType) predicate.User {
+func TypeEQ(v enum.UserType) predicate.User {
 	vc := v
 	return predicate.User(sql.FieldEQ(FieldType, vc))
 }
 
 // TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v model.UserType) predicate.User {
+func TypeNEQ(v enum.UserType) predicate.User {
 	vc := v
 	return predicate.User(sql.FieldNEQ(FieldType, vc))
 }
 
 // TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...model.UserType) predicate.User {
+func TypeIn(vs ...enum.UserType) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -549,7 +549,7 @@ func TypeIn(vs ...model.UserType) predicate.User {
 }
 
 // TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...model.UserType) predicate.User {
+func TypeNotIn(vs ...enum.UserType) predicate.User {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]

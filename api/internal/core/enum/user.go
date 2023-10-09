@@ -1,4 +1,4 @@
-package model
+package enum
 
 type UserType string
 

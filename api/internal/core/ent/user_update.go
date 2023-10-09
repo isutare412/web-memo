@@ -15,7 +15,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
-	"github.com/isutare412/web-memo/api/internal/core/model"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -110,15 +110,15 @@ func (uu *UserUpdate) ClearPhotoURL() *UserUpdate {
 }
 
 // SetType sets the "type" field.
-func (uu *UserUpdate) SetType(mt model.UserType) *UserUpdate {
-	uu.mutation.SetType(mt)
+func (uu *UserUpdate) SetType(et enum.UserType) *UserUpdate {
+	uu.mutation.SetType(et)
 	return uu
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableType(mt *model.UserType) *UserUpdate {
-	if mt != nil {
-		uu.SetType(*mt)
+func (uu *UserUpdate) SetNillableType(et *enum.UserType) *UserUpdate {
+	if et != nil {
+		uu.SetType(*et)
 	}
 	return uu
 }
@@ -421,15 +421,15 @@ func (uuo *UserUpdateOne) ClearPhotoURL() *UserUpdateOne {
 }
 
 // SetType sets the "type" field.
-func (uuo *UserUpdateOne) SetType(mt model.UserType) *UserUpdateOne {
-	uuo.mutation.SetType(mt)
+func (uuo *UserUpdateOne) SetType(et enum.UserType) *UserUpdateOne {
+	uuo.mutation.SetType(et)
 	return uuo
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableType(mt *model.UserType) *UserUpdateOne {
-	if mt != nil {
-		uuo.SetType(*mt)
+func (uuo *UserUpdateOne) SetNillableType(et *enum.UserType) *UserUpdateOne {
+	if et != nil {
+		uuo.SetType(*et)
 	}
 	return uuo
 }

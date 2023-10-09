@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
-	"github.com/isutare412/web-memo/api/internal/core/model"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -109,15 +109,15 @@ func (uc *UserCreate) SetNillablePhotoURL(s *string) *UserCreate {
 }
 
 // SetType sets the "type" field.
-func (uc *UserCreate) SetType(mt model.UserType) *UserCreate {
-	uc.mutation.SetType(mt)
+func (uc *UserCreate) SetType(et enum.UserType) *UserCreate {
+	uc.mutation.SetType(et)
 	return uc
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (uc *UserCreate) SetNillableType(mt *model.UserType) *UserCreate {
-	if mt != nil {
-		uc.SetType(*mt)
+func (uc *UserCreate) SetNillableType(et *enum.UserType) *UserCreate {
+	if et != nil {
+		uc.SetType(*et)
 	}
 	return uc
 }
@@ -478,7 +478,7 @@ func (u *UserUpsert) ClearPhotoURL() *UserUpsert {
 }
 
 // SetType sets the "type" field.
-func (u *UserUpsert) SetType(v model.UserType) *UserUpsert {
+func (u *UserUpsert) SetType(v enum.UserType) *UserUpsert {
 	u.Set(user.FieldType, v)
 	return u
 }
@@ -646,7 +646,7 @@ func (u *UserUpsertOne) ClearPhotoURL() *UserUpsertOne {
 }
 
 // SetType sets the "type" field.
-func (u *UserUpsertOne) SetType(v model.UserType) *UserUpsertOne {
+func (u *UserUpsertOne) SetType(v enum.UserType) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.SetType(v)
 	})
@@ -983,7 +983,7 @@ func (u *UserUpsertBulk) ClearPhotoURL() *UserUpsertBulk {
 }
 
 // SetType sets the "type" field.
-func (u *UserUpsertBulk) SetType(v model.UserType) *UserUpsertBulk {
+func (u *UserUpsertBulk) SetType(v enum.UserType) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.SetType(v)
 	})

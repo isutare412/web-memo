@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 type GoogleTokenResponse struct {
@@ -27,7 +29,7 @@ type GoogleIDToken struct {
 
 type AppIDToken struct {
 	UserID     uuid.UUID
-	UserType   UserType
+	UserType   enum.UserType
 	Email      string
 	UserName   string
 	FamilyName string

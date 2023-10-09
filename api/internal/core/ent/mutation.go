@@ -16,7 +16,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
-	"github.com/isutare412/web-memo/api/internal/core/model"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 const (
@@ -1219,7 +1219,7 @@ type UserMutation struct {
 	given_name    *string
 	family_name   *string
 	photo_url     *string
-	_type         *model.UserType
+	_type         *enum.UserType
 	clearedFields map[string]struct{}
 	memos         map[uuid.UUID]struct{}
 	removedmemos  map[uuid.UUID]struct{}
@@ -1625,12 +1625,12 @@ func (m *UserMutation) ResetPhotoURL() {
 }
 
 // SetType sets the "type" field.
-func (m *UserMutation) SetType(mt model.UserType) {
-	m._type = &mt
+func (m *UserMutation) SetType(et enum.UserType) {
+	m._type = &et
 }
 
 // GetType returns the value of the "type" field in the mutation.
-func (m *UserMutation) GetType() (r model.UserType, exists bool) {
+func (m *UserMutation) GetType() (r enum.UserType, exists bool) {
 	v := m._type
 	if v == nil {
 		return
@@ -1641,7 +1641,7 @@ func (m *UserMutation) GetType() (r model.UserType, exists bool) {
 // OldType returns the old "type" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldType(ctx context.Context) (v model.UserType, err error) {
+func (m *UserMutation) OldType(ctx context.Context) (v enum.UserType, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldType is only allowed on UpdateOne operations")
 	}
@@ -1881,7 +1881,7 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		m.SetPhotoURL(v)
 		return nil
 	case user.FieldType:
-		v, ok := value.(model.UserType)
+		v, ok := value.(enum.UserType)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

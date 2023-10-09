@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/mixin"
 	"github.com/google/uuid"
 
-	"github.com/isutare412/web-memo/api/internal/core/model"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // User holds the schema definition for the User entity.
@@ -40,8 +40,8 @@ func (User) Fields() []ent.Field {
 			Optional().
 			NotEmpty(),
 		field.Enum("type").
-			GoType(model.UserType("")).
-			Default(string(model.UserTypeClient)),
+			GoType(enum.UserType("")).
+			Default(string(enum.UserTypeClient)),
 	}
 }
 

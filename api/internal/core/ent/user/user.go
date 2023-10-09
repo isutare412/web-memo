@@ -9,7 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
-	"github.com/isutare412/web-memo/api/internal/core/model"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 const (
@@ -90,10 +90,10 @@ var (
 	DefaultID func() uuid.UUID
 )
 
-const DefaultType model.UserType = "client"
+const DefaultType enum.UserType = "client"
 
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
-func TypeValidator(_type model.UserType) error {
+func TypeValidator(_type enum.UserType) error {
 	switch _type {
 	case "client", "operator":
 		return nil

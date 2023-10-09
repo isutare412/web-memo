@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
@@ -131,7 +132,7 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 			GivenName:  idToken.GivenName,
 			FamilyName: idToken.FamilyName,
 			PhotoURL:   idToken.PictureURL,
-			Type:       model.UserTypeClient,
+			Type:       enum.UserTypeClient,
 		}
 
 		userFound, err := s.userRepository.FindByEmail(ctxWithTx, idToken.Email)
