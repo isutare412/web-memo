@@ -48,6 +48,10 @@ func NewService(
 	}
 }
 
+func (s *Service) VerifyAppIDTokenString(tokenString string) (*model.AppIDToken, error) {
+	return s.jwtClient.VerifyAppIDTokenString(tokenString)
+}
+
 func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL string, err error) {
 	callbackURL, err := s.getGoogleCallbackURL(req)
 	if err != nil {

@@ -11,8 +11,6 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/port"
 )
 
-const cookieTokenName = "wmToken"
-
 type googleHandler struct {
 	authService      port.AuthService
 	cookieExpiration time.Duration

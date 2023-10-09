@@ -7,9 +7,11 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 type AuthService interface {
+	VerifyAppIDTokenString(string) (*model.AppIDToken, error)
 	StartGoogleSignIn(context.Context, *http.Request) (redirectURL string, err error)
 	FinishGoogleSignIn(context.Context, *http.Request) (redirectURL, appToken string, err error)
 }

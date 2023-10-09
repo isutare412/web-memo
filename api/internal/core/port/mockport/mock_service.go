@@ -15,6 +15,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	ent "github.com/isutare412/web-memo/api/internal/core/ent"
+	model "github.com/isutare412/web-memo/api/internal/core/model"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -70,6 +71,21 @@ func (m *MockAuthService) StartGoogleSignIn(arg0 context.Context, arg1 *http.Req
 func (mr *MockAuthServiceMockRecorder) StartGoogleSignIn(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartGoogleSignIn", reflect.TypeOf((*MockAuthService)(nil).StartGoogleSignIn), arg0, arg1)
+}
+
+// VerifyAppIDTokenString mocks base method.
+func (m *MockAuthService) VerifyAppIDTokenString(arg0 string) (*model.AppIDToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyAppIDTokenString", arg0)
+	ret0, _ := ret[0].(*model.AppIDToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifyAppIDTokenString indicates an expected call of VerifyAppIDTokenString.
+func (mr *MockAuthServiceMockRecorder) VerifyAppIDTokenString(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyAppIDTokenString", reflect.TypeOf((*MockAuthService)(nil).VerifyAppIDTokenString), arg0)
 }
 
 // MockMemoService is a mock of MemoService interface.
