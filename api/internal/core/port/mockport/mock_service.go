@@ -127,32 +127,32 @@ func (mr *MockMemoServiceMockRecorder) CreateMemo(ctx, memo, tagNames, userID an
 }
 
 // DeleteMemo mocks base method.
-func (m *MockMemoService) DeleteMemo(ctx context.Context, memoID uuid.UUID) error {
+func (m *MockMemoService) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteMemo", ctx, memoID)
+	ret := m.ctrl.Call(m, "DeleteMemo", ctx, memoID, requester)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteMemo indicates an expected call of DeleteMemo.
-func (mr *MockMemoServiceMockRecorder) DeleteMemo(ctx, memoID any) *gomock.Call {
+func (mr *MockMemoServiceMockRecorder) DeleteMemo(ctx, memoID, requester any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMemo", reflect.TypeOf((*MockMemoService)(nil).DeleteMemo), ctx, memoID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMemo", reflect.TypeOf((*MockMemoService)(nil).DeleteMemo), ctx, memoID, requester)
 }
 
 // GetMemo mocks base method.
-func (m *MockMemoService) GetMemo(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
+func (m *MockMemoService) GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMemo", ctx, memoID)
+	ret := m.ctrl.Call(m, "GetMemo", ctx, memoID, requester)
 	ret0, _ := ret[0].(*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMemo indicates an expected call of GetMemo.
-func (mr *MockMemoServiceMockRecorder) GetMemo(ctx, memoID any) *gomock.Call {
+func (mr *MockMemoServiceMockRecorder) GetMemo(ctx, memoID, requester any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemo", reflect.TypeOf((*MockMemoService)(nil).GetMemo), ctx, memoID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemo", reflect.TypeOf((*MockMemoService)(nil).GetMemo), ctx, memoID, requester)
 }
 
 // ListMemos mocks base method.
@@ -171,16 +171,16 @@ func (mr *MockMemoServiceMockRecorder) ListMemos(ctx, userID any) *gomock.Call {
 }
 
 // ReplaceTags mocks base method.
-func (m *MockMemoService) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagNames []string) ([]*ent.Tag, error) {
+func (m *MockMemoService) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagNames []string, requester *model.AppIDToken) ([]*ent.Tag, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReplaceTags", ctx, memoID, tagNames)
+	ret := m.ctrl.Call(m, "ReplaceTags", ctx, memoID, tagNames, requester)
 	ret0, _ := ret[0].([]*ent.Tag)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ReplaceTags indicates an expected call of ReplaceTags.
-func (mr *MockMemoServiceMockRecorder) ReplaceTags(ctx, memoID, tagNames any) *gomock.Call {
+func (mr *MockMemoServiceMockRecorder) ReplaceTags(ctx, memoID, tagNames, requester any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoService)(nil).ReplaceTags), ctx, memoID, tagNames)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoService)(nil).ReplaceTags), ctx, memoID, tagNames, requester)
 }

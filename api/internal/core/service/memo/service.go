@@ -9,7 +9,9 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/core/port"
+	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
 type Service struct {
@@ -30,10 +32,14 @@ func NewService(
 	}
 }
 
-func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
+func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error) {
 	memo, err := s.memoRepository.FindByID(ctx, memoID)
 	if err != nil {
 		return nil, fmt.Errorf("finding memo: %w", err)
+	}
+
+	if !requester.CanAccessMemo(memo) {
+		return nil, pkgerr.Known{Code: pkgerr.CodePermissionDenied}
 	}
 
 	return memo, nil
@@ -76,19 +82,50 @@ func (s *Service) CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []str
 	return memoCreated, nil
 }
 
-func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID) error {
-	if err := s.memoRepository.Delete(ctx, memoID); err != nil {
-		return fmt.Errorf("deleting memo: %w", err)
+func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanAccessMemo(memo) {
+			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+		}
+
+		if err := s.memoRepository.Delete(ctx, memoID); err != nil {
+			return fmt.Errorf("deleting memo: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("during transaction: %w", err)
 	}
+
 	return nil
 }
 
-func (s *Service) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagNames []string) ([]*ent.Tag, error) {
+func (s *Service) ReplaceTags(
+	ctx context.Context,
+	memoID uuid.UUID,
+	tagNames []string,
+	requester *model.AppIDToken,
+) ([]*ent.Tag, error) {
 	tagNames = sortDedupTags(tagNames)
 
 	var tagsReplaced []*ent.Tag
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanAccessMemo(memo) {
+			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+		}
+
 		tags, err := s.ensureTags(ctx, tagNames)
 		if err != nil {
 			return fmt.Errorf("ensuring tags: %w", err)

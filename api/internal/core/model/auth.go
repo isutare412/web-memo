@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
@@ -35,4 +36,11 @@ type AppIDToken struct {
 	FamilyName string
 	GivenName  string
 	PhotoURL   string
+}
+
+func (t *AppIDToken) CanAccessMemo(memo *ent.Memo) bool {
+	if t.UserType == enum.UserTypeOperator {
+		return true
+	}
+	return memo.OwnerID == t.UserID
 }
