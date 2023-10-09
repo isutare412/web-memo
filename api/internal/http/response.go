@@ -60,3 +60,7 @@ func responseJSON(w http.ResponseWriter, obj any) {
 		return
 	}
 }
+
+func responseStatusCode(w http.ResponseWriter, code int) {
+	w.WriteHeader(code)
+}

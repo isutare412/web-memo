@@ -184,3 +184,18 @@ func (mr *MockMemoServiceMockRecorder) ReplaceTags(ctx, memoID, tagNames, reques
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoService)(nil).ReplaceTags), ctx, memoID, tagNames, requester)
 }
+
+// UpdateMemo mocks base method.
+func (m *MockMemoService) UpdateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, requester *model.AppIDToken) (*ent.Memo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMemo", ctx, memo, tagNames, requester)
+	ret0, _ := ret[0].(*ent.Memo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateMemo indicates an expected call of UpdateMemo.
+func (mr *MockMemoServiceMockRecorder) UpdateMemo(ctx, memo, tagNames, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMemo", reflect.TypeOf((*MockMemoService)(nil).UpdateMemo), ctx, memo, tagNames, requester)
+}

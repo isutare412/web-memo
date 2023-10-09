@@ -16,9 +16,10 @@ type Server struct {
 	server *http.Server
 }
 
-func NewServer(cfg Config, authService port.AuthService) *Server {
-	ggHandler := newGoogleHandler(cfg, authService)
-	usrHandler := newUserHandler(authService)
+func NewServer(cfg Config, authService port.AuthService, memoService port.MemoService) *Server {
+	googleHandler := newGoogleHandler(cfg, authService)
+	userHandler := newUserHandler(authService)
+	memoHandler := newMemoHandler(memoService)
 
 	imi := newImmigration(authService)
 
@@ -26,10 +27,11 @@ func NewServer(cfg Config, authService port.AuthService) *Server {
 	r.Use(wrapResponseWriter, logRequests, recoverPanic)
 
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Mount("/google", ggHandler.router())
+		r.Mount("/google", googleHandler.router())
 
 		auth := r.With(imi.issuePassport)
-		auth.Mount("/users", usrHandler.router())
+		auth.Mount("/users", userHandler.router())
+		auth.Mount("/memos", memoHandler.router())
 	})
 
 	return &Server{

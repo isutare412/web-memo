@@ -47,10 +47,11 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 
 	googleClient := google.NewClient(cfg.ToGoogleClientConfig())
 
-	authService := auth.NewService(cfg.ToAuthServiceConfig(), kvRepository, userRepository, googleClient, jwtClient)
-	_ = memo.NewService(postgresClient, memoRepository, tagRepository)
+	authService := auth.NewService(
+		cfg.ToAuthServiceConfig(), postgresClient, kvRepository, userRepository, googleClient, jwtClient)
+	memoService := memo.NewService(postgresClient, memoRepository, tagRepository)
 
-	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService)
+	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService, memoService)
 
 	return &Components{
 		cfg: cfg,

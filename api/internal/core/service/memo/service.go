@@ -82,6 +82,52 @@ func (s *Service) CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []str
 	return memoCreated, nil
 }
 
+func (s *Service) UpdateMemo(
+	ctx context.Context,
+	memo *ent.Memo,
+	tagNames []string,
+	requester *model.AppIDToken,
+) (*ent.Memo, error) {
+	tagNames = sortDedupTags(tagNames)
+
+	var memoUpdated *ent.Memo
+
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		tags, err := s.ensureTags(ctx, tagNames)
+		if err != nil {
+			return fmt.Errorf("ensuring tags: %w", err)
+		}
+
+		memoFound, err := s.memoRepository.FindByID(ctx, memo.ID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanAccessMemo(memoFound) {
+			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+		}
+
+		memo, err := s.memoRepository.Update(ctx, memo)
+		if err != nil {
+			return fmt.Errorf("creating memo: %w", err)
+		}
+
+		tagIDs := lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
+		if err := s.memoRepository.ReplaceTags(ctx, memo.ID, tagIDs); err != nil {
+			return fmt.Errorf("replacing tags: %w", err)
+		}
+
+		memoUpdated = memo
+		memoUpdated.Edges.Tags = tags
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("during transaction: %w", err)
+	}
+
+	return memoUpdated, nil
+}
+
 func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
 		memo, err := s.memoRepository.FindByID(ctx, memoID)
