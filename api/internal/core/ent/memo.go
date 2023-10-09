@@ -23,6 +23,8 @@ type Memo struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// OwnerID holds the value of the "owner_id" field.
+	OwnerID uuid.UUID `json:"owner_id,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Content holds the value of the "content" field.
@@ -30,7 +32,6 @@ type Memo struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MemoQuery when eager-loading is set.
 	Edges        MemoEdges `json:"edges"`
-	user_memos   *uuid.UUID
 	selectValues sql.SelectValues
 }
 
@@ -76,10 +77,8 @@ func (*Memo) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case memo.FieldCreateTime, memo.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case memo.FieldID:
+		case memo.FieldID, memo.FieldOwnerID:
 			values[i] = new(uuid.UUID)
-		case memo.ForeignKeys[0]: // user_memos
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -113,6 +112,12 @@ func (m *Memo) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.UpdateTime = value.Time
 			}
+		case memo.FieldOwnerID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
+			} else if value != nil {
+				m.OwnerID = *value
+			}
 		case memo.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
@@ -124,13 +129,6 @@ func (m *Memo) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
 			} else if value.Valid {
 				m.Content = value.String
-			}
-		case memo.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_memos", values[i])
-			} else if value.Valid {
-				m.user_memos = new(uuid.UUID)
-				*m.user_memos = *value.S.(*uuid.UUID)
 			}
 		default:
 			m.selectValues.Set(columns[i], values[i])
@@ -183,6 +181,9 @@ func (m *Memo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
 	builder.WriteString(m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("owner_id=")
+	builder.WriteString(fmt.Sprintf("%v", m.OwnerID))
 	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(m.Title)

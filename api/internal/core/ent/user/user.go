@@ -43,7 +43,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "memo" package.
 	MemosInverseTable = "memos"
 	// MemosColumn is the table column denoting the memos relation/edge.
-	MemosColumn = "user_memos"
+	MemosColumn = "owner_id"
 )
 
 // Columns holds all SQL columns for user fields.

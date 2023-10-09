@@ -413,7 +413,9 @@ func (uq *UserQuery) loadMemos(ctx context.Context, query *MemoQuery, nodes []*U
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(memo.FieldOwnerID)
+	}
 	query.Where(predicate.Memo(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.MemosColumn), fks...))
 	}))
@@ -422,13 +424,10 @@ func (uq *UserQuery) loadMemos(ctx context.Context, query *MemoQuery, nodes []*U
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_memos
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_memos" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.OwnerID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_memos" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "owner_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

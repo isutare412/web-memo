@@ -54,6 +54,12 @@ func (mc *MemoCreate) SetNillableUpdateTime(t *time.Time) *MemoCreate {
 	return mc
 }
 
+// SetOwnerID sets the "owner_id" field.
+func (mc *MemoCreate) SetOwnerID(u uuid.UUID) *MemoCreate {
+	mc.mutation.SetOwnerID(u)
+	return mc
+}
+
 // SetTitle sets the "title" field.
 func (mc *MemoCreate) SetTitle(s string) *MemoCreate {
 	mc.mutation.SetTitle(s)
@@ -77,12 +83,6 @@ func (mc *MemoCreate) SetNillableID(u *uuid.UUID) *MemoCreate {
 	if u != nil {
 		mc.SetID(*u)
 	}
-	return mc
-}
-
-// SetOwnerID sets the "owner" edge to the User entity by ID.
-func (mc *MemoCreate) SetOwnerID(id uuid.UUID) *MemoCreate {
-	mc.mutation.SetOwnerID(id)
 	return mc
 }
 
@@ -162,6 +162,9 @@ func (mc *MemoCreate) check() error {
 	}
 	if _, ok := mc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Memo.update_time"`)}
+	}
+	if _, ok := mc.mutation.OwnerID(); !ok {
+		return &ValidationError{Name: "owner_id", err: errors.New(`ent: missing required field "Memo.owner_id"`)}
 	}
 	if _, ok := mc.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Memo.title"`)}
@@ -248,7 +251,7 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_memos = &nodes[0]
+		_node.OwnerID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := mc.mutation.TagsIDs(); len(nodes) > 0 {
@@ -328,6 +331,18 @@ func (u *MemoUpsert) SetUpdateTime(v time.Time) *MemoUpsert {
 // UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
 func (u *MemoUpsert) UpdateUpdateTime() *MemoUpsert {
 	u.SetExcluded(memo.FieldUpdateTime)
+	return u
+}
+
+// SetOwnerID sets the "owner_id" field.
+func (u *MemoUpsert) SetOwnerID(v uuid.UUID) *MemoUpsert {
+	u.Set(memo.FieldOwnerID, v)
+	return u
+}
+
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *MemoUpsert) UpdateOwnerID() *MemoUpsert {
+	u.SetExcluded(memo.FieldOwnerID)
 	return u
 }
 
@@ -417,6 +432,20 @@ func (u *MemoUpsertOne) SetUpdateTime(v time.Time) *MemoUpsertOne {
 func (u *MemoUpsertOne) UpdateUpdateTime() *MemoUpsertOne {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetOwnerID sets the "owner_id" field.
+func (u *MemoUpsertOne) SetOwnerID(v uuid.UUID) *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetOwnerID(v)
+	})
+}
+
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *MemoUpsertOne) UpdateOwnerID() *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateOwnerID()
 	})
 }
 
@@ -677,6 +706,20 @@ func (u *MemoUpsertBulk) SetUpdateTime(v time.Time) *MemoUpsertBulk {
 func (u *MemoUpsertBulk) UpdateUpdateTime() *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetOwnerID sets the "owner_id" field.
+func (u *MemoUpsertBulk) SetOwnerID(v uuid.UUID) *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetOwnerID(v)
+	})
+}
+
+// UpdateOwnerID sets the "owner_id" field to the value that was provided on create.
+func (u *MemoUpsertBulk) UpdateOwnerID() *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateOwnerID()
 	})
 }
 

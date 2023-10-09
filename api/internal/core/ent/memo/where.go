@@ -66,6 +66,11 @@ func UpdateTime(v time.Time) predicate.Memo {
 	return predicate.Memo(sql.FieldEQ(FieldUpdateTime, v))
 }
 
+// OwnerID applies equality check predicate on the "owner_id" field. It's identical to OwnerIDEQ.
+func OwnerID(v uuid.UUID) predicate.Memo {
+	return predicate.Memo(sql.FieldEQ(FieldOwnerID, v))
+}
+
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.Memo {
 	return predicate.Memo(sql.FieldEQ(FieldTitle, v))
@@ -154,6 +159,26 @@ func UpdateTimeLT(v time.Time) predicate.Memo {
 // UpdateTimeLTE applies the LTE predicate on the "update_time" field.
 func UpdateTimeLTE(v time.Time) predicate.Memo {
 	return predicate.Memo(sql.FieldLTE(FieldUpdateTime, v))
+}
+
+// OwnerIDEQ applies the EQ predicate on the "owner_id" field.
+func OwnerIDEQ(v uuid.UUID) predicate.Memo {
+	return predicate.Memo(sql.FieldEQ(FieldOwnerID, v))
+}
+
+// OwnerIDNEQ applies the NEQ predicate on the "owner_id" field.
+func OwnerIDNEQ(v uuid.UUID) predicate.Memo {
+	return predicate.Memo(sql.FieldNEQ(FieldOwnerID, v))
+}
+
+// OwnerIDIn applies the In predicate on the "owner_id" field.
+func OwnerIDIn(vs ...uuid.UUID) predicate.Memo {
+	return predicate.Memo(sql.FieldIn(FieldOwnerID, vs...))
+}
+
+// OwnerIDNotIn applies the NotIn predicate on the "owner_id" field.
+func OwnerIDNotIn(vs ...uuid.UUID) predicate.Memo {
+	return predicate.Memo(sql.FieldNotIn(FieldOwnerID, vs...))
 }
 
 // TitleEQ applies the EQ predicate on the "title" field.

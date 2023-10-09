@@ -37,6 +37,12 @@ func (mu *MemoUpdate) SetUpdateTime(t time.Time) *MemoUpdate {
 	return mu
 }
 
+// SetOwnerID sets the "owner_id" field.
+func (mu *MemoUpdate) SetOwnerID(u uuid.UUID) *MemoUpdate {
+	mu.mutation.SetOwnerID(u)
+	return mu
+}
+
 // SetTitle sets the "title" field.
 func (mu *MemoUpdate) SetTitle(s string) *MemoUpdate {
 	mu.mutation.SetTitle(s)
@@ -46,12 +52,6 @@ func (mu *MemoUpdate) SetTitle(s string) *MemoUpdate {
 // SetContent sets the "content" field.
 func (mu *MemoUpdate) SetContent(s string) *MemoUpdate {
 	mu.mutation.SetContent(s)
-	return mu
-}
-
-// SetOwnerID sets the "owner" edge to the User entity by ID.
-func (mu *MemoUpdate) SetOwnerID(id uuid.UUID) *MemoUpdate {
-	mu.mutation.SetOwnerID(id)
 	return mu
 }
 
@@ -282,6 +282,12 @@ func (muo *MemoUpdateOne) SetUpdateTime(t time.Time) *MemoUpdateOne {
 	return muo
 }
 
+// SetOwnerID sets the "owner_id" field.
+func (muo *MemoUpdateOne) SetOwnerID(u uuid.UUID) *MemoUpdateOne {
+	muo.mutation.SetOwnerID(u)
+	return muo
+}
+
 // SetTitle sets the "title" field.
 func (muo *MemoUpdateOne) SetTitle(s string) *MemoUpdateOne {
 	muo.mutation.SetTitle(s)
@@ -291,12 +297,6 @@ func (muo *MemoUpdateOne) SetTitle(s string) *MemoUpdateOne {
 // SetContent sets the "content" field.
 func (muo *MemoUpdateOne) SetContent(s string) *MemoUpdateOne {
 	muo.mutation.SetContent(s)
-	return muo
-}
-
-// SetOwnerID sets the "owner" edge to the User entity by ID.
-func (muo *MemoUpdateOne) SetOwnerID(id uuid.UUID) *MemoUpdateOne {
-	muo.mutation.SetOwnerID(id)
 	return muo
 }
 

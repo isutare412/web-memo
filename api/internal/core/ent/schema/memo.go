@@ -18,6 +18,7 @@ func (Memo) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
+		field.UUID("owner_id", uuid.UUID{}),
 		field.String("title").
 			NotEmpty().
 			MaxLen(512),
@@ -39,7 +40,8 @@ func (Memo) Edges() []ent.Edge {
 		edge.From("owner", User.Type).
 			Ref("memos").
 			Required().
-			Unique(),
+			Unique().
+			Field("owner_id"),
 		edge.To("tags", Tag.Type),
 	}
 }

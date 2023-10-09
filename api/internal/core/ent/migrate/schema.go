@@ -15,7 +15,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString, Size: 512},
 		{Name: "content", Type: field.TypeString, Size: 20000},
-		{Name: "user_memos", Type: field.TypeUUID},
+		{Name: "owner_id", Type: field.TypeUUID},
 	}
 	// MemosTable holds the schema information for the "memos" table.
 	MemosTable = &schema.Table{

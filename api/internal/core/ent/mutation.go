@@ -230,6 +230,42 @@ func (m *MemoMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
+// SetOwnerID sets the "owner_id" field.
+func (m *MemoMutation) SetOwnerID(u uuid.UUID) {
+	m.owner = &u
+}
+
+// OwnerID returns the value of the "owner_id" field in the mutation.
+func (m *MemoMutation) OwnerID() (r uuid.UUID, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwnerID returns the old "owner_id" field's value of the Memo entity.
+// If the Memo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoMutation) OldOwnerID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOwnerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOwnerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwnerID: %w", err)
+	}
+	return oldValue.OwnerID, nil
+}
+
+// ResetOwnerID resets all changes to the "owner_id" field.
+func (m *MemoMutation) ResetOwnerID() {
+	m.owner = nil
+}
+
 // SetTitle sets the "title" field.
 func (m *MemoMutation) SetTitle(s string) {
 	m.title = &s
@@ -302,27 +338,15 @@ func (m *MemoMutation) ResetContent() {
 	m.content = nil
 }
 
-// SetOwnerID sets the "owner" edge to the User entity by id.
-func (m *MemoMutation) SetOwnerID(id uuid.UUID) {
-	m.owner = &id
-}
-
 // ClearOwner clears the "owner" edge to the User entity.
 func (m *MemoMutation) ClearOwner() {
 	m.clearedowner = true
+	m.clearedFields[memo.FieldOwnerID] = struct{}{}
 }
 
 // OwnerCleared reports if the "owner" edge to the User entity was cleared.
 func (m *MemoMutation) OwnerCleared() bool {
 	return m.clearedowner
-}
-
-// OwnerID returns the "owner" edge ID in the mutation.
-func (m *MemoMutation) OwnerID() (id uuid.UUID, exists bool) {
-	if m.owner != nil {
-		return *m.owner, true
-	}
-	return
 }
 
 // OwnerIDs returns the "owner" edge IDs in the mutation.
@@ -429,12 +453,15 @@ func (m *MemoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemoMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.create_time != nil {
 		fields = append(fields, memo.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, memo.FieldUpdateTime)
+	}
+	if m.owner != nil {
+		fields = append(fields, memo.FieldOwnerID)
 	}
 	if m.title != nil {
 		fields = append(fields, memo.FieldTitle)
@@ -454,6 +481,8 @@ func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case memo.FieldUpdateTime:
 		return m.UpdateTime()
+	case memo.FieldOwnerID:
+		return m.OwnerID()
 	case memo.FieldTitle:
 		return m.Title()
 	case memo.FieldContent:
@@ -471,6 +500,8 @@ func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCreateTime(ctx)
 	case memo.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case memo.FieldOwnerID:
+		return m.OldOwnerID(ctx)
 	case memo.FieldTitle:
 		return m.OldTitle(ctx)
 	case memo.FieldContent:
@@ -497,6 +528,13 @@ func (m *MemoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case memo.FieldOwnerID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwnerID(v)
 		return nil
 	case memo.FieldTitle:
 		v, ok := value.(string)
@@ -566,6 +604,9 @@ func (m *MemoMutation) ResetField(name string) error {
 		return nil
 	case memo.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case memo.FieldOwnerID:
+		m.ResetOwnerID()
 		return nil
 	case memo.FieldTitle:
 		m.ResetTitle()

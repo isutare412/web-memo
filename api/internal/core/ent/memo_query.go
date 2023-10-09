@@ -27,7 +27,6 @@ type MemoQuery struct {
 	predicates []predicate.Memo
 	withOwner  *UserQuery
 	withTags   *TagQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -407,19 +406,12 @@ func (mq *MemoQuery) prepareQuery(ctx context.Context) error {
 func (mq *MemoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Memo, error) {
 	var (
 		nodes       = []*Memo{}
-		withFKs     = mq.withFKs
 		_spec       = mq.querySpec()
 		loadedTypes = [2]bool{
 			mq.withOwner != nil,
 			mq.withTags != nil,
 		}
 	)
-	if mq.withOwner != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, memo.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Memo).scanValues(nil, columns)
 	}
@@ -458,10 +450,7 @@ func (mq *MemoQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*M
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Memo)
 	for i := range nodes {
-		if nodes[i].user_memos == nil {
-			continue
-		}
-		fk := *nodes[i].user_memos
+		fk := nodes[i].OwnerID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -478,7 +467,7 @@ func (mq *MemoQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*M
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_memos" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "owner_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -572,6 +561,9 @@ func (mq *MemoQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != memo.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if mq.withOwner != nil {
+			_spec.Node.AddColumnOnce(memo.FieldOwnerID)
 		}
 	}
 	if ps := mq.predicates; len(ps) > 0 {
