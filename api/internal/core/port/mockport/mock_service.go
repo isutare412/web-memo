@@ -41,6 +41,22 @@ func (m *MockAuthService) EXPECT() *MockAuthServiceMockRecorder {
 	return m.recorder
 }
 
+// FinishGoogleSignIn mocks base method.
+func (m *MockAuthService) FinishGoogleSignIn(arg0 context.Context, arg1 *http.Request) (string, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FinishGoogleSignIn", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// FinishGoogleSignIn indicates an expected call of FinishGoogleSignIn.
+func (mr *MockAuthServiceMockRecorder) FinishGoogleSignIn(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishGoogleSignIn", reflect.TypeOf((*MockAuthService)(nil).FinishGoogleSignIn), arg0, arg1)
+}
+
 // StartGoogleSignIn mocks base method.
 func (m *MockAuthService) StartGoogleSignIn(arg0 context.Context, arg1 *http.Request) (string, error) {
 	m.ctrl.T.Helper()

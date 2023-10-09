@@ -11,6 +11,7 @@ import (
 
 type AuthService interface {
 	StartGoogleSignIn(context.Context, *http.Request) (redirectURL string, err error)
+	FinishGoogleSignIn(context.Context, *http.Request) (redirectURL, appToken string, err error)
 }
 
 type MemoService interface {

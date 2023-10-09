@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
@@ -38,6 +39,7 @@ func NewService(
 		kvRepository:   kvRepository,
 		userRepository: userRepository,
 		googleClient:   googleClient,
+		jwtClient:      jwtClient,
 
 		googleOAuthEndpoint:     cfg.Google.OAuthEndpoint,
 		googleOAuthClientID:     cfg.Google.OAuthClientID,
@@ -75,46 +77,46 @@ func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (red
 	return redirectURL, nil
 }
 
-func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL string, err error) {
+func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL, appToken string, err error) {
 	state, err := parseGoogleOAuthState(req.URL.Query())
 	if err != nil {
-		return "", fmt.Errorf("getting google oauth state: %w", err)
+		return "", "", fmt.Errorf("getting google oauth state: %w", err)
 	}
 
 	if _, err := s.kvRepository.GetThenDelete(ctx, state.ID); err != nil {
 		if pkgerr.IsErrNotFound(err) {
-			return "", pkgerr.Known{
+			return "", "", pkgerr.Known{
 				Code:      pkgerr.CodeBadRequest,
 				ClientMsg: "OAuth2.0 state not found",
 				Origin:    err,
 			}
 		}
-		return "", fmt.Errorf("get then deleting state: %w", err)
+		return "", "", fmt.Errorf("get then deleting state: %w", err)
 	}
 
 	authCode := req.URL.Query().Get("code")
 	if authCode == "" {
-		return "", pkgerr.Known{
+		return "", "", pkgerr.Known{
 			ClientMsg: "no authorization code",
 		}
 	}
 
 	callbackURL, err := s.getGoogleCallbackURL(req)
 	if err != nil {
-		return "", fmt.Errorf("getting google callback URL: %w", err)
+		return "", "", fmt.Errorf("getting google callback URL: %w", err)
 	}
 
 	tokenResp, err := s.googleClient.ExchangeAuthCode(ctx, authCode, callbackURL)
 	if err != nil {
-		return "", fmt.Errorf("exchanging auth code: %w", err)
+		return "", "", fmt.Errorf("exchanging auth code: %w", err)
 	}
 
 	idToken, err := s.jwtClient.ParseGoogleIDTokenUnverified(tokenResp.IDToken)
 	if err != nil {
-		return "", fmt.Errorf("parsing google ID token: %w", err)
+		return "", "", fmt.Errorf("parsing google ID token: %w", err)
 	}
 
-	_, err = s.userRepository.Upsert(ctx, &ent.User{
+	user, err := s.userRepository.Upsert(ctx, &ent.User{
 		Email:      idToken.Email,
 		UserName:   idToken.Name,
 		GivenName:  idToken.GivenName,
@@ -122,7 +124,19 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 		PhotoURL:   idToken.PictureURL,
 	})
 	if err != nil {
-		return "", fmt.Errorf("creating user: %w", err)
+		return "", "", fmt.Errorf("creating user: %w", err)
+	}
+
+	appToken, err = s.jwtClient.SignAppIDToken(&model.AppIDToken{
+		UserID:     user.ID,
+		Email:      user.Email,
+		UserName:   user.UserName,
+		FamilyName: user.FamilyName,
+		GivenName:  user.GivenName,
+		PhotoURL:   user.PhotoURL,
+	})
+	if err != nil {
+		return "", "", fmt.Errorf("signing app ID token: %w", err)
 	}
 
 	redirectURL = getBaseURL(req)
@@ -130,7 +144,7 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 		redirectURL = state.Referer
 	}
 
-	return redirectURL, nil
+	return redirectURL, appToken, nil
 }
 
 func (s *Service) generateOAuthStateID(ctx context.Context) (string, error) {
