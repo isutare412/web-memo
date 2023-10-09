@@ -1,0 +1,51 @@
+@memoId=<memoId>
+
+###
+GET {{url}}/api/v1/google/sign-in
+
+###
+GET {{url}}/api/v1/google/sign-in/finish
+
+###
+GET {{url}}/api/v1/users/me
+Authorization: Bearer {{idToken}}
+
+###
+GET {{url}}/api/v1/memos
+Authorization: Bearer {{idToken}}
+
+###
+POST {{url}}/api/v1/memos
+Authorization: Bearer {{idToken}}
+
+{
+    "title": "Test Title",
+    "content": "with some contents inside.",
+    "tags": [
+        "study",
+        "development"
+    ]
+}
+
+###
+PUT {{url}}/api/v1/memos/{{memoId}}
+Authorization: Bearer {{idToken}}
+
+{
+    "title": "Test Title 2",
+    "content": "content is replaced.",
+    "tags": [
+        "study",
+        "production"
+    ]
+}
+
+###
+DELETE {{url}}/api/v1/memos/{{memoId}}
+Authorization: Bearer {{idToken}}
+
+###
+PUT {{url}}/api/v1/memos/{{memoId}}/tags
+Authorization: Bearer {{idToken}}
+
+[]
