@@ -41,6 +41,27 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*ent.User,
 	return userFound, nil
 }
 
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*ent.User, error) {
+	client := transactionClient(ctx, r.client)
+
+	userFound, err := client.User.
+		Query().
+		Where(user.Email(email)).
+		Only(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return nil, pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("user with email(%s) does not exist", email),
+		}
+	case err != nil:
+		return nil, err
+	}
+
+	return userFound, nil
+}
+
 func (r *UserRepository) Upsert(ctx context.Context, usr *ent.User) (*ent.User, error) {
 	client := transactionClient(ctx, r.client)
 
@@ -51,6 +72,7 @@ func (r *UserRepository) Upsert(ctx context.Context, usr *ent.User) (*ent.User, 
 		SetNillableGivenName(lo.EmptyableToPtr(usr.GivenName)).
 		SetNillableFamilyName(lo.EmptyableToPtr(usr.FamilyName)).
 		SetNillablePhotoURL(lo.EmptyableToPtr(usr.PhotoURL)).
+		SetType(usr.Type).
 		OnConflict(
 			sql.ConflictColumns(user.FieldEmail),
 			sql.ResolveWithNewValues(),

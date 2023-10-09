@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 // ID filters vertices based on their ID field.
@@ -524,6 +525,36 @@ func PhotoURLEqualFold(v string) predicate.User {
 // PhotoURLContainsFold applies the ContainsFold predicate on the "photo_url" field.
 func PhotoURLContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldPhotoURL, v))
+}
+
+// TypeEQ applies the EQ predicate on the "type" field.
+func TypeEQ(v model.UserType) predicate.User {
+	vc := v
+	return predicate.User(sql.FieldEQ(FieldType, vc))
+}
+
+// TypeNEQ applies the NEQ predicate on the "type" field.
+func TypeNEQ(v model.UserType) predicate.User {
+	vc := v
+	return predicate.User(sql.FieldNEQ(FieldType, vc))
+}
+
+// TypeIn applies the In predicate on the "type" field.
+func TypeIn(vs ...model.UserType) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(sql.FieldIn(FieldType, v...))
+}
+
+// TypeNotIn applies the NotIn predicate on the "type" field.
+func TypeNotIn(vs ...model.UserType) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(sql.FieldNotIn(FieldType, v...))
 }
 
 // HasMemos applies the HasEdge predicate on the "memos" edge.

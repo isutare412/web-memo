@@ -7,6 +7,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
 	"github.com/google/uuid"
+
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 // User holds the schema definition for the User entity.
@@ -37,6 +39,9 @@ func (User) Fields() []ent.Field {
 		field.String("photo_url").
 			Optional().
 			NotEmpty(),
+		field.Enum("type").
+			GoType(model.UserType("")).
+			Default(string(model.UserTypeClient)),
 	}
 }
 

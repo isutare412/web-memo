@@ -17,10 +17,11 @@ import (
 )
 
 type Service struct {
-	kvRepository   port.KVRepository
-	userRepository port.UserRepository
-	googleClient   port.GoogleClient
-	jwtClient      port.JWTClient
+	transactionManager port.TransactionManager
+	kvRepository       port.KVRepository
+	userRepository     port.UserRepository
+	googleClient       port.GoogleClient
+	jwtClient          port.JWTClient
 
 	googleOAuthEndpoint     string
 	googleOAuthClientID     string
@@ -30,16 +31,18 @@ type Service struct {
 
 func NewService(
 	cfg Config,
+	transactionManager port.TransactionManager,
 	kvRepository port.KVRepository,
 	userRepository port.UserRepository,
 	googleClient port.GoogleClient,
 	jwtClient port.JWTClient,
 ) *Service {
 	return &Service{
-		kvRepository:   kvRepository,
-		userRepository: userRepository,
-		googleClient:   googleClient,
-		jwtClient:      jwtClient,
+		transactionManager: transactionManager,
+		kvRepository:       kvRepository,
+		userRepository:     userRepository,
+		googleClient:       googleClient,
+		jwtClient:          jwtClient,
 
 		googleOAuthEndpoint:     cfg.Google.OAuthEndpoint,
 		googleOAuthClientID:     cfg.Google.OAuthClientID,
@@ -120,24 +123,45 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 		return "", "", fmt.Errorf("parsing google ID token: %w", err)
 	}
 
-	user, err := s.userRepository.Upsert(ctx, &ent.User{
-		Email:      idToken.Email,
-		UserName:   idToken.Name,
-		GivenName:  idToken.GivenName,
-		FamilyName: idToken.FamilyName,
-		PhotoURL:   idToken.PictureURL,
+	var userUpserted *ent.User
+	err = s.transactionManager.WithTx(ctx, func(ctxWithTx context.Context) error {
+		userToCreate := &ent.User{
+			Email:      idToken.Email,
+			UserName:   idToken.Name,
+			GivenName:  idToken.GivenName,
+			FamilyName: idToken.FamilyName,
+			PhotoURL:   idToken.PictureURL,
+			Type:       model.UserTypeClient,
+		}
+
+		userFound, err := s.userRepository.FindByEmail(ctxWithTx, idToken.Email)
+		switch {
+		case err != nil && !pkgerr.IsErrNotFound(err):
+			return fmt.Errorf("finding user by email: %w", err)
+		case err == nil:
+			userToCreate.Type = userFound.Type
+		}
+
+		user, err := s.userRepository.Upsert(ctxWithTx, userToCreate)
+		if err != nil {
+			return fmt.Errorf("upserting user: %w", err)
+		}
+
+		userUpserted = user
+		return nil
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("creating user: %w", err)
+		return "", "", fmt.Errorf("during transaction: %w", err)
 	}
 
 	appToken, err = s.jwtClient.SignAppIDToken(&model.AppIDToken{
-		UserID:     user.ID,
-		Email:      user.Email,
-		UserName:   user.UserName,
-		FamilyName: user.FamilyName,
-		GivenName:  user.GivenName,
-		PhotoURL:   user.PhotoURL,
+		UserID:     userUpserted.ID,
+		UserType:   userUpserted.Type,
+		Email:      userUpserted.Email,
+		UserName:   userUpserted.UserName,
+		FamilyName: userUpserted.FamilyName,
+		GivenName:  userUpserted.GivenName,
+		PhotoURL:   userUpserted.PhotoURL,
 	})
 	if err != nil {
 		return "", "", fmt.Errorf("signing app ID token: %w", err)

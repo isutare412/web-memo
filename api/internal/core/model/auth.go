@@ -27,6 +27,7 @@ type GoogleIDToken struct {
 
 type AppIDToken struct {
 	UserID     uuid.UUID
+	UserType   UserType
 	Email      string
 	UserName   string
 	FamilyName string

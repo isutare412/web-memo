@@ -16,6 +16,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 const (
@@ -1218,6 +1219,7 @@ type UserMutation struct {
 	given_name    *string
 	family_name   *string
 	photo_url     *string
+	_type         *model.UserType
 	clearedFields map[string]struct{}
 	memos         map[uuid.UUID]struct{}
 	removedmemos  map[uuid.UUID]struct{}
@@ -1622,6 +1624,42 @@ func (m *UserMutation) ResetPhotoURL() {
 	delete(m.clearedFields, user.FieldPhotoURL)
 }
 
+// SetType sets the "type" field.
+func (m *UserMutation) SetType(mt model.UserType) {
+	m._type = &mt
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *UserMutation) GetType() (r model.UserType, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldType(ctx context.Context) (v model.UserType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *UserMutation) ResetType() {
+	m._type = nil
+}
+
 // AddMemoIDs adds the "memos" edge to the Memo entity by ids.
 func (m *UserMutation) AddMemoIDs(ids ...uuid.UUID) {
 	if m.memos == nil {
@@ -1710,7 +1748,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.create_time != nil {
 		fields = append(fields, user.FieldCreateTime)
 	}
@@ -1731,6 +1769,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.photo_url != nil {
 		fields = append(fields, user.FieldPhotoURL)
+	}
+	if m._type != nil {
+		fields = append(fields, user.FieldType)
 	}
 	return fields
 }
@@ -1754,6 +1795,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.FamilyName()
 	case user.FieldPhotoURL:
 		return m.PhotoURL()
+	case user.FieldType:
+		return m.GetType()
 	}
 	return nil, false
 }
@@ -1777,6 +1820,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldFamilyName(ctx)
 	case user.FieldPhotoURL:
 		return m.OldPhotoURL(ctx)
+	case user.FieldType:
+		return m.OldType(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1834,6 +1879,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPhotoURL(v)
+		return nil
+	case user.FieldType:
+		v, ok := value.(model.UserType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -1925,6 +1977,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldPhotoURL:
 		m.ResetPhotoURL()
+		return nil
+	case user.FieldType:
+		m.ResetType()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

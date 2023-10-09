@@ -3,11 +3,13 @@
 package user
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 const (
@@ -29,6 +31,8 @@ const (
 	FieldFamilyName = "family_name"
 	// FieldPhotoURL holds the string denoting the photo_url field in the database.
 	FieldPhotoURL = "photo_url"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
 	// EdgeMemos holds the string denoting the memos edge name in mutations.
 	EdgeMemos = "memos"
 	// Table holds the table name of the user in the database.
@@ -52,6 +56,7 @@ var Columns = []string{
 	FieldGivenName,
 	FieldFamilyName,
 	FieldPhotoURL,
+	FieldType,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -84,6 +89,18 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+const DefaultType model.UserType = "client"
+
+// TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
+func TypeValidator(_type model.UserType) error {
+	switch _type {
+	case "client", "operator":
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for type field: %q", _type)
+	}
+}
 
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
@@ -126,6 +143,11 @@ func ByFamilyName(opts ...sql.OrderTermOption) OrderOption {
 // ByPhotoURL orders the results by the photo_url field.
 func ByPhotoURL(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPhotoURL, opts...).ToFunc()
+}
+
+// ByType orders the results by the type field.
+func ByType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldType, opts...).ToFunc()
 }
 
 // ByMemosCount orders the results by memos count.

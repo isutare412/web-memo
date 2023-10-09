@@ -16,6 +16,7 @@ type TransactionManager interface {
 
 type UserRepository interface {
 	FindByID(ctx context.Context, userID uuid.UUID) (*ent.User, error)
+	FindByEmail(ctx context.Context, email string) (*ent.User, error)
 	Upsert(context.Context, *ent.User) (*ent.User, error)
 }
 

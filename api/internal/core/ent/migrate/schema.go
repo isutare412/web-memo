@@ -54,6 +54,7 @@ var (
 		{Name: "given_name", Type: field.TypeString, Nullable: true, Size: 800},
 		{Name: "family_name", Type: field.TypeString, Nullable: true, Size: 800},
 		{Name: "photo_url", Type: field.TypeString, Nullable: true},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"client", "operator"}, Default: "client"},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

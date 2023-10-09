@@ -15,6 +15,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -105,6 +106,20 @@ func (uu *UserUpdate) SetNillablePhotoURL(s *string) *UserUpdate {
 // ClearPhotoURL clears the value of the "photo_url" field.
 func (uu *UserUpdate) ClearPhotoURL() *UserUpdate {
 	uu.mutation.ClearPhotoURL()
+	return uu
+}
+
+// SetType sets the "type" field.
+func (uu *UserUpdate) SetType(mt model.UserType) *UserUpdate {
+	uu.mutation.SetType(mt)
+	return uu
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableType(mt *model.UserType) *UserUpdate {
+	if mt != nil {
+		uu.SetType(*mt)
+	}
 	return uu
 }
 
@@ -212,6 +227,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "photo_url", err: fmt.Errorf(`ent: validator failed for field "User.photo_url": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.GetType(); ok {
+		if err := user.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "User.type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -253,6 +273,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.PhotoURLCleared() {
 		_spec.ClearField(user.FieldPhotoURL, field.TypeString)
+	}
+	if value, ok := uu.mutation.GetType(); ok {
+		_spec.SetField(user.FieldType, field.TypeEnum, value)
 	}
 	if uu.mutation.MemosCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -397,6 +420,20 @@ func (uuo *UserUpdateOne) ClearPhotoURL() *UserUpdateOne {
 	return uuo
 }
 
+// SetType sets the "type" field.
+func (uuo *UserUpdateOne) SetType(mt model.UserType) *UserUpdateOne {
+	uuo.mutation.SetType(mt)
+	return uuo
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableType(mt *model.UserType) *UserUpdateOne {
+	if mt != nil {
+		uuo.SetType(*mt)
+	}
+	return uuo
+}
+
 // AddMemoIDs adds the "memos" edge to the Memo entity by IDs.
 func (uuo *UserUpdateOne) AddMemoIDs(ids ...uuid.UUID) *UserUpdateOne {
 	uuo.mutation.AddMemoIDs(ids...)
@@ -514,6 +551,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "photo_url", err: fmt.Errorf(`ent: validator failed for field "User.photo_url": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.GetType(); ok {
+		if err := user.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "User.type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -572,6 +614,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.PhotoURLCleared() {
 		_spec.ClearField(user.FieldPhotoURL, field.TypeString)
+	}
+	if value, ok := uuo.mutation.GetType(); ok {
+		_spec.SetField(user.FieldType, field.TypeEnum, value)
 	}
 	if uuo.mutation.MemosCleared() {
 		edge := &sqlgraph.EdgeSpec{

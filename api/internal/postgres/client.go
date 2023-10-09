@@ -78,7 +78,7 @@ func (c *Client) BeginTx(ctx context.Context) (ctxWithTx context.Context, commit
 	return ctxWithTx, commit, rollback
 }
 
-func (c *Client) WithTx(ctx context.Context, fn func(ctxWithTx context.Context) error) (err error) {
+func (c *Client) WithTx(ctx context.Context, fn func(ctxWithTx context.Context) error) error {
 	ctxWithTx, commit, rollback := c.BeginTx(ctx)
 
 	defer func() {
@@ -95,9 +95,9 @@ func (c *Client) WithTx(ctx context.Context, fn func(ctxWithTx context.Context) 
 
 	if ferr := fn(ctxWithTx); ferr != nil {
 		if rerr := rollback(); rerr != nil {
-			err = fmt.Errorf("%w: rolling back transaction: %v", ferr, rerr)
+			ferr = fmt.Errorf("%w: rolling back transaction: %v", ferr, rerr)
 		}
-		return err
+		return ferr
 	}
 
 	if err := commit(); err != nil {

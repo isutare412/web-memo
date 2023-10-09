@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -107,6 +108,20 @@ func (uc *UserCreate) SetNillablePhotoURL(s *string) *UserCreate {
 	return uc
 }
 
+// SetType sets the "type" field.
+func (uc *UserCreate) SetType(mt model.UserType) *UserCreate {
+	uc.mutation.SetType(mt)
+	return uc
+}
+
+// SetNillableType sets the "type" field if the given value is not nil.
+func (uc *UserCreate) SetNillableType(mt *model.UserType) *UserCreate {
+	if mt != nil {
+		uc.SetType(*mt)
+	}
+	return uc
+}
+
 // SetID sets the "id" field.
 func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetID(u)
@@ -179,6 +194,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultUpdateTime()
 		uc.mutation.SetUpdateTime(v)
 	}
+	if _, ok := uc.mutation.GetType(); !ok {
+		v := user.DefaultType
+		uc.mutation.SetType(v)
+	}
 	if _, ok := uc.mutation.ID(); !ok {
 		v := user.DefaultID()
 		uc.mutation.SetID(v)
@@ -222,6 +241,14 @@ func (uc *UserCreate) check() error {
 	if v, ok := uc.mutation.PhotoURL(); ok {
 		if err := user.PhotoURLValidator(v); err != nil {
 			return &ValidationError{Name: "photo_url", err: fmt.Errorf(`ent: validator failed for field "User.photo_url": %w`, err)}
+		}
+	}
+	if _, ok := uc.mutation.GetType(); !ok {
+		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "User.type"`)}
+	}
+	if v, ok := uc.mutation.GetType(); ok {
+		if err := user.TypeValidator(v); err != nil {
+			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "User.type": %w`, err)}
 		}
 	}
 	return nil
@@ -287,6 +314,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.PhotoURL(); ok {
 		_spec.SetField(user.FieldPhotoURL, field.TypeString, value)
 		_node.PhotoURL = value
+	}
+	if value, ok := uc.mutation.GetType(); ok {
+		_spec.SetField(user.FieldType, field.TypeEnum, value)
+		_node.Type = value
 	}
 	if nodes := uc.mutation.MemosIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -446,6 +477,18 @@ func (u *UserUpsert) ClearPhotoURL() *UserUpsert {
 	return u
 }
 
+// SetType sets the "type" field.
+func (u *UserUpsert) SetType(v model.UserType) *UserUpsert {
+	u.Set(user.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *UserUpsert) UpdateType() *UserUpsert {
+	u.SetExcluded(user.FieldType)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -599,6 +642,20 @@ func (u *UserUpsertOne) UpdatePhotoURL() *UserUpsertOne {
 func (u *UserUpsertOne) ClearPhotoURL() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearPhotoURL()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *UserUpsertOne) SetType(v model.UserType) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateType() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateType()
 	})
 }
 
@@ -922,6 +979,20 @@ func (u *UserUpsertBulk) UpdatePhotoURL() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearPhotoURL() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearPhotoURL()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *UserUpsertBulk) SetType(v model.UserType) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateType() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateType()
 	})
 }
 

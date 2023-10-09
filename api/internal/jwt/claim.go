@@ -39,6 +39,7 @@ func (c *googleIDTokenClaims) ToGoogleIDToken() *model.GoogleIDToken {
 type appClaims struct {
 	jwt.RegisteredClaims
 	UserID     string `json:"user_id"`
+	UserType   string `json:"user_type"`
 	Email      string `json:"email"`
 	UserName   string `json:"name"`
 	FamilyName string `json:"family_name,omitempty"`
@@ -57,6 +58,7 @@ func newAppClaims(token *model.AppIDToken, ttl time.Duration) appClaims {
 			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
 		},
 		UserID:     token.UserID.String(),
+		UserType:   string(token.UserType),
 		Email:      token.Email,
 		UserName:   token.UserName,
 		FamilyName: token.FamilyName,
@@ -73,6 +75,7 @@ func (c *appClaims) toAppIDToken() (*model.AppIDToken, error) {
 
 	return &model.AppIDToken{
 		UserID:     userID,
+		UserType:   model.UserType(c.UserType),
 		Email:      c.Email,
 		UserName:   c.UserName,
 		FamilyName: c.FamilyName,

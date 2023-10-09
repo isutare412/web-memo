@@ -19,11 +19,12 @@ var _ = Describe("Service", func() {
 		var authService *auth.Service
 
 		var (
-			mockController     *gomock.Controller
-			mockKVRepository   *mockport.MockKVRepository
-			mockUserRepository *mockport.MockUserRepository
-			mockGoogleClient   *mockport.MockGoogleClient
-			mockJWTClient      *mockport.MockJWTClient
+			mockController         *gomock.Controller
+			mockTransactionManager *mockport.MockTransactionManager
+			mockKVRepository       *mockport.MockKVRepository
+			mockUserRepository     *mockport.MockUserRepository
+			mockGoogleClient       *mockport.MockGoogleClient
+			mockJWTClient          *mockport.MockJWTClient
 		)
 
 		var (
@@ -39,11 +40,15 @@ var _ = Describe("Service", func() {
 
 		BeforeEach(func() {
 			mockController = gomock.NewController(GinkgoT())
+			mockTransactionManager = mockport.NewMockTransactionManager(mockController)
 			mockKVRepository = mockport.NewMockKVRepository(mockController)
 			mockUserRepository = mockport.NewMockUserRepository(mockController)
 			mockGoogleClient = mockport.NewMockGoogleClient(mockController)
 			mockJWTClient = mockport.NewMockJWTClient(mockController)
-			authService = auth.NewService(givenAuthConfig, mockKVRepository, mockUserRepository, mockGoogleClient, mockJWTClient)
+
+			authService = auth.NewService(
+				givenAuthConfig, mockTransactionManager, mockKVRepository, mockUserRepository,
+				mockGoogleClient, mockJWTClient)
 		})
 
 		Context("StartGoogleSignIn", func() {

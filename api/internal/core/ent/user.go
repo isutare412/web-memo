@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 // User is the model entity for the User schema.
@@ -32,6 +33,8 @@ type User struct {
 	FamilyName string `json:"family_name,omitempty"`
 	// PhotoURL holds the value of the "photo_url" field.
 	PhotoURL string `json:"photo_url,omitempty"`
+	// Type holds the value of the "type" field.
+	Type model.UserType `json:"type,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -61,7 +64,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldEmail, user.FieldUserName, user.FieldGivenName, user.FieldFamilyName, user.FieldPhotoURL:
+		case user.FieldEmail, user.FieldUserName, user.FieldGivenName, user.FieldFamilyName, user.FieldPhotoURL, user.FieldType:
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -130,6 +133,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.PhotoURL = value.String
 			}
+		case user.FieldType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field type", values[i])
+			} else if value.Valid {
+				u.Type = model.UserType(value.String)
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -191,6 +200,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("photo_url=")
 	builder.WriteString(u.PhotoURL)
+	builder.WriteString(", ")
+	builder.WriteString("type=")
+	builder.WriteString(fmt.Sprintf("%v", u.Type))
 	builder.WriteByte(')')
 	return builder.String()
 }
