@@ -17,7 +17,7 @@ type Server struct {
 }
 
 func NewServer(cfg Config, authService port.AuthService) *Server {
-	ggHandler := newGoogleHandler(authService)
+	ggHandler := newGoogleHandler(cfg, authService)
 
 	r := chi.NewRouter()
 	r.Route("/api/v1", func(r chi.Router) {

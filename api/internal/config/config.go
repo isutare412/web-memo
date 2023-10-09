@@ -15,7 +15,7 @@ import (
 type Config struct {
 	Wire     WireConfig      `mapstructure:"wire"`
 	Log      log.Config      `mapstructure:"log"`
-	HTTP     http.Config     `mapstructure:"http"`
+	HTTP     HTTPConfig      `mapstructure:"http"`
 	Postgres postgres.Config `mapstructure:"postgres"`
 	Redis    redis.Config    `mapstructure:"redis"`
 	Google   GoogleConfig    `mapstructure:"google"`
@@ -28,7 +28,10 @@ func (c *Config) ToLogConfig() log.Config {
 }
 
 func (c *Config) ToHTTPConfig() http.Config {
-	return c.HTTP
+	return http.Config{
+		Port:                  c.HTTP.Port,
+		CookieTokenExpiration: c.JWT.Expiration,
+	}
 }
 
 func (c *Config) ToPostgresConfig() postgres.Config {
@@ -65,6 +68,10 @@ func (c *Config) ToAuthServiceConfig() auth.Config {
 type WireConfig struct {
 	InitializeTimeout time.Duration `mapstructure:"initialize-timeout" validate:"required"`
 	ShutdownTimeout   time.Duration `mapstructure:"shutdown-timeout" validate:"required"`
+}
+
+type HTTPConfig struct {
+	Port int `mapstructure:"port" validate:"required"`
 }
 
 type GoogleConfig struct {

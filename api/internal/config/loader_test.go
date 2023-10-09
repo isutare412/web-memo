@@ -9,7 +9,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/isutare412/web-memo/api/internal/config"
-	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/jwt"
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
@@ -114,7 +113,7 @@ service:
 						Level:  log.LevelDebug,
 						Caller: true,
 					},
-					HTTP: http.Config{
+					HTTP: config.HTTPConfig{
 						Port: 8412,
 					},
 					Postgres: postgres.Config{
@@ -180,7 +179,7 @@ service:
 						Level:  log.LevelDebug,
 						Caller: true,
 					},
-					HTTP: http.Config{
+					HTTP: config.HTTPConfig{
 						Port: 8412,
 					},
 					Postgres: postgres.Config{
@@ -251,7 +250,7 @@ service:
 						Level:  log.LevelDebug,
 						Caller: true,
 					},
-					HTTP: http.Config{
+					HTTP: config.HTTPConfig{
 						Port: 12345,
 					},
 					Postgres: postgres.Config{
