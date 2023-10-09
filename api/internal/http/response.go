@@ -20,8 +20,11 @@ func responseError(w http.ResponseWriter, r *http.Request, err error) {
 
 	if kerr, ok := pkgerr.AsKnown(err); ok {
 		statusCode = kerr.Code.ToHTTPStatusCode()
-		if statusCode >= http.StatusInternalServerError {
+		switch {
+		case statusCode >= http.StatusInternalServerError:
 			slog.Error("5xx error occurred", "error", kerr.Error(), "code", kerr.Code, "httpStatusCode", statusCode)
+		case statusCode >= http.StatusBadRequest:
+			slog.Info("4xx error occurred", "error", kerr.Error(), "code", kerr.Code, "httpStatusCode", statusCode)
 		}
 
 		if kerr.ClientMsg != "" {
@@ -40,4 +43,20 @@ func responseError(w http.ResponseWriter, r *http.Request, err error) {
 	header.Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	w.Write(bodyBytes)
+}
+
+func responseJSON(w http.ResponseWriter, obj any) {
+	bytes, err := json.Marshal(obj)
+	if err != nil {
+		slog.Error("failed to marshal HTTP response", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if _, err := w.Write(bytes); err != nil {
+		slog.Error("failed to write JSON bytes as HTTP response", "error", err)
+		return
+	}
 }

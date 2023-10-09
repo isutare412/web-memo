@@ -25,6 +25,9 @@ func NewServer(cfg Config, authService port.AuthService) *Server {
 	r := chi.NewRouter()
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Mount("/google", ggHandler.router())
+
+		auth := r.With(imi.issuePassport)
+		auth.Mount("/users", usrHandler.router())
 	})
 
 	return &Server{
