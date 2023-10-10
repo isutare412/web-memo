@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
@@ -56,7 +57,7 @@ func (r *MemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uui
 		WithTags(func(tq *ent.TagQuery) {
 			tq.Order(tag.ByName())
 		}).
-		Order(memo.ByCreateTime()).
+		Order(memo.ByCreateTime(sql.OrderDesc())).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -83,7 +84,7 @@ func (r *MemoRepository) FindAllByUserIDAndTagIDWithTags(
 		WithTags(func(tq *ent.TagQuery) {
 			tq.Order(tag.ByName())
 		}).
-		Order(memo.ByCreateTime()).
+		Order(memo.ByCreateTime(sql.OrderDesc())).
 		All(ctx)
 	if err != nil {
 		return nil, err
