@@ -12,6 +12,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
+	"github.com/isutare412/web-memo/api/internal/validate"
 )
 
 type memoHandler struct {
@@ -103,6 +104,10 @@ func (h *memoHandler) createMemo(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	if err := validate.Struct(&req); err != nil {
+		responseError(w, r, fmt.Errorf("validating request body: %w", err))
+		return
+	}
 
 	memoCreated, err := h.memoService.CreateMemo(ctx, req.toMemo(), req.Tags, passport.token.UserID)
 	if err != nil {
@@ -137,6 +142,10 @@ func (h *memoHandler) replaceMemo(w http.ResponseWriter, r *http.Request) {
 			Origin:    fmt.Errorf("decoding request body: %w", err),
 			ClientMsg: "invalid request body",
 		})
+		return
+	}
+	if err := validate.Struct(&req); err != nil {
+		responseError(w, r, fmt.Errorf("validating request body: %w", err))
 		return
 	}
 

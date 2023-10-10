@@ -1,13 +1,14 @@
 package validate
 
 import (
-	"errors"
 	"fmt"
 
 	localeus "github.com/go-playground/locales/en_US"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	translations "github.com/go-playground/validator/v10/translations/en"
+
+	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
 var (
@@ -30,7 +31,10 @@ func init() {
 func Struct(s any) error {
 	if err := globalValidator.Struct(s); err != nil {
 		verrs := err.(validator.ValidationErrors)
-		return errors.New(verrs[0].Translate(globalTranslator))
+		return pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: verrs[0].Translate(globalTranslator),
+		}
 	}
 
 	return nil

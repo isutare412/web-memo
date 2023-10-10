@@ -30,7 +30,7 @@ func (m *memo) fromMemo(memo *ent.Memo) {
 }
 
 type createMemoRequest struct {
-	Title   string   `json:"title"`
+	Title   string   `json:"title" validate:"required"`
 	Content string   `json:"content"`
 	Tags    []string `json:"tags"`
 }
@@ -43,7 +43,7 @@ func (r *createMemoRequest) toMemo() *ent.Memo {
 }
 
 type replaceMemoRequest struct {
-	Title   string   `json:"title"`
+	Title   string   `json:"title" validate:"required"`
 	Content string   `json:"content"`
 	Tags    []string `json:"tags"`
 }
