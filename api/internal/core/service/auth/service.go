@@ -125,7 +125,7 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 	}
 
 	var userUpserted *ent.User
-	err = s.transactionManager.WithTx(ctx, func(ctxWithTx context.Context) error {
+	err = s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
 		userToCreate := &ent.User{
 			Email:      idToken.Email,
 			UserName:   idToken.Name,
@@ -135,7 +135,7 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 			Type:       enum.UserTypeClient,
 		}
 
-		userFound, err := s.userRepository.FindByEmail(ctxWithTx, idToken.Email)
+		userFound, err := s.userRepository.FindByEmail(ctx, idToken.Email)
 		switch {
 		case err != nil && !pkgerr.IsErrNotFound(err):
 			return fmt.Errorf("finding user by email: %w", err)
@@ -143,7 +143,7 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 			userToCreate.Type = userFound.Type
 		}
 
-		user, err := s.userRepository.Upsert(ctxWithTx, userToCreate)
+		user, err := s.userRepository.Upsert(ctx, userToCreate)
 		if err != nil {
 			return fmt.Errorf("upserting user: %w", err)
 		}
