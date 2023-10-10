@@ -73,7 +73,7 @@ func (c *Client) ParseGoogleIDTokenUnverified(tokenString string) (*model.Google
 
 func (c *Client) SignAppIDToken(appToken *model.AppIDToken) (tokenString string, err error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, newAppClaims(appToken, c.expiration))
-	token.Header["kid"] = c.activeKeyPair.name
+	token.Header[headerKID] = c.activeKeyPair.name
 
 	tokenString, err = token.SignedString(c.activeKeyPair.private)
 	if err != nil {
