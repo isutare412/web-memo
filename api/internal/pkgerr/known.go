@@ -35,6 +35,7 @@ func AsKnown(err error) (Known, bool) {
 		return Known{}, false
 	}
 }
+
 func IsErrBadRequest(err error) bool {
 	if kerr, ok := AsKnown(err); ok {
 		return kerr.Code == CodeBadRequest
@@ -48,6 +49,7 @@ func IsErrNotFound(err error) bool {
 	}
 	return false
 }
+
 func IsErrAlreadyExists(err error) bool {
 	if kerr, ok := AsKnown(err); ok {
 		return kerr.Code == CodeAlreadyExists
