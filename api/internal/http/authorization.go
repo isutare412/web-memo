@@ -12,7 +12,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
-const cookieTokenName = "wmToken"
+const cookieNameWebMemoToken = "wmToken"
 
 type contextKeyPassport struct{}
 
@@ -90,7 +90,7 @@ func (imi *immigration) issuePasspotFromHeader(w http.ResponseWriter, r *http.Re
 }
 
 func (imi *immigration) issuePasspotFromCookie(w http.ResponseWriter, r *http.Request) (*passport, bool, error) {
-	cookie, err := r.Cookie(cookieTokenName)
+	cookie, err := r.Cookie(cookieNameWebMemoToken)
 	switch {
 	case errors.Is(err, http.ErrNoCookie):
 		return nil, false, nil
