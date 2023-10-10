@@ -22,6 +22,7 @@ type UserRepository interface {
 
 type MemoRepository interface {
 	FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
+	FindByIDWithTags(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
 	FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID) ([]*ent.Memo, error)
 	FindAllByUserIDAndTagIDWithTags(ctx context.Context, userID uuid.UUID, tagID int) ([]*ent.Memo, error)
 	Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error)

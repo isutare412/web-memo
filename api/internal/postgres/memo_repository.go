@@ -30,6 +30,27 @@ func (r *MemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.M
 	memo, err := client.Memo.
 		Query().
 		Where(memo.ID(memoID)).
+		First(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return nil, pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memoID.String()),
+		}
+	case err != nil:
+		return nil, err
+	}
+
+	return memo, nil
+}
+
+func (r *MemoRepository) FindByIDWithTags(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
+	client := transactionClient(ctx, r.client)
+
+	memo, err := client.Memo.
+		Query().
+		Where(memo.ID(memoID)).
 		WithTags(func(tq *ent.TagQuery) {
 			tq.Order(tag.ByName(sql.OrderAsc()))
 		}).

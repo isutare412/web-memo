@@ -33,7 +33,7 @@ func NewService(
 }
 
 func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error) {
-	memo, err := s.memoRepository.FindByID(ctx, memoID)
+	memo, err := s.memoRepository.FindByIDWithTags(ctx, memoID)
 	if err != nil {
 		return nil, fmt.Errorf("finding memo: %w", err)
 	}
