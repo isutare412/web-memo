@@ -22,9 +22,9 @@ func responseError(w http.ResponseWriter, r *http.Request, err error) {
 		statusCode = kerr.Code.ToHTTPStatusCode()
 		switch {
 		case statusCode >= http.StatusInternalServerError:
-			slog.Error("5xx error occurred", "error", kerr.Error(), "code", kerr.Code, "httpStatusCode", statusCode)
+			slog.Error("5xx error occurred", "error", err, "code", kerr.Code, "httpStatusCode", statusCode)
 		case statusCode >= http.StatusBadRequest:
-			slog.Info("4xx error occurred", "error", kerr.Error(), "code", kerr.Code, "httpStatusCode", statusCode)
+			slog.Info("4xx error occurred", "error", err, "code", kerr.Code, "httpStatusCode", statusCode)
 		}
 
 		if kerr.ClientMsg != "" {
