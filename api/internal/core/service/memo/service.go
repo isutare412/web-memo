@@ -165,7 +165,7 @@ func (s *Service) ListTags(ctx context.Context, memoID uuid.UUID, requester *mod
 			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
 		}
 
-		tags, err := s.memoRepository.FindAllTagsByMemoID(ctx, memoID)
+		tags, err := s.tagRepository.FindAllByMemoID(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding all tags: %w", err)
 		}

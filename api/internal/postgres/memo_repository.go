@@ -157,23 +157,6 @@ func (r *MemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {
 	return nil
 }
 
-func (r *MemoRepository) FindAllTagsByMemoID(ctx context.Context, memoID uuid.UUID) (tags []*ent.Tag, err error) {
-	client := transactionClient(ctx, r.client)
-
-	tags, err = client.Tag.
-		Query().
-		Where(
-			tag.HasMemosWith(memo.ID(memoID)),
-		).
-		Order(tag.ByName(sql.OrderAsc())).
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return tags, nil
-}
-
 func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error {
 	client := transactionClient(ctx, r.client)
 

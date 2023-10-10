@@ -221,21 +221,6 @@ func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDWithTags(ctx, userID an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDWithTags), ctx, userID)
 }
 
-// FindAllTagsByMemoID mocks base method.
-func (m *MockMemoRepository) FindAllTagsByMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.Tag, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllTagsByMemoID", ctx, memoID)
-	ret0, _ := ret[0].([]*ent.Tag)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindAllTagsByMemoID indicates an expected call of FindAllTagsByMemoID.
-func (mr *MockMemoRepositoryMockRecorder) FindAllTagsByMemoID(ctx, memoID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllTagsByMemoID", reflect.TypeOf((*MockMemoRepository)(nil).FindAllTagsByMemoID), ctx, memoID)
-}
-
 // FindByID mocks base method.
 func (m *MockMemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
 	m.ctrl.T.Helper()
@@ -316,6 +301,21 @@ func (m *MockTagRepository) CreateIfNotExist(ctx context.Context, tagName string
 func (mr *MockTagRepositoryMockRecorder) CreateIfNotExist(ctx, tagName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIfNotExist", reflect.TypeOf((*MockTagRepository)(nil).CreateIfNotExist), ctx, tagName)
+}
+
+// FindAllByMemoID mocks base method.
+func (m *MockTagRepository) FindAllByMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.Tag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAllByMemoID", ctx, memoID)
+	ret0, _ := ret[0].([]*ent.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAllByMemoID indicates an expected call of FindAllByMemoID.
+func (mr *MockTagRepositoryMockRecorder) FindAllByMemoID(ctx, memoID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByMemoID", reflect.TypeOf((*MockTagRepository)(nil).FindAllByMemoID), ctx, memoID)
 }
 
 // MockKVRepository is a mock of KVRepository interface.

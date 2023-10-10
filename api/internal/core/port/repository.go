@@ -28,11 +28,11 @@ type MemoRepository interface {
 	Update(context.Context, *ent.Memo) (*ent.Memo, error)
 	Delete(ctx context.Context, memoID uuid.UUID) error
 
-	FindAllTagsByMemoID(ctx context.Context, memoID uuid.UUID) (tags []*ent.Tag, err error)
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error
 }
 
 type TagRepository interface {
+	FindAllByMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.Tag, error)
 	CreateIfNotExist(ctx context.Context, tagName string) (*ent.Tag, error)
 }
 
