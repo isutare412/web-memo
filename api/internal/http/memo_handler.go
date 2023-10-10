@@ -32,6 +32,7 @@ func (h *memoHandler) router() *chi.Mux {
 	r.Post("/", h.createMemo)
 	r.Put("/{memoID}", h.replaceMemo)
 	r.Delete("/{memoID}", h.deleteMemo)
+	r.Get("/{memoID}/tags", h.listTags)
 	r.Put("/{memoID}/tags", h.replaceTags)
 
 	return r
@@ -218,6 +219,31 @@ func (h *memoHandler) replaceTags(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := lo.Map(tags, func(tag *ent.Tag, _ int) string { return tag.Name })
+	responseJSON(w, &resp)
+}
+
+func (h *memoHandler) listTags(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responseError(w, r, fmt.Errorf("passport not found"))
+		return
+	}
+
+	tagsFound, err := h.memoService.ListTags(ctx, memoID, passport.token)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("listing tags: %w", err))
+		return
+	}
+
+	resp := lo.Map(tagsFound, func(tag *ent.Tag, _ int) string { return tag.Name })
 	responseJSON(w, &resp)
 }
 

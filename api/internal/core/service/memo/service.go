@@ -152,6 +152,34 @@ func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *m
 	return nil
 }
 
+func (s *Service) ListTags(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.Tag, error) {
+	var tagsFound []*ent.Tag
+
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanAccessMemo(memo) {
+			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+		}
+
+		tags, err := s.memoRepository.FindAllTagsByMemoID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding all tags: %w", err)
+		}
+
+		tagsFound = tags
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("during transaction: %w", err)
+	}
+
+	return tagsFound, nil
+}
+
 func (s *Service) ReplaceTags(
 	ctx context.Context,
 	memoID uuid.UUID,

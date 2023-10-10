@@ -31,7 +31,7 @@ func (r *MemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.M
 		Query().
 		Where(memo.ID(memoID)).
 		WithTags(func(tq *ent.TagQuery) {
-			tq.Order(tag.ByName())
+			tq.Order(tag.ByName(sql.OrderAsc()))
 		}).
 		First(ctx)
 	switch {
@@ -55,7 +55,7 @@ func (r *MemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uui
 		Query().
 		Where(memo.HasOwnerWith(user.ID(userID))).
 		WithTags(func(tq *ent.TagQuery) {
-			tq.Order(tag.ByName())
+			tq.Order(tag.ByName(sql.OrderAsc()))
 		}).
 		Order(memo.ByCreateTime(sql.OrderDesc())).
 		All(ctx)
@@ -82,7 +82,7 @@ func (r *MemoRepository) FindAllByUserIDAndTagIDWithTags(
 			),
 		).
 		WithTags(func(tq *ent.TagQuery) {
-			tq.Order(tag.ByName())
+			tq.Order(tag.ByName(sql.OrderAsc()))
 		}).
 		Order(memo.ByCreateTime(sql.OrderDesc())).
 		All(ctx)
@@ -155,6 +155,23 @@ func (r *MemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (r *MemoRepository) FindAllTagsByMemoID(ctx context.Context, memoID uuid.UUID) (tags []*ent.Tag, err error) {
+	client := transactionClient(ctx, r.client)
+
+	tags, err = client.Tag.
+		Query().
+		Where(
+			tag.HasMemosWith(memo.ID(memoID)),
+		).
+		Order(tag.ByName(sql.OrderAsc())).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return tags, nil
 }
 
 func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error {

@@ -27,6 +27,8 @@ type MemoRepository interface {
 	Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error)
 	Update(context.Context, *ent.Memo) (*ent.Memo, error)
 	Delete(ctx context.Context, memoID uuid.UUID) error
+
+	FindAllTagsByMemoID(ctx context.Context, memoID uuid.UUID) (tags []*ent.Tag, err error)
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error
 }
 

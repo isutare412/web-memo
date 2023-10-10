@@ -49,6 +49,10 @@ DELETE {{url}}/api/v1/memos/{{memoId}}
 Authorization: Bearer {{idToken}}
 
 ###
+GET {{url}}/api/v1/memos/{{memoId}}/tags
+Authorization: Bearer {{idToken}}
+
+###
 PUT {{url}}/api/v1/memos/{{memoId}}/tags
 Authorization: Bearer {{idToken}}
 
