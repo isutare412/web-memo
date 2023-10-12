@@ -6,8 +6,8 @@ export enum ThemeMode {
 }
 
 const themeNames = new Map([
-  [ThemeMode.Light, 'light'],
-  [ThemeMode.Dark, 'dark'],
+  [ThemeMode.Light, 'emerald'],
+  [ThemeMode.Dark, 'dracula'],
 ])
 
 export function getPreferredTheme(): ThemeMode {
