@@ -55,7 +55,7 @@ func (h *googleHandler) googleSignInFinish(w http.ResponseWriter, r *http.Reques
 	http.SetCookie(w, &http.Cookie{
 		Name:     cookieNameWebMemoToken,
 		Value:    appToken,
-		Path:     "/api",
+		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Now().Add(h.cookieExpiration),
 	})
