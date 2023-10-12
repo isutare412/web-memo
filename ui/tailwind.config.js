@@ -12,6 +12,17 @@ export default {
   },
   plugins: [require('daisyui')],
   daisyui: {
-    themes: ['emerald', 'dracula'],
+    themes: [
+      {
+        emerald: {
+          ...require('daisyui/src/theming/themes')['[data-theme=emerald]'],
+          '--btn-text-case': 'none',
+        },
+        dracula: {
+          ...require('daisyui/src/theming/themes')['[data-theme=dracula]'],
+          '--btn-text-case': 'none',
+        },
+      },
+    ],
   },
 }
