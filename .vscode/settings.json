@@ -8,5 +8,6 @@
       "url": "http://localhost:8412",
       "idToken": "<idToken>"
     }
-  }
+  },
+  "eslint.workingDirectories": ["./ui"]
 }
