@@ -11,6 +11,10 @@ GET {{url}}/api/v1/users/me
 Authorization: Bearer {{idToken}}
 
 ###
+GET {{url}}/api/v1/users/sign-out
+Authorization: Bearer {{idToken}}
+
+###
 GET {{url}}/api/v1/memos
 Authorization: Bearer {{idToken}}
 

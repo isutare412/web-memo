@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation'
-import { getSelfUser } from '$lib/apis/backend/user'
+import { getSelfUser, signOutUser } from '$lib/apis/backend/user'
 import Cookies from 'js-cookie'
 import { writable } from 'svelte/store'
 
@@ -44,8 +44,8 @@ export function signInGoogle() {
   window.location.assign('/api/v1/google/sign-in')
 }
 
-export function signOut() {
-  Cookies.remove('wmToken')
+export async function signOut() {
+  await signOutUser()
   authStore.set({})
   goto('/')
 }

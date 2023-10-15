@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -22,6 +23,7 @@ func newUserHandler(authService port.AuthService) *userHandler {
 func (h *userHandler) router() *chi.Mux {
 	r := chi.NewRouter()
 	r.Get("/me", h.getSelfUser)
+	r.Get("/sign-out", h.signOutUser)
 	return r
 }
 
@@ -37,4 +39,13 @@ func (h *userHandler) getSelfUser(w http.ResponseWriter, r *http.Request) {
 	var resp user
 	resp.fromAppIDToken(passport.token)
 	responseJSON(w, &resp)
+}
+
+func (h *userHandler) signOutUser(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:    cookieNameWebMemoToken,
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
+	})
 }
