@@ -24,7 +24,7 @@ func NewServer(cfg Config, authService port.AuthService, memoService port.MemoSe
 	imi := newImmigration(authService)
 
 	r := chi.NewRouter()
-	r.Use(wrapResponseWriter, logRequests, recoverPanic)
+	r.Use(withContextBag, wrapResponseWriter, logRequests, recoverPanic)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Mount("/google", googleHandler.router())

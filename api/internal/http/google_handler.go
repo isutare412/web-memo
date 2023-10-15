@@ -39,7 +39,7 @@ func (h *googleHandler) googleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	slog.Info("redirect user for google sign-in", "redirectURL", redirectURL)
+	slog.Info("redirect user for google sign-in", "redirectUrl", redirectURL)
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 

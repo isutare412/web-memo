@@ -53,8 +53,8 @@ func (imi *immigration) issuePassport(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx := injectPassport(r.Context(), passport)
-		r = r.WithContext(ctx)
+		bag, _ := getContextBag(r.Context())
+		bag.passport = passport
 		next.ServeHTTP(w, r)
 	}
 
@@ -112,11 +112,10 @@ func (imi *immigration) issuePasspotFromCookie(w http.ResponseWriter, r *http.Re
 	}, true, nil
 }
 
-func injectPassport(ctx context.Context, p *passport) context.Context {
-	return context.WithValue(ctx, contextKeyPassport{}, p)
-}
-
 func extractPassport(ctx context.Context) (*passport, bool) {
-	p, ok := ctx.Value(contextKeyPassport{}).(*passport)
-	return p, ok
+	bag, ok := getContextBag(ctx)
+	if !ok || bag.passport == nil {
+		return nil, false
+	}
+	return bag.passport, true
 }

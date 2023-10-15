@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
@@ -8,6 +9,27 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 )
+
+type contextBagKey struct{}
+
+type contextBag struct {
+	passport *passport
+}
+
+func withContextBag(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		bag := &contextBag{}
+		ctx := context.WithValue(r.Context(), contextBagKey{}, bag)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func getContextBag(ctx context.Context) (*contextBag, bool) {
+	bag, ok := ctx.Value(contextBagKey{}).(*contextBag)
+	return bag, ok
+}
 
 func wrapResponseWriter(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +65,17 @@ func logRequests(next http.Handler) http.Handler {
 
 		if ct := r.Header.Get("Content-Type"); ct != "" {
 			accessLog = accessLog.With(slog.String("contentType", ct))
+		}
+
+		if bag, ok := getContextBag(r.Context()); ok {
+			if bag.passport != nil {
+				accessLog = accessLog.With(
+					slog.String("userId", bag.passport.token.UserID.String()),
+					slog.String("userType", string(bag.passport.token.UserType)),
+					slog.String("userName", bag.passport.token.UserName),
+					slog.String("email", bag.passport.token.Email),
+				)
+			}
 		}
 
 		accessLog.Info("handle HTTP request")
