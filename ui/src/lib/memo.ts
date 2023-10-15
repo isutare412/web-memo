@@ -1,5 +1,5 @@
 import { listMemos } from '$lib/apis/backend/memo'
-import { map } from 'lodash-es'
+import { map, remove, sortBy } from 'lodash-es'
 import { writable } from 'svelte/store'
 
 export interface Memo {
@@ -13,9 +13,10 @@ export interface Memo {
 
 interface MemoState {
   memos: Memo[]
+  selectedTags: string[]
 }
 
-export const memoStore = writable<MemoState>({ memos: [] })
+export const memoStore = writable<MemoState>({ memos: [], selectedTags: [] })
 
 export async function syncMemos() {
   const response = await listMemos()
@@ -33,6 +34,23 @@ export async function syncMemos() {
 
   memoStore.update((state) => {
     state.memos = memos
+    return state
+  })
+}
+
+export function insertTagFilter(tag: string) {
+  memoStore.update((state) => {
+    if (state.selectedTags.includes(tag)) return state
+
+    state.selectedTags.push(tag)
+    state.selectedTags = sortBy(state.selectedTags)
+    return state
+  })
+}
+
+export function removeTagFilter(tag: string) {
+  memoStore.update((state) => {
+    remove(state.selectedTags, (t) => t === tag)
     return state
   })
 }

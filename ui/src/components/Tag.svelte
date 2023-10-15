@@ -1,5 +1,28 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte'
+
+  type Color = 'primary' | 'secondary'
+
   export let value: string
+  export let color: Color = 'primary'
+  export let isClose: boolean = false
+
+  const dispatch = createEventDispatcher()
+
+  function dispatchTag() {
+    dispatch('click', {
+      name: value,
+    })
+  }
 </script>
 
-<button class="badge badge-primary text-sm">{value}</button>
+<button
+  on:click={dispatchTag}
+  class="badge badge-primary text-sm"
+  class:badge-primary={color === 'primary'}
+  class:badge-secondary={color === 'secondary'}
+  >{value}
+  {#if isClose}
+    ✕
+  {/if}
+</button>
