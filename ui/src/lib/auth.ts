@@ -1,11 +1,8 @@
 import { goto } from '$app/navigation'
 import { getSelfUser, signOutUser } from '$lib/apis/backend/user'
-import Cookies from 'js-cookie'
 import { writable } from 'svelte/store'
 
 export const authStore = writable<AuthState>({})
-
-const appTokenKey = 'wmToken'
 
 interface UserData {
   id: string
@@ -22,11 +19,11 @@ interface AuthState {
 }
 
 export async function syncUserData() {
-  if (!Cookies.get(appTokenKey)) {
-    return undefined
+  const response = await getSelfUser()
+  if (response === undefined) {
+    return
   }
 
-  const response = await getSelfUser()
   authStore.set({
     user: {
       id: response.id,
