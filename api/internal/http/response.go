@@ -9,7 +9,7 @@ import (
 )
 
 type errorResponse struct {
-	Msg string `json:"msg,omitempty"`
+	Msg string `json:"msg"`
 }
 
 func responseError(w http.ResponseWriter, r *http.Request, err error) {
@@ -32,6 +32,10 @@ func responseError(w http.ResponseWriter, r *http.Request, err error) {
 		}
 	} else {
 		slog.Error("unknown error occurred", "error", err, "httpStatusCode", statusCode)
+	}
+
+	if body.Msg == "" {
+		body.Msg = http.StatusText(statusCode)
 	}
 
 	bodyBytes, marhsalErr := json.Marshal(&body)
