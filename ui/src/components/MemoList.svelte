@@ -1,0 +1,14 @@
+<script lang="ts">
+  import MemoItem from '$components/MemoItem.svelte'
+  import type { Memo } from '$lib/memo'
+
+  export let memos: Memo[]
+</script>
+
+<div>
+  <ul class="flex flex-col gap-y-3">
+    {#each memos as memo (memo.id)}
+      <MemoItem {memo} />
+    {/each}
+  </ul>
+</div>
