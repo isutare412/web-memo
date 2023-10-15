@@ -221,6 +221,13 @@ func (s *Service) ReplaceTags(
 }
 
 func (s *Service) ensureTags(ctx context.Context, tagNames []string) ([]*ent.Tag, error) {
+	if _, ok := lo.Find(tagNames, func(tag string) bool { return len(tag) > 20 }); ok {
+		return nil, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: fmt.Sprintf("length of tag should be less or equal to 20"),
+		}
+	}
+
 	tagsCreated := make([]*ent.Tag, 0, len(tagNames))
 	for _, tagName := range tagNames {
 		tag, err := s.tagRepository.CreateIfNotExist(ctx, tagName)
