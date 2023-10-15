@@ -1,6 +1,7 @@
 <script lang="ts">
   import Avatar from '$components/Avatar.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
+  import ToastContainer from '$components/ToastContainer.svelte'
   import { setDocumentDataTheme, setPreferredTheme, type ThemeMode } from '$lib/theme'
   import '@fontsource-variable/inter'
   import '../app.css'
@@ -30,4 +31,5 @@
   >
     <slot />
   </main>
+  <ToastContainer />
 </div>
