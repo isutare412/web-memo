@@ -2,4 +2,4 @@
   export let value: string
 </script>
 
-<button class="badge badge-primary text-primary-content text-sm">{value}</button>
+<button class="badge badge-primary text-sm">{value}</button>

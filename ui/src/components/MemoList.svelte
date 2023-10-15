@@ -6,7 +6,7 @@
 </script>
 
 <div>
-  <ul class="flex flex-col gap-y-3">
+  <ul class="flex flex-col gap-y-4">
     {#each memos as memo (memo.id)}
       <MemoItem {memo} />
     {/each}
