@@ -18,7 +18,7 @@
 
 <button
   on:click={dispatchTag}
-  class="badge badge-primary text-sm"
+  class="badge badge-primary text-sm transition-none"
   class:badge-primary={color === 'primary'}
   class:badge-secondary={color === 'secondary'}
   >{value}

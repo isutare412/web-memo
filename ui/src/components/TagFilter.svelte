@@ -1,41 +1,127 @@
 <script lang="ts">
+  import Autocomplete from '$components/Autocomplete.svelte'
   import Tag from '$components/Tag.svelte'
   import Funnel from '$components/icons/Funnel.svelte'
   import { insertTagFilter, memoStore, removeTagFilter } from '$lib/memo'
+  import { partition, sortBy, sortedUniq } from 'lodash-es'
 
-  let value: string = ''
-  $: tags = $memoStore.selectedTags
+  $: selectedTags = $memoStore.selectedTags
 
-  function addTag(event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }) {
-    if (value === '' || event.key !== 'Enter') return
+  let showAutocomplete = false
+  let tagCandidates: string[] = []
+  let selectedCandidate: string | undefined
 
-    insertTagFilter(value)
-    value = ''
-    event.currentTarget.blur()
+  let inputValue: string = ''
+  let tagInput: HTMLInputElement
+  let tagInputContainer: HTMLDivElement
+
+  function updateTagCandidates() {
+    const uniqueTags = sortedUniq(
+      sortBy(
+        $memoStore.memos.flatMap((memo) => memo.tags),
+        (tag) => tag.toLowerCase()
+      )
+    )
+
+    if (inputValue === '') {
+      tagCandidates = uniqueTags
+      return
+    }
+
+    const inputValueLowered = inputValue.toLowerCase()
+    const includeInput = uniqueTags.filter((tag) => tag.toLowerCase().includes(inputValueLowered))
+    tagCandidates = partition(includeInput, (tag) =>
+      tag.toLowerCase().startsWith(inputValueLowered)
+    ).flat()
   }
 
-  function removeTag(event: CustomEvent<{ name: string }>) {
+  function onTagInput() {
+    updateTagCandidates()
+    showAutocomplete = true
+  }
+
+  function onTagInputFocus() {
+    updateTagCandidates()
+    showAutocomplete = true
+  }
+
+  function onAutocompleteSelect(event: CustomEvent<{ item: string }>) {
+    inputValue = event.detail.item
+    addTag()
+    showAutocomplete = false
+  }
+
+  function onTagInputKeyUp(
+    event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
+  ) {
+    if (showAutocomplete && selectedCandidate !== undefined) return
+
+    switch (event.key) {
+      case 'Enter':
+        addTag()
+        showAutocomplete = false
+    }
+  }
+
+  function onTagFilterClick(event: CustomEvent<{ name: string }>) {
     removeTagFilter(event.detail.name)
   }
+
+  function addTag() {
+    const trimmedInput = inputValue.trim()
+    if (trimmedInput.trim() === '') return
+
+    insertTagFilter(trimmedInput)
+    inputValue = ''
+    tagInput.blur()
+  }
 </script>
+
+<svelte:window
+  on:keyup={(event) => {
+    if (event.key === 'Escape') {
+      showAutocomplete = false
+      tagInput.blur()
+    }
+  }}
+  on:click={(event) => {
+    if (!(event.target instanceof Element)) return
+
+    if (!tagInputContainer.contains(event.target)) {
+      showAutocomplete = false
+    }
+  }}
+/>
 
 <div>
   <div class="flex items-center gap-x-2">
     <div class="w-4">
       <Funnel />
     </div>
-    <input
-      type="text"
-      placeholder="Tag"
-      maxlength="20"
-      bind:value
-      on:keyup={addTag}
-      class="input input-sm input-bordered focus:border-primary h-7 w-full max-w-[200px] focus:outline-none"
-    />
+    <div bind:this={tagInputContainer} class="w-[200px]">
+      <input
+        type="text"
+        placeholder="Tag"
+        maxlength="20"
+        bind:this={tagInput}
+        bind:value={inputValue}
+        on:keyup={onTagInputKeyUp}
+        on:input={onTagInput}
+        on:focus={onTagInputFocus}
+        class="input input-sm input-bordered focus:border-primary w-full max-w-sm focus:outline-none"
+      />
+      {#if showAutocomplete}
+        <Autocomplete
+          items={tagCandidates}
+          bind:selectedItem={selectedCandidate}
+          on:select={onAutocompleteSelect}
+        />
+      {/if}
+    </div>
   </div>
   <div class="mb-3 mt-2 flex flex-1 flex-wrap gap-1">
-    {#each tags as tag (tag)}
-      <Tag value={tag} color={'secondary'} isClose={true} on:click={removeTag} />
+    {#each selectedTags as tag (tag)}
+      <Tag value={tag} color={'secondary'} isClose={true} on:click={onTagFilterClick} />
     {/each}
   </div>
 </div>
