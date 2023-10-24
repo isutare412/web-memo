@@ -6,6 +6,7 @@
   export let value: string
   export let color: Color = 'primary'
   export let isClose: boolean = false
+  export let isButton = true
 
   const dispatch = createEventDispatcher()
 
@@ -18,6 +19,7 @@
 
 <button
   on:click={dispatchTag}
+  disabled={!isButton}
   class="badge badge-primary text-sm transition-none"
   class:badge-primary={color === 'primary'}
   class:badge-secondary={color === 'secondary'}

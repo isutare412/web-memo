@@ -10,6 +10,16 @@ interface Memo {
   tags: string[]
 }
 
+export async function getMemo(id: string): Promise<Memo> {
+  const response = await fetch(`/api/v1/memos/${id}`)
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw error(response.status, errorResponse.msg)
+  }
+
+  return response.json()
+}
+
 export async function listMemos(): Promise<Memo[]> {
   const response = await fetch('/api/v1/memos')
   if (!response.ok) {
