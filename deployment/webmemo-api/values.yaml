@@ -71,7 +71,7 @@ config:
   postgres:
     host: postgres-headless
     port: 28100
-    user: admin
+    user: api_admin
     password: admin123123
     database: web_memo
     query-log: false
