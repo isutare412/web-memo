@@ -15,6 +15,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Web Memo</title>
+</svelte:head>
+
 <div class="flex min-h-screen flex-col">
   <nav class="border-base-300 border-b shadow md:mb-4">
     <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
