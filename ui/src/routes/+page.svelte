@@ -2,6 +2,7 @@
   import MemoList from '$components/MemoList.svelte'
   import SignInStack from '$components/SignInStack.svelte'
   import TagFilter from '$components/TagFilter.svelte'
+  import Plus from '$components/icons/Plus.svelte'
   import { authStore } from '$lib/auth'
   import { memoStore, syncMemos, type Memo } from '$lib/memo'
   import { addToast } from '$lib/toast'
@@ -41,7 +42,14 @@
   <SignInStack />
 {:else}
   <div class="space-y-2">
-    <TagFilter />
+    <div class="flex justify-between">
+      <TagFilter />
+      <div>
+        <a href="/new" class="btn btn-circle btn-sm btn-primary">
+          <div class="w-[14px]"><Plus /></div>
+        </a>
+      </div>
+    </div>
     <MemoList {memos} />
   </div>
 {/if}
