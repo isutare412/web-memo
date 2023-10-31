@@ -1,0 +1,11 @@
+# Default values for postgres-headless.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+endpoints:
+  subsets:
+  - addresses:
+    - ip: 172.18.0.1

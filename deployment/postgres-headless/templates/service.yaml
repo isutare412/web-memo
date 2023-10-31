@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres-headless.fullname" . }}
+  labels:
+    {{- include "postgres-headless.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
