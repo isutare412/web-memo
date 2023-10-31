@@ -14,7 +14,7 @@ COPY internal/ internal/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o server ./cmd/...
 
-FROM gcr.io/distroless/static:debug
+FROM --platform=linux/amd64 gcr.io/distroless/static:debug
 
 WORKDIR /app
 COPY --from=builder /app/server .

@@ -20,7 +20,7 @@ COPY . .
 RUN npm run build
 
 # Production image, copy all the files and run
-FROM nginx:1.25-bookworm
+FROM --platform=linux/amd64 nginx:1.25-bookworm
 
 WORKDIR /app
 COPY --from=builder /app/build /usr/share/nginx/html
