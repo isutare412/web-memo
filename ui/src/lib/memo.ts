@@ -71,7 +71,7 @@ export function insertTagFilter(tag: string) {
     if (state.selectedTags.includes(tag)) return state
 
     state.selectedTags.push(tag)
-    state.selectedTags = sortBy(state.selectedTags)
+    state.selectedTags = sortBy(state.selectedTags, (tag) => tag.toLowerCase())
     return state
   })
 }
