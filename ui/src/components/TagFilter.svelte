@@ -108,7 +108,7 @@
         on:keyup={onTagInputKeyUp}
         on:input={onTagInput}
         on:focus={onTagInputFocus}
-        class="input input-sm input-bordered focus:border-primary w-full max-w-sm focus:outline-none"
+        class="input input-sm input-bordered focus:border-primary w-full focus:outline-none"
       />
       {#if showAutocomplete}
         <Autocomplete
