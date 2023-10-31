@@ -32,3 +32,4 @@ services:
       - redis-storage:/bitnami/redis/data
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_AOF_ENABLED: 'no'
