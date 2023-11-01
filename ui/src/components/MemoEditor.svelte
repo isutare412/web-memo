@@ -39,6 +39,10 @@
       return
     }
 
+    if (tagInputValue !== '') {
+      addTag(tagInputValue)
+    }
+
     dispatch('submit', {
       title,
       content,
