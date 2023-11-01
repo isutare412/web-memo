@@ -45,7 +45,7 @@ export async function syncMemo(memoId: string) {
     const memoFound = state.memos.find((memo) => memo.id === response.id)
     if (memoFound !== undefined) {
       memoFound.createTime = new Date(response.createTime)
-      memoFound.updateTime = new Date(response.createTime)
+      memoFound.updateTime = new Date(response.updateTime)
       memoFound.title = response.title
       memoFound.content = response.content
       memoFound.tags = response.tags
@@ -53,7 +53,7 @@ export async function syncMemo(memoId: string) {
       state.memos.push({
         id: response.id,
         createTime: new Date(response.createTime),
-        updateTime: new Date(response.createTime),
+        updateTime: new Date(response.updateTime),
         title: response.title,
         content: response.content,
         tags: response.tags,

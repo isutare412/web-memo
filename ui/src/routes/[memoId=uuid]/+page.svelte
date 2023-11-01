@@ -5,6 +5,7 @@
   import { deleteMemo } from '$lib/apis/backend/memo'
   import { memoStore, syncMemo } from '$lib/memo'
   import { addToast } from '$lib/toast'
+  import { formatDate } from '$lib/utils/date'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
 
@@ -54,6 +55,14 @@
   {/if}
   <div class="mt-3">
     <span class="whitespace-pre-wrap">{memo.content}</span>
+  </div>
+  <div class="mt-3 flex flex-col gap-y-1">
+    <div class="flex justify-end">
+      <span class="text-xs opacity-75">Create {formatDate(memo.createTime)}</span>
+    </div>
+    <div class="flex justify-end">
+      <span class="text-xs opacity-75">Update {formatDate(memo.updateTime)}</span>
+    </div>
   </div>
   <div class="mt-4 flex justify-end gap-x-1">
     <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button>
