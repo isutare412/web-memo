@@ -14,8 +14,8 @@ export default {
   daisyui: {
     themes: [
       {
-        bumblebee: {
-          ...require('daisyui/src/theming/themes')['[data-theme=bumblebee]'],
+        light: {
+          ...require('daisyui/src/theming/themes')['[data-theme=light]'],
           '--btn-text-case': 'none',
         },
         dracula: {

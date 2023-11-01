@@ -6,7 +6,7 @@ export enum ThemeMode {
 }
 
 const themeNames = new Map([
-  [ThemeMode.Light, 'bumblebee'],
+  [ThemeMode.Light, 'light'],
   [ThemeMode.Dark, 'dracula'],
 ])
 
