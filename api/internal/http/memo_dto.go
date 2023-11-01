@@ -1,12 +1,14 @@
 package http
 
 import (
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
 type memo struct {
@@ -35,6 +37,16 @@ type createMemoRequest struct {
 	Tags    []string `json:"tags"`
 }
 
+func (r *createMemoRequest) validate() error {
+	if strings.TrimSpace(r.Title) == "" {
+		return pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: "title should not be blank string",
+		}
+	}
+	return nil
+}
+
 func (r *createMemoRequest) toMemo() *ent.Memo {
 	return &ent.Memo{
 		Title:   r.Title,
@@ -46,6 +58,16 @@ type replaceMemoRequest struct {
 	Title   string   `json:"title" validate:"required"`
 	Content string   `json:"content"`
 	Tags    []string `json:"tags"`
+}
+
+func (r *replaceMemoRequest) validate() error {
+	if strings.TrimSpace(r.Title) == "" {
+		return pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: "title should not be blank string",
+		}
+	}
+	return nil
 }
 
 func (r *replaceMemoRequest) toMemo() *ent.Memo {

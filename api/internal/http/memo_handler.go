@@ -109,6 +109,10 @@ func (h *memoHandler) createMemo(w http.ResponseWriter, r *http.Request) {
 		responseError(w, r, fmt.Errorf("validating request body: %w", err))
 		return
 	}
+	if err := req.validate(); err != nil {
+		responseError(w, r, fmt.Errorf("validating request body: %w", err))
+		return
+	}
 
 	memoCreated, err := h.memoService.CreateMemo(ctx, req.toMemo(), req.Tags, passport.token.UserID)
 	if err != nil {
@@ -146,6 +150,10 @@ func (h *memoHandler) replaceMemo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := validate.Struct(&req); err != nil {
+		responseError(w, r, fmt.Errorf("validating request body: %w", err))
+		return
+	}
+	if err := req.validate(); err != nil {
 		responseError(w, r, fmt.Errorf("validating request body: %w", err))
 		return
 	}

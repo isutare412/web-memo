@@ -26,19 +26,17 @@
   }
 
   function onTitleInput() {
-    warnTitle = false
+    if (title.trim() !== '') {
+      warnTitle = false
+    }
   }
 
   function onTagClick(event: CustomEvent<{ name: string }>) {
     tags = tags.filter((tag) => tag !== event.detail.name)
   }
 
-  async function onSubmit(
-    event: MouseEvent & {
-      currentTarget: EventTarget & HTMLButtonElement
-    }
-  ) {
-    if (title === '') {
+  async function onSubmit() {
+    if (title.trim() === '') {
       warnTitle = true
       return
     }
