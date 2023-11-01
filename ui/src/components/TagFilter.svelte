@@ -98,7 +98,7 @@
     <div class="w-4">
       <Funnel />
     </div>
-    <div bind:this={tagInputContainer} class="w-[200px]">
+    <div bind:this={tagInputContainer} class="w-full max-w-[200px]">
       <input
         type="text"
         placeholder="Tag"
