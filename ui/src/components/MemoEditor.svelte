@@ -21,6 +21,10 @@
     }
   }
 
+  function onTagInputButtonClick() {
+    addTag(tagInputValue)
+  }
+
   function onTitleInput() {
     warnTitle = false
   }
@@ -80,14 +84,17 @@
     />
   </div>
   <div>
-    <input
-      type="text"
-      placeholder="Tag"
-      maxlength="20"
-      bind:value={tagInputValue}
-      on:keyup={onTagInputKeyUp}
-      class="input input-sm input-bordered focus:border-primary w-full max-w-[200px] focus:outline-none"
-    />
+    <div class="join">
+      <input
+        type="text"
+        placeholder="Tag"
+        maxlength="20"
+        bind:value={tagInputValue}
+        on:keyup={onTagInputKeyUp}
+        class="input input-sm input-bordered focus:border-primary join-item w-full max-w-[200px] focus:outline-none"
+      />
+      <button on:click={onTagInputButtonClick} class="join-item btn btn-sm btn-primary">Add</button>
+    </div>
     {#if tags.length > 0}
       <div class="mt-2 flex flex-wrap gap-1">
         {#each tags as tag (tag)}
