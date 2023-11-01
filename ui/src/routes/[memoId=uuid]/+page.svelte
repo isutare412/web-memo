@@ -74,9 +74,9 @@
       <p>Are you sure?</p>
       <div class="modal-action flex justify-end">
         <form method="dialog">
-          <button class="btn btn-sm outline-none">Cancel</button>
+          <button class="btn outline-none">Cancel</button>
         </form>
-        <button on:click={onDeleteConfirm} class="btn btn-sm btn-error outline-none">Delete</button>
+        <button on:click={onDeleteConfirm} class="btn btn-error outline-none">Delete</button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop">
