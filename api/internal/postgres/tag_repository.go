@@ -59,3 +59,17 @@ func (r *TagRepository) CreateIfNotExist(ctx context.Context, tagName string) (*
 
 	return tagCreated, nil
 }
+
+func (r *TagRepository) DeleteAllWithoutMemo(ctx context.Context) (count int, err error) {
+	client := transactionClient(ctx, r.client)
+
+	count, err = client.Tag.
+		Delete().
+		Where(tag.Not(tag.HasMemos())).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}

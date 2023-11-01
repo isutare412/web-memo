@@ -17,14 +17,16 @@ import (
 	"github.com/isutare412/web-memo/api/internal/jwt"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
+	"github.com/isutare412/web-memo/api/internal/repeatjob"
 )
 
 type Components struct {
 	cfg *config.Config
 
-	postgresClient *postgres.Client
-	redisClient    *redis.Client
-	httpServer     *http.Server
+	postgresClient   *postgres.Client
+	redisClient      *redis.Client
+	httpServer       *http.Server
+	repeatJobTrigger *repeatjob.Trigger
 }
 
 func NewComponents(cfg *config.Config) (*Components, error) {
@@ -53,12 +55,15 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 
 	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService, memoService)
 
+	repeatJobTrigger := repeatjob.NewTrigger(cfg.ToRepeatJobConfig(), memoService)
+
 	return &Components{
 		cfg: cfg,
 
-		postgresClient: postgresClient,
-		redisClient:    redisClient,
-		httpServer:     httpServer,
+		postgresClient:   postgresClient,
+		redisClient:      redisClient,
+		httpServer:       httpServer,
+		repeatJobTrigger: repeatJobTrigger,
 	}, nil
 }
 
@@ -82,6 +87,7 @@ func (c *Components) Initialize() (err error) {
 
 func (c *Components) Run() {
 	httpServerErrs := c.httpServer.Run()
+	repeatJobTriggerErrs := c.repeatJobTrigger.Run()
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -91,6 +97,8 @@ func (c *Components) Run() {
 		slog.Info("received signal", "signal", s.String())
 	case err := <-httpServerErrs:
 		slog.Error("fatal error from http server", "error", err)
+	case err := <-repeatJobTriggerErrs:
+		slog.Error("fatal error from repeat job trigger", "error", err)
 	}
 }
 
@@ -103,6 +111,11 @@ func (c *Components) Shutdown() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.cfg.Wire.ShutdownTimeout)
 	defer cancel()
+
+	slog.Info("shutdown repeatJobTrigger")
+	if err := c.repeatJobTrigger.Shutdown(ctx); err != nil {
+		slog.Error("failed to shutdown repeatJobTrigger", "error", err)
+	}
 
 	slog.Info("shutdown httpServer")
 	if err := c.httpServer.Shutdown(ctx); err != nil {

@@ -31,6 +31,9 @@ jwt:
     - name: v1
       private: <private_key>
       public: <public_key>
+repeat-job:
+  intervals:
+    tag-cleanup: 30m
 service:
   auth:
     oauth-state-timeout: 10m

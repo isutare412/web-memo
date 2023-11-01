@@ -221,6 +221,15 @@ func (s *Service) ReplaceTags(
 	return tagsReplaced, nil
 }
 
+func (s *Service) DeleteOrphanTags(ctx context.Context) (count int, err error) {
+	count, err = s.tagRepository.DeleteAllWithoutMemo(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("deleting all tags without memo: %w", err)
+	}
+
+	return count, nil
+}
+
 func (s *Service) ensureTags(ctx context.Context, tagNames []string) ([]*ent.Tag, error) {
 	if _, ok := lo.Find(tagNames, func(tag string) bool { return utf8.RuneCountInString(tag) > 20 }); ok {
 		return nil, pkgerr.Known{

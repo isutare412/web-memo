@@ -25,4 +25,5 @@ type MemoService interface {
 
 	ListTags(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.Tag, error)
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagNames []string, requester *model.AppIDToken) ([]*ent.Tag, error)
+	DeleteOrphanTags(context.Context) (count int, err error)
 }

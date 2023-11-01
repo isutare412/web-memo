@@ -53,8 +53,9 @@ func (imi *immigration) issuePassport(next http.Handler) http.Handler {
 			}
 		}
 
-		bag, _ := getContextBag(r.Context())
-		bag.passport = passport
+		if bag, ok := getContextBag(r.Context()); ok {
+			bag.passport = passport
+		}
 		next.ServeHTTP(w, r)
 	}
 

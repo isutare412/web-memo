@@ -10,17 +10,19 @@ import (
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
+	"github.com/isutare412/web-memo/api/internal/repeatjob"
 )
 
 type Config struct {
-	Wire     WireConfig      `mapstructure:"wire"`
-	Log      log.Config      `mapstructure:"log"`
-	HTTP     HTTPConfig      `mapstructure:"http"`
-	Postgres postgres.Config `mapstructure:"postgres"`
-	Redis    redis.Config    `mapstructure:"redis"`
-	Google   GoogleConfig    `mapstructure:"google"`
-	JWT      jwt.Config      `mapstructure:"jwt"`
-	Service  ServiceConfig   `mapstructure:"service"`
+	Wire      WireConfig      `mapstructure:"wire"`
+	Log       log.Config      `mapstructure:"log"`
+	HTTP      HTTPConfig      `mapstructure:"http"`
+	Postgres  postgres.Config `mapstructure:"postgres"`
+	Redis     redis.Config    `mapstructure:"redis"`
+	Google    GoogleConfig    `mapstructure:"google"`
+	JWT       jwt.Config      `mapstructure:"jwt"`
+	RepeatJob RepeatJobConfig `mapstructure:"repeat-job"`
+	Service   ServiceConfig   `mapstructure:"service"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
@@ -52,6 +54,12 @@ func (c *Config) ToGoogleClientConfig() google.ClientConfig {
 
 func (c *Config) ToJWTConfig() jwt.Config {
 	return jwt.Config(c.JWT)
+}
+
+func (c *Config) ToRepeatJobConfig() repeatjob.Config {
+	return repeatjob.Config{
+		TagCleanupInterval: c.RepeatJob.Intervals.TagCleanup,
+	}
 }
 
 func (c *Config) ToAuthServiceConfig() auth.Config {
@@ -87,6 +95,14 @@ type GoogleEndpointsConfig struct {
 type GoogleOAuthConfig struct {
 	ClientID     string `mapstructure:"client-id" validate:"required"`
 	ClientSecret string `mapstructure:"client-secret" validate:"required"`
+}
+
+type RepeatJobConfig struct {
+	Intervals RepeatJobIntervalConfig `mapstructure:"intervals"`
+}
+
+type RepeatJobIntervalConfig struct {
+	TagCleanup time.Duration `mapstructure:"tag-cleanup" validate:"required,min=1m"`
 }
 
 type ServiceConfig struct {

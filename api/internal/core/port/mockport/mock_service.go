@@ -140,6 +140,21 @@ func (mr *MockMemoServiceMockRecorder) DeleteMemo(ctx, memoID, requester any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMemo", reflect.TypeOf((*MockMemoService)(nil).DeleteMemo), ctx, memoID, requester)
 }
 
+// DeleteOrphanTags mocks base method.
+func (m *MockMemoService) DeleteOrphanTags(arg0 context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteOrphanTags", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteOrphanTags indicates an expected call of DeleteOrphanTags.
+func (mr *MockMemoServiceMockRecorder) DeleteOrphanTags(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOrphanTags", reflect.TypeOf((*MockMemoService)(nil).DeleteOrphanTags), arg0)
+}
+
 // GetMemo mocks base method.
 func (m *MockMemoService) GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error) {
 	m.ctrl.T.Helper()

@@ -35,6 +35,7 @@ type MemoRepository interface {
 type TagRepository interface {
 	FindAllByMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.Tag, error)
 	CreateIfNotExist(ctx context.Context, tagName string) (*ent.Tag, error)
+	DeleteAllWithoutMemo(context.Context) (count int, err error)
 }
 
 type KVRepository interface {

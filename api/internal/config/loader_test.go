@@ -87,6 +87,9 @@ jwt:
         o0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4
         zQIDAQAB
         -----END PUBLIC KEY-----
+repeat-job:
+  intervals:
+    tag-cleanup: 19m
 service:
   auth:
     oauth-state-timeout: 42m
@@ -145,6 +148,11 @@ service:
 							Public:  "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv+oq9v//ugc1cjhRlxJg\nd+R8wo72XtlfI5VWkKZNq/bnpsCobOE11viKPrakQS9fwh8WKvesOz63y/RIMGPm\nRVydo9kZoPTlefTjENiNSHDH0T+YL8JAscbczHgNvfqfy0UM+eC21/T435zShNKc\nUUyyGR6s99fhZVIzlby3H1A/cQoVTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d\n9ycjoO74QP5RQdwLU87b3TXLSopamCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+\no0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4\nzQIDAQAB\n-----END PUBLIC KEY-----\n",
 						}},
 						Expiration: 720 * time.Hour,
+					},
+					RepeatJob: config.RepeatJobConfig{
+						Intervals: config.RepeatJobIntervalConfig{
+							TagCleanup: 19 * time.Minute,
+						},
 					},
 					Service: config.ServiceConfig{
 						Auth: config.AuthServiceConfig{
@@ -211,6 +219,11 @@ service:
 							Public:  "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv+oq9v//ugc1cjhRlxJg\nd+R8wo72XtlfI5VWkKZNq/bnpsCobOE11viKPrakQS9fwh8WKvesOz63y/RIMGPm\nRVydo9kZoPTlefTjENiNSHDH0T+YL8JAscbczHgNvfqfy0UM+eC21/T435zShNKc\nUUyyGR6s99fhZVIzlby3H1A/cQoVTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d\n9ycjoO74QP5RQdwLU87b3TXLSopamCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+\no0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4\nzQIDAQAB\n-----END PUBLIC KEY-----\n",
 						}},
 						Expiration: 720 * time.Hour,
+					},
+					RepeatJob: config.RepeatJobConfig{
+						Intervals: config.RepeatJobIntervalConfig{
+							TagCleanup: 19 * time.Minute,
+						},
 					},
 					Service: config.ServiceConfig{
 						Auth: config.AuthServiceConfig{
@@ -282,6 +295,11 @@ service:
 							Public:  "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv+oq9v//ugc1cjhRlxJg\nd+R8wo72XtlfI5VWkKZNq/bnpsCobOE11viKPrakQS9fwh8WKvesOz63y/RIMGPm\nRVydo9kZoPTlefTjENiNSHDH0T+YL8JAscbczHgNvfqfy0UM+eC21/T435zShNKc\nUUyyGR6s99fhZVIzlby3H1A/cQoVTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d\n9ycjoO74QP5RQdwLU87b3TXLSopamCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+\no0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4\nzQIDAQAB\n-----END PUBLIC KEY-----\n",
 						}},
 						Expiration: 720 * time.Hour,
+					},
+					RepeatJob: config.RepeatJobConfig{
+						Intervals: config.RepeatJobIntervalConfig{
+							TagCleanup: 19 * time.Minute,
+						},
 					},
 					Service: config.ServiceConfig{
 						Auth: config.AuthServiceConfig{
