@@ -20,11 +20,14 @@
 <button
   on:click={dispatchTag}
   disabled={!isButton}
-  class="badge badge-primary text-sm transition-none"
+  class="badge badge-primary max-w-[200px] text-sm transition-none"
   class:badge-primary={color === 'primary'}
   class:badge-secondary={color === 'secondary'}
-  >{value}
+>
+  <span class="truncate">
+    {value}
+  </span>
   {#if isClose}
-    ✕
+    <span>&nbsp;✕</span>
   {/if}
 </button>
