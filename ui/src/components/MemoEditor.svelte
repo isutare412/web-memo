@@ -93,7 +93,9 @@
         on:keyup={onTagInputKeyUp}
         class="input input-sm input-bordered focus:border-primary join-item w-full max-w-[200px] focus:outline-none"
       />
-      <button on:click={onTagInputButtonClick} class="join-item btn btn-sm btn-primary">Add</button>
+      <button on:click={onTagInputButtonClick} class="join-item btn btn-sm btn-primary btn-outline"
+        >Add</button
+      >
     </div>
     {#if tags.length > 0}
       <div class="mt-2 flex flex-wrap gap-1">
@@ -110,5 +112,5 @@
   />
 </div>
 <div class="mt-4 flex justify-end">
-  <button on:click={onSubmit} class="btn btn-primary btn-sm">Submit</button>
+  <button on:click={onSubmit} class="btn btn-primary btn-sm btn-outline">Submit</button>
 </div>
