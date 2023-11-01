@@ -100,7 +100,7 @@
     {#if tags.length > 0}
       <div class="mt-2 flex flex-wrap gap-1">
         {#each tags as tag (tag)}
-          <Tag value={tag} isClose={true} on:click={onTagClick} />
+          <Tag value={tag} outline={true} isClose={true} on:click={onTagClick} />
         {/each}
       </div>
     {/if}
