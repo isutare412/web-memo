@@ -58,10 +58,7 @@
     </div>
   {:then}
     <div class="space-y-2">
-      <div class="flex justify-between">
-        <div class="mr-2">
-          <TagFilter />
-        </div>
+      <TagFilter>
         <div class="flex gap-2">
           <div>
             <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
@@ -74,7 +71,7 @@
             </a>
           </div>
         </div>
-      </div>
+      </TagFilter>
       <MemoList {memos} />
     </div>
   {/await}
