@@ -17,31 +17,17 @@
 </script>
 
 <li>
-  {#if memo.tags.length > 0}
-    <a href={`/${memo.id}`} class="link link-hover text inline-block max-w-full truncate">
+  <div class="flex items-center gap-x-2">
+    <a href={`/${memo.id}`} class="link link-hover inline-block max-w-full flex-auto truncate">
       {memo.title}
     </a>
-    <div class="flex gap-x-2">
-      <div class="flex flex-1 flex-wrap gap-1">
-        {#each tags as tag (tag.name)}
-          <Tag
-            value={tag.name}
-            color={tag.filtered ? 'secondary' : 'primary'}
-            on:click={selectTag}
-          />
-        {/each}
-      </div>
-      <span class="mt-[2px] flex-none text-xs font-light">{formatDate(memo.createTime)}</span>
-    </div>
-  {:else}
-    <div class="flex items-center gap-x-2">
-      <a
-        href={`/${memo.id}`}
-        class="link link-hover text inline-block max-w-full flex-auto truncate"
-      >
-        {memo.title}
-      </a>
-      <span class="mt-[2px] flex-none text-xs font-light">{formatDate(memo.createTime)}</span>
+    <span class="mt-[2px] flex-none text-xs font-light">{formatDate(memo.createTime)}</span>
+  </div>
+  {#if tags.length > 0}
+    <div class="mt-1 flex flex-wrap gap-1">
+      {#each tags as tag (tag.name)}
+        <Tag value={tag.name} color={tag.filtered ? 'secondary' : 'primary'} on:click={selectTag} />
+      {/each}
     </div>
   {/if}
 </li>
