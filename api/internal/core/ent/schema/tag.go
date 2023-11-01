@@ -17,7 +17,7 @@ func (Tag) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			NotEmpty().
-			MaxLen(20).
+			MaxLen(80).
 			Unique(),
 	}
 }
