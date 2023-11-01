@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
@@ -231,11 +232,8 @@ func (s *Service) DeleteOrphanTags(ctx context.Context) (count int, err error) {
 }
 
 func (s *Service) ensureTags(ctx context.Context, tagNames []string) ([]*ent.Tag, error) {
-	if _, ok := lo.Find(tagNames, func(tag string) bool { return utf8.RuneCountInString(tag) > 20 }); ok {
-		return nil, pkgerr.Known{
-			Code:      pkgerr.CodeBadRequest,
-			ClientMsg: fmt.Sprintf("length of tag should be less or equal to 20"),
-		}
+	if err := validateTags(tagNames); err != nil {
+		return nil, fmt.Errorf("validating tags: %w", err)
 	}
 
 	tagsCreated := make([]*ent.Tag, 0, len(tagNames))
@@ -249,6 +247,26 @@ func (s *Service) ensureTags(ctx context.Context, tagNames []string) ([]*ent.Tag
 	}
 
 	return tagsCreated, nil
+}
+
+func validateTags(tags []string) error {
+	for _, tag := range tags {
+		if utf8.RuneCountInString(tag) > 20 {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: fmt.Sprintf("length of tag should be less or equal to 20"),
+			}
+		}
+
+		if strings.TrimSpace(tag) == "" {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: fmt.Sprintf("tag should not be blank"),
+			}
+		}
+	}
+
+	return nil
 }
 
 func sortDedupTags(tags []string) []string {
