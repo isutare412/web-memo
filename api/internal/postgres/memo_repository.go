@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -51,9 +53,7 @@ func (r *MemoRepository) FindByIDWithTags(ctx context.Context, memoID uuid.UUID)
 	memo, err := client.Memo.
 		Query().
 		Where(memo.ID(memoID)).
-		WithTags(func(tq *ent.TagQuery) {
-			tq.Order(tag.ByName(sql.OrderAsc()))
-		}).
+		WithTags().
 		First(ctx)
 	switch {
 	case ent.IsNotFound(err):
@@ -66,6 +66,8 @@ func (r *MemoRepository) FindByIDWithTags(ctx context.Context, memoID uuid.UUID)
 		return nil, err
 	}
 
+	slices.SortFunc(memo.Edges.Tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
+
 	return memo, nil
 }
 
@@ -75,13 +77,15 @@ func (r *MemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uui
 	memos, err := client.Memo.
 		Query().
 		Where(memo.HasOwnerWith(user.ID(userID))).
-		WithTags(func(tq *ent.TagQuery) {
-			tq.Order(tag.ByName(sql.OrderAsc()))
-		}).
+		WithTags().
 		Order(memo.ByCreateTime(sql.OrderDesc())).
 		All(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, m := range memos {
+		slices.SortFunc(m.Edges.Tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
 	}
 
 	return memos, nil
@@ -102,13 +106,15 @@ func (r *MemoRepository) FindAllByUserIDAndTagIDWithTags(
 				memo.HasTagsWith(tag.ID(tagID)),
 			),
 		).
-		WithTags(func(tq *ent.TagQuery) {
-			tq.Order(tag.ByName(sql.OrderAsc()))
-		}).
+		WithTags().
 		Order(memo.ByCreateTime(sql.OrderDesc())).
 		All(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, m := range memos {
+		slices.SortFunc(m.Edges.Tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
 	}
 
 	return memos, nil

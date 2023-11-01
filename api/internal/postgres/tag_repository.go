@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"context"
+	"slices"
+	"strings"
 
-	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
@@ -26,14 +27,13 @@ func (r *TagRepository) FindAllByMemoID(ctx context.Context, memoID uuid.UUID) (
 
 	tags, err := client.Tag.
 		Query().
-		Where(
-			tag.HasMemosWith(memo.ID(memoID)),
-		).
-		Order(tag.ByName(sql.OrderAsc())).
+		Where(tag.HasMemosWith(memo.ID(memoID))).
 		All(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	slices.SortFunc(tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
 
 	return tags, nil
 }
