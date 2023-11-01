@@ -5,6 +5,7 @@
 
   export let value: string
   export let color: Color = 'primary'
+  export let outline = false
   export let isClose: boolean = false
   export let isButton = true
 
@@ -23,6 +24,7 @@
   class="badge badge-primary max-w-[200px] text-sm transition-none"
   class:badge-primary={color === 'primary'}
   class:badge-secondary={color === 'secondary'}
+  class:badge-outline={outline}
 >
   <span class="truncate">
     {value}

@@ -48,7 +48,7 @@
   {#if memo.tags.length > 0}
     <div class="mt-4 flex flex-wrap gap-1">
       {#each memo.tags as tag (tag)}
-        <Tag value={tag} isButton={false} />
+        <Tag value={tag} outline={true} isButton={false} />
       {/each}
     </div>
   {/if}

@@ -26,7 +26,11 @@
   {#if tags.length > 0}
     <div class="mt-1 flex flex-wrap gap-1">
       {#each tags as tag (tag.name)}
-        <Tag value={tag.name} color={tag.filtered ? 'secondary' : 'primary'} on:click={selectTag} />
+        <Tag
+          value={tag.name}
+          outline={!tag.filtered}
+          on:click={selectTag}
+        />
       {/each}
     </div>
   {/if}

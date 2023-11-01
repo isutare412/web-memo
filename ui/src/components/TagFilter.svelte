@@ -124,7 +124,7 @@
   </div>
   <div class="mb-3 mt-2 flex flex-1 flex-wrap gap-1">
     {#each selectedTags as tag (tag)}
-      <Tag value={tag} color={'secondary'} isClose={true} on:click={onTagFilterClick} />
+      <Tag value={tag} isClose={true} on:click={onTagFilterClick} />
     {/each}
   </div>
 </div>
