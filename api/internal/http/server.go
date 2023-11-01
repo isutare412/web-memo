@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
 )
@@ -24,7 +25,13 @@ func NewServer(cfg Config, authService port.AuthService, memoService port.MemoSe
 	imi := newImmigration(authService)
 
 	r := chi.NewRouter()
-	r.Use(withContextBag, wrapResponseWriter, logRequests, recoverPanic)
+	r.Use(
+		withContextBag,
+		middleware.RealIP,
+		wrapResponseWriter,
+		logRequests,
+		recoverPanic,
+	)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Mount("/google", googleHandler.router())
