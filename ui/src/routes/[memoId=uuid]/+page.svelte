@@ -11,6 +11,8 @@
   $: memoId = $page.params.memoId
   $: memo = $memoStore.memos.find((memo) => memo.id === memoId)
 
+  let deleteConfirmModal: HTMLDialogElement
+
   onMount(async () => {
     try {
       await syncMemo(memoId)
@@ -28,6 +30,12 @@
   }
 
   async function onDeleteClick() {
+    if (memo === undefined) return
+
+    deleteConfirmModal.showModal()
+  }
+
+  async function onDeleteConfirm() {
     if (memo === undefined) return
 
     await deleteMemo(memoId)
@@ -49,6 +57,20 @@
   </div>
   <div class="mt-4 flex justify-end gap-x-1">
     <button on:click={onEditClick} class="btn btn-primary btn-sm">Edit</button>
-    <button on:click={onDeleteClick} class="btn btn-primary btn-sm">Delete</button>
+    <button on:click={onDeleteClick} class="btn btn-primary btn-sm outline-none">Delete</button>
   </div>
+  <dialog bind:this={deleteConfirmModal} class="modal">
+    <div class="modal-box">
+      <p>Are you sure?</p>
+      <div class="modal-action flex justify-end">
+        <form method="dialog">
+          <button class="btn btn-sm">Cancel</button>
+        </form>
+        <button on:click={onDeleteConfirm} class="btn btn-sm btn-error">Delete</button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
 {/if}
