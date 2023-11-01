@@ -99,7 +99,7 @@
       <div class="w-4">
         <Funnel />
       </div>
-      <div bind:this={tagInputContainer} class="w-full max-w-[200px]">
+      <div bind:this={tagInputContainer} class="w-full max-w-xs">
         <input
           type="text"
           placeholder="Tag"
@@ -109,7 +109,7 @@
           on:keyup={onTagInputKeyUp}
           on:input={onTagInput}
           on:focus={onTagInputFocus}
-          class="input input-sm input-bordered focus:border-primary w-full focus:outline-none"
+          class="input input-sm input-bordered focus:border-primary w-full text-base focus:outline-none"
         />
         {#if showAutocomplete}
           <Autocomplete

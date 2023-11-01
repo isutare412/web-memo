@@ -84,16 +84,16 @@
     />
   </div>
   <div>
-    <div class="join">
+    <div class="flex">
       <input
         type="text"
         placeholder="Tag"
         maxlength="20"
         bind:value={tagInputValue}
         on:keyup={onTagInputKeyUp}
-        class="input input-sm input-bordered focus:border-primary join-item w-full max-w-[200px] focus:outline-none"
+        class="input input-bordered focus:border-primary w-full max-w-xs rounded-r-none border-r-0 focus:outline-none"
       />
-      <button on:click={onTagInputButtonClick} class="join-item btn btn-sm btn-primary btn-outline"
+      <button on:click={onTagInputButtonClick} class="btn btn-primary btn-outline rounded-l-none"
         >Add</button
       >
     </div>
@@ -108,9 +108,9 @@
   <textarea
     placeholder="Content"
     bind:value={content}
-    class="textarea textarea-bordered focus:border-primary min-h-[200px] focus:outline-none"
+    class="textarea textarea-bordered focus:border-primary min-h-[200px] text-base focus:outline-none"
   />
 </div>
 <div class="mt-4 flex justify-end">
-  <button on:click={onSubmit} class="btn btn-primary btn-sm btn-outline">Submit</button>
+  <button on:click={onSubmit} class="btn btn-primary btn-outline">Submit</button>
 </div>

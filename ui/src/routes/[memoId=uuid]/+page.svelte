@@ -56,11 +56,8 @@
     <span class="whitespace-pre-wrap">{memo.content}</span>
   </div>
   <div class="mt-4 flex justify-end gap-x-1">
-    <button on:click={onEditClick} class="btn btn-outline btn-primary btn-sm outline-none"
-      >Edit</button
-    >
-    <button on:click={onDeleteClick} class="btn btn-outline btn-primary btn-sm outline-none"
-      >Delete</button
+    <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button>
+    <button on:click={onDeleteClick} class="btn btn-outline btn-primary outline-none">Delete</button
     >
   </div>
   <dialog bind:this={deleteConfirmModal} class="modal">
