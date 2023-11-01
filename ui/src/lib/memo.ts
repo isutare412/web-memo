@@ -82,3 +82,10 @@ export function removeTagFilter(tag: string) {
     return state
   })
 }
+
+export function clearTagFilter() {
+  memoStore.update((state) => {
+    state.selectedTags = []
+    return state
+  })
+}

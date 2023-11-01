@@ -5,7 +5,7 @@
   import Plus from '$components/icons/Plus.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
   import { authStore } from '$lib/auth'
-  import { memoStore, syncMemos, type Memo } from '$lib/memo'
+  import { clearTagFilter, memoStore, syncMemos, type Memo } from '$lib/memo'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
   import { every, filter } from 'lodash-es'
@@ -33,6 +33,7 @@
 
   function onRefreshButtonClick() {
     isFetchingMemo = fetchMemos()
+    clearTagFilter()
   }
 
   async function fetchMemos() {
