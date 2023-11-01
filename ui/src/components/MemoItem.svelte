@@ -16,22 +16,20 @@
   }
 </script>
 
-<li>
-  <div class="flex items-center gap-x-2">
-    <a href={`/${memo.id}`} class="link link-hover inline-block max-w-full flex-auto truncate">
+<li class="flex flex-col gap-y-1">
+  <div class="flex items-center">
+    <a href={`/${memo.id}`} class="link link-hover inline-block max-w-full truncate">
       {memo.title}
     </a>
-    <span class="mt-[2px] flex-none text-xs font-light">{formatDate(memo.createTime)}</span>
   </div>
   {#if tags.length > 0}
-    <div class="mt-1 flex flex-wrap gap-1">
+    <div class="flex flex-wrap gap-1">
       {#each tags as tag (tag.name)}
-        <Tag
-          value={tag.name}
-          outline={!tag.filtered}
-          on:click={selectTag}
-        />
+        <Tag value={tag.name} outline={!tag.filtered} on:click={selectTag} />
       {/each}
     </div>
   {/if}
+  <div class="flex justify-end">
+    <span class="text-xs font-light opacity-75">{formatDate(memo.createTime)}</span>
+  </div>
 </li>
