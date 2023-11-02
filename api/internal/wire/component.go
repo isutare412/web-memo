@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/isutare412/web-memo/api/internal/config"
+	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/core/service/memo"
 	"github.com/isutare412/web-memo/api/internal/google"
@@ -53,7 +54,12 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 		cfg.ToAuthServiceConfig(), postgresClient, kvRepository, userRepository, googleClient, jwtClient)
 	memoService := memo.NewService(postgresClient, memoRepository, tagRepository)
 
-	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService, memoService)
+	pingers := []port.Pinger{
+		postgresClient,
+		redisClient,
+	}
+
+	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService, memoService, pingers)
 
 	repeatJobTrigger := repeatjob.NewTrigger(cfg.ToRepeatJobConfig(), memoService)
 

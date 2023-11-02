@@ -43,3 +43,12 @@ func (c *Client) Shutdown(ctx context.Context) error {
 		return nil
 	}
 }
+
+func (c *Client) Name() string { return "redisClient" }
+
+func (c *Client) Ping(ctx context.Context) error {
+	if _, err := c.innerClient.Ping(ctx).Result(); err != nil {
+		return err
+	}
+	return nil
+}

@@ -17,7 +17,8 @@ type Server struct {
 	server *http.Server
 }
 
-func NewServer(cfg Config, authService port.AuthService, memoService port.MemoService) *Server {
+func NewServer(cfg Config, authService port.AuthService, memoService port.MemoService, pingers []port.Pinger) *Server {
+	healthHandler := newHealthHandler(pingers)
 	googleHandler := newGoogleHandler(cfg, authService)
 	userHandler := newUserHandler(authService)
 	memoHandler := newMemoHandler(memoService)
@@ -25,15 +26,17 @@ func NewServer(cfg Config, authService port.AuthService, memoService port.MemoSe
 	imi := newImmigration(authService)
 
 	r := chi.NewRouter()
-	r.Use(
-		withContextBag,
-		middleware.RealIP,
-		wrapResponseWriter,
-		logRequests,
-		recoverPanic,
-	)
+	r.Mount("/health", healthHandler.router())
 
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(
+			withContextBag,
+			middleware.RealIP,
+			wrapResponseWriter,
+			logRequests,
+			recoverPanic,
+		)
+
 		r.Mount("/google", googleHandler.router())
 
 		auth := r.With(imi.issuePassport)

@@ -46,6 +46,12 @@ func (c *Client) Shutdown(ctx context.Context) error {
 	}
 }
 
+func (c *Client) Name() string { return "postgresClient" }
+
+func (c *Client) Ping(ctx context.Context) error {
+	return c.entClient.Ping(ctx)
+}
+
 func (c *Client) MigrateSchemas(ctx context.Context) error {
 	if err := c.entClient.Schema.Create(ctx); err != nil {
 		return fmt.Errorf("creating schema: %w", err)
