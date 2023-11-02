@@ -39,6 +39,14 @@ spec:
             - name: http
               containerPort: {{ .Values.config.http.port }}
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health/livez
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /health/readyz
+              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
