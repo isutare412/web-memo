@@ -49,10 +49,10 @@ up: ## Run components.
 down: ## Shutdown components.
 	$(COMPOSE_CMD) down $(TARGET)
 
-.PHONY: p
+.PHONY: ps
 ps: ## Print running components.
 	$(COMPOSE_CMD) ps $(TARGET)
 
-.PHONY: log
+.PHONY: logs
 logs: ## Tail logs of components.
 	$(COMPOSE_CMD) logs -f $(TARGET)
