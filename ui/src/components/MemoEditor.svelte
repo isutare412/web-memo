@@ -106,7 +106,7 @@
   <textarea
     placeholder="Content"
     bind:value={content}
-    class="textarea textarea-bordered focus:border-primary min-h-[200px] text-base focus:outline-none"
+    class="textarea textarea-bordered focus:border-primary h-[360px] text-base focus:outline-none"
   />
 </div>
 <div class="mt-4 flex justify-end">

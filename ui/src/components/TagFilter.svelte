@@ -94,8 +94,8 @@
 />
 
 <div>
-  <div class="flex justify-between gap-x-2">
-    <div class="flex flex-1 items-center gap-x-2">
+  <div class="flex justify-between gap-3">
+    <div class="flex flex-1 items-center gap-2">
       <div class="w-4">
         <Funnel />
       </div>
