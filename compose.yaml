@@ -2,7 +2,6 @@ name: web-memo
 
 volumes:
   postgres-storage:
-  redis-storage:
 
 networks:
   app-tier:
@@ -28,8 +27,6 @@ services:
       - app-tier
     ports:
       - ${REDIS_PORT}:6379
-    volumes:
-      - redis-storage:/bitnami/redis/data
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_AOF_ENABLED: 'no'
