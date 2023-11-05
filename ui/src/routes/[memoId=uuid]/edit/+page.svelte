@@ -40,7 +40,7 @@
       return
     }
 
-    goto('/')
+    goto(`/${memoId}`)
   }
 </script>
 
