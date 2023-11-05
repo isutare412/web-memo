@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
+  import Markdown from '$components/Markdown.svelte'
   import Tag from '$components/Tag.svelte'
   import { deleteMemo } from '$lib/apis/backend/memo'
   import { memoStore, syncMemo } from '$lib/memo'
@@ -54,7 +55,7 @@
     </div>
   {/if}
   <div class="mt-3">
-    <span class="whitespace-pre-wrap">{memo.content}</span>
+    <Markdown content={memo.content} />
   </div>
   <div class="mt-3 flex flex-col gap-y-1">
     <div class="flex justify-end">
