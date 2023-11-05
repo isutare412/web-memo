@@ -46,7 +46,7 @@
 </script>
 
 {#if memo !== undefined}
-  <h1 class="break-words border-b py-2 text-2xl">{memo.title}</h1>
+  <h1 class="break-words border-b py-2 text-3xl">{memo.title}</h1>
   {#if memo.tags.length > 0}
     <div class="mt-4 flex flex-wrap gap-1">
       {#each memo.tags as tag (tag)}
@@ -59,10 +59,10 @@
   </div>
   <div class="mt-3 flex flex-col gap-y-1">
     <div class="flex justify-end">
-      <span class="text-xs opacity-75">Create {formatDate(memo.createTime)}</span>
+      <span class="text-xs opacity-70">Create {formatDate(memo.createTime)}</span>
     </div>
     <div class="flex justify-end">
-      <span class="text-xs opacity-75">Update {formatDate(memo.updateTime)}</span>
+      <span class="text-xs opacity-70">Update {formatDate(memo.updateTime)}</span>
     </div>
   </div>
   <div class="mt-4 flex justify-end gap-x-1">
