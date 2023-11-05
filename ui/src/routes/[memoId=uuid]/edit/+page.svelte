@@ -35,6 +35,8 @@
         content: event.detail.content,
         tags: event.detail.tags,
       })
+
+      await syncMemo(memoId)
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       return
