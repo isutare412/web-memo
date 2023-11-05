@@ -52,6 +52,10 @@
     })
   }
 
+  function onCancel() {
+    dispatch('cancel')
+  }
+
   function addTag(value: string) {
     value = value.trim()
     if (value === '') return
@@ -109,6 +113,7 @@
     class="textarea textarea-bordered focus:border-primary h-[360px] text-base focus:outline-none"
   />
 </div>
-<div class="mt-4 flex justify-end">
-  <button on:click={onSubmit} class="btn btn-primary btn-outline">Submit</button>
+<div class="mt-4 flex justify-end gap-x-2">
+  <button on:click={onCancel} class="btn btn-primary btn-outline">Cancel</button>
+  <button on:click={onSubmit} class="btn btn-primary">Submit</button>
 </div>

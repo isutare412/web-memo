@@ -42,6 +42,10 @@
 
     goto(`/${memoId}`)
   }
+
+  function onMemoCancel() {
+    goto(`/${memoId}`)
+  }
 </script>
 
-<MemoEditor {title} {content} {tags} on:submit={onMemoSubmit} />
+<MemoEditor {title} {content} {tags} on:submit={onMemoSubmit} on:cancel={onMemoCancel} />

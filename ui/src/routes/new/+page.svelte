@@ -17,6 +17,10 @@
 
     goto('/')
   }
+
+  function onMemoCancel() {
+    goto('/')
+  }
 </script>
 
-<MemoEditor on:submit={onMemoSubmit} />
+<MemoEditor on:submit={onMemoSubmit} on:cancel={onMemoCancel} />
