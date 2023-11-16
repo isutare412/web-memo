@@ -15,6 +15,7 @@ import (
 
 	uuid "github.com/google/uuid"
 	ent "github.com/isutare412/web-memo/api/internal/core/ent"
+	model "github.com/isutare412/web-memo/api/internal/core/model"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -162,6 +163,21 @@ func (m *MockMemoRepository) EXPECT() *MockMemoRepositoryMockRecorder {
 	return m.recorder
 }
 
+// CountByUserID mocks base method.
+func (m *MockMemoRepository) CountByUserID(ctx context.Context, userID uuid.UUID) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountByUserID", ctx, userID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountByUserID indicates an expected call of CountByUserID.
+func (mr *MockMemoRepositoryMockRecorder) CountByUserID(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByUserID", reflect.TypeOf((*MockMemoRepository)(nil).CountByUserID), ctx, userID)
+}
+
 // Create mocks base method.
 func (m *MockMemoRepository) Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error) {
 	m.ctrl.T.Helper()
@@ -207,18 +223,18 @@ func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDAndTagIDWithTags(ctx, u
 }
 
 // FindAllByUserIDWithTags mocks base method.
-func (m *MockMemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID) ([]*ent.Memo, error) {
+func (m *MockMemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID, option *model.QueryOption) ([]*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByUserIDWithTags", ctx, userID)
+	ret := m.ctrl.Call(m, "FindAllByUserIDWithTags", ctx, userID, option)
 	ret0, _ := ret[0].([]*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAllByUserIDWithTags indicates an expected call of FindAllByUserIDWithTags.
-func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDWithTags(ctx, userID any) *gomock.Call {
+func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDWithTags(ctx, userID, option any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDWithTags), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDWithTags), ctx, userID, option)
 }
 
 // FindByID mocks base method.

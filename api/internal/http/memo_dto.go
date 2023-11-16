@@ -31,6 +31,14 @@ func (m *memo) fromMemo(memo *ent.Memo) {
 	})
 }
 
+type listMemosResposne struct {
+	Page           int     `json:"page"`
+	PageSize       int     `json:"pageSize"`
+	LastPage       int     `json:"lastPage"`
+	TotalMemoCount int     `json:"totalMemoCount"`
+	Memos          []*memo `json:"memos"`
+}
+
 type createMemoRequest struct {
 	Title   string   `json:"title" validate:"required"`
 	Content string   `json:"content"`

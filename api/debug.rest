@@ -15,7 +15,7 @@ GET {{url}}/api/v1/users/sign-out
 Authorization: Bearer {{idToken}}
 
 ###
-GET {{url}}/api/v1/memos
+GET {{url}}/api/v1/memos?page=1&pageSize=10
 Authorization: Bearer {{idToken}}
 
 ###

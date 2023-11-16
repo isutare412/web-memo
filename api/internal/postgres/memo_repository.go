@@ -13,6 +13,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
@@ -71,15 +72,30 @@ func (r *MemoRepository) FindByIDWithTags(ctx context.Context, memoID uuid.UUID)
 	return memo, nil
 }
 
-func (r *MemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID) ([]*ent.Memo, error) {
+func (r *MemoRepository) FindAllByUserIDWithTags(
+	ctx context.Context,
+	userID uuid.UUID,
+	opt *model.QueryOption,
+) ([]*ent.Memo, error) {
 	client := transactionClient(ctx, r.client)
 
-	memos, err := client.Memo.
+	createTimeOrder := memo.ByCreateTime(sql.OrderDesc())
+	if opt.Direction == model.SortDirectionAsc {
+		createTimeOrder = memo.ByCreateTime(sql.OrderAsc())
+	}
+
+	query := client.Memo.
 		Query().
 		Where(memo.HasOwnerWith(user.ID(userID))).
 		WithTags().
-		Order(memo.ByCreateTime(sql.OrderDesc())).
-		All(ctx)
+		Order(createTimeOrder)
+
+	if opt.PageOffset > 0 && opt.PageSize > 0 {
+		offset := (opt.PageOffset - 1) * opt.PageSize
+		query = query.Offset(offset).Limit(opt.PageSize)
+	}
+
+	memos, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +134,20 @@ func (r *MemoRepository) FindAllByUserIDAndTagIDWithTags(
 	}
 
 	return memos, nil
+}
+
+func (r *MemoRepository) CountByUserID(ctx context.Context, userID uuid.UUID) (int, error) {
+	client := transactionClient(ctx, r.client)
+
+	count, err := client.Memo.
+		Query().
+		Where(memo.OwnerID(userID)).
+		Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 func (r *MemoRepository) Create(

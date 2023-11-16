@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
 type TransactionManager interface {
@@ -23,8 +24,9 @@ type UserRepository interface {
 type MemoRepository interface {
 	FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
 	FindByIDWithTags(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
-	FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID) ([]*ent.Memo, error)
+	FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID, option *model.QueryOption) ([]*ent.Memo, error)
 	FindAllByUserIDAndTagIDWithTags(ctx context.Context, userID uuid.UUID, tagID int) ([]*ent.Memo, error)
+	CountByUserID(ctx context.Context, userID uuid.UUID) (int, error)
 	Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error)
 	Update(context.Context, *ent.Memo) (*ent.Memo, error)
 	Delete(ctx context.Context, memoID uuid.UUID) error

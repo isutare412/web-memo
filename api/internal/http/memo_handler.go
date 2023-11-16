@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 	"github.com/isutare412/web-memo/api/internal/validate"
@@ -73,17 +76,41 @@ func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memos, err := h.memoService.ListMemos(ctx, passport.token.UserID)
+	page, pageSize, err := getPageQuery(r.URL.Query())
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting page query: %w", err))
+		return
+	}
+
+	queryOption := model.QueryOption{
+		PageOffset: page,
+		PageSize:   pageSize,
+		Direction:  model.SortDirectionDesc,
+	}
+
+	memos, totalCount, err := h.memoService.ListMemos(ctx, passport.token.UserID, &queryOption)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("listing memos: %w", err))
 		return
 	}
 
-	resp := lo.Map(memos, func(m *ent.Memo, _ int) *memo {
-		var dto memo
-		dto.fromMemo(m)
-		return &dto
-	})
+	lastPage := lo.Ternary(totalCount == 0, 1, (totalCount+pageSize-1)/pageSize)
+	if page > lastPage {
+		responseError(w, r, pkgerr.Known{Code: pkgerr.CodeNotFound, ClientMsg: "page not found"})
+		return
+	}
+
+	resp := listMemosResposne{
+		Page:           page,
+		PageSize:       pageSize,
+		LastPage:       lastPage,
+		TotalMemoCount: totalCount,
+		Memos: lo.Map(memos, func(m *ent.Memo, _ int) *memo {
+			var dto memo
+			dto.fromMemo(m)
+			return &dto
+		}),
+	}
 	responseJSON(w, &resp)
 }
 
@@ -273,4 +300,32 @@ func getMemoID(r *http.Request) (uuid.UUID, error) {
 	}
 
 	return memoID, nil
+}
+
+func getPageQuery(q url.Values) (page, pageSize int, err error) {
+	pageStr := q.Get("page")
+	pageSizeStr := q.Get("pageSize")
+
+	page = 1
+	pageSize = 10
+
+	if pageStr != "" {
+		n, err := strconv.Atoi(pageStr)
+		if err != nil || n <= 0 {
+			return 0, 0, pkgerr.Known{Code: pkgerr.CodeBadRequest, ClientMsg: "query page should be a positive number"}
+		}
+		page = n
+	}
+
+	if pageSizeStr != "" {
+		n, err := strconv.Atoi(pageSizeStr)
+		if err != nil || n <= 0 {
+			return 0, 0, pkgerr.Known{Code: pkgerr.CodeBadRequest, ClientMsg: "query pageSize should be a positive number"}
+		} else if n > 100 {
+			return 0, 0, pkgerr.Known{Code: pkgerr.CodeBadRequest, ClientMsg: "query pageSize is too large"}
+		}
+		pageSize = n
+	}
+
+	return page, pageSize, nil
 }

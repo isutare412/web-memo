@@ -47,13 +47,32 @@ func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *mode
 	return memo, nil
 }
 
-func (s *Service) ListMemos(ctx context.Context, userID uuid.UUID) ([]*ent.Memo, error) {
-	memos, err := s.memoRepository.FindAllByUserIDWithTags(ctx, userID)
+func (s *Service) ListMemos(ctx context.Context, userID uuid.UUID, option *model.QueryOption) (memos []*ent.Memo, totalCount int, err error) {
+	var (
+		memosFound []*ent.Memo
+		memoCount  int
+	)
+
+	err = s.transactionManager.WithTx(ctx, func(ctxWithTx context.Context) error {
+		memos, err := s.memoRepository.FindAllByUserIDWithTags(ctx, userID, option)
+		if err != nil {
+			return fmt.Errorf("finding memos of user(%s): %w", userID.String(), err)
+		}
+
+		count, err := s.memoRepository.CountByUserID(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("getting memo count of user(%s): %w", userID.String(), err)
+		}
+
+		memosFound = memos
+		memoCount = count
+		return nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("finding all memos of user(%s): %w", userID.String(), err)
+		return nil, 0, fmt.Errorf("during transaction: %w", err)
 	}
 
-	return memos, nil
+	return memosFound, memoCount, nil
 }
 
 func (s *Service) CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, userID uuid.UUID) (*ent.Memo, error) {
