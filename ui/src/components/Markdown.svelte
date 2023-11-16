@@ -4,6 +4,6 @@
   export let content: string
 </script>
 
-<article class="prose">
+<article class="prose break-words">
   {@html Marked.parse(content, { breaks: true })}
 </article>
