@@ -10,6 +10,7 @@
 
   let tagInputValue = ''
   let warnTitle = false
+  let isSubmitting = false
 
   function onTagInputKeyUp(
     event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
@@ -45,6 +46,7 @@
       addTag(tagInputValue)
     }
 
+    isSubmitting = true
     dispatch('submit', {
       title,
       content,
@@ -115,5 +117,11 @@
 </div>
 <div class="mt-4 flex justify-end gap-x-2">
   <button on:click={onCancel} class="btn btn-primary btn-outline">Cancel</button>
-  <button on:click={onSubmit} class="btn btn-primary">Submit</button>
+  <button on:click={onSubmit} disabled={isSubmitting} class="btn btn-primary">
+    {#if isSubmitting}
+      <span class="loading loading-spinner" />
+    {:else}
+      Submit
+    {/if}
+  </button>
 </div>

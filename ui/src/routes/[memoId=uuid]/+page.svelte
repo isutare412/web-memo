@@ -14,6 +14,7 @@
   $: memo = $memoStore.memos.find((memo) => memo.id === memoId)
 
   let deleteConfirmModal: HTMLDialogElement
+  let isDeleting = false
 
   onMount(async () => {
     try {
@@ -40,7 +41,10 @@
   async function onDeleteConfirm() {
     if (memo === undefined) return
 
+    isDeleting = true
     await deleteMemo(memoId)
+    isDeleting = false
+
     goto('/', { replaceState: true })
   }
 </script>
@@ -77,7 +81,17 @@
         <form method="dialog">
           <button class="btn btn-outline btn-primary outline-none">Cancel</button>
         </form>
-        <button on:click={onDeleteConfirm} class="btn btn-primary outline-none">Delete</button>
+        <button
+          on:click={onDeleteConfirm}
+          disabled={isDeleting}
+          class="btn btn-primary outline-none"
+        >
+          {#if isDeleting}
+            <span class="loading loading-spinner" />
+          {:else}
+            Delete
+          {/if}
+        </button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop">
