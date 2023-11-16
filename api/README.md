@@ -11,8 +11,9 @@
 | createMemo         | POST   | /api/v1/memos                 |       Y       |
 | replaceMemo        | PUT    | /api/v1/memos/{memoID}        |       Y       |
 | deleteMemo         | DELETE | /api/v1/memos/{memoID}        |       Y       |
-| listTags           | GET    | /api/v1/memos/{memoID}/tags   |       Y       |
-| replaceTags        | PUT    | /api/v1/memos/{memoID}/tags   |       Y       |
+| listMemoTags       | GET    | /api/v1/memos/{memoID}/tags   |       Y       |
+| replaceMemoTags    | PUT    | /api/v1/memos/{memoID}/tags   |       Y       |
+| listTags           | GET    | /api/v1/tags                  |       Y       |
 
 # Authorization
 

@@ -10,6 +10,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
+	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
 
 type TagRepository struct {
@@ -28,6 +29,29 @@ func (r *TagRepository) FindAllByMemoID(ctx context.Context, memoID uuid.UUID) (
 	tags, err := client.Tag.
 		Query().
 		Where(tag.HasMemosWith(memo.ID(memoID))).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	slices.SortFunc(tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
+
+	return tags, nil
+}
+
+func (r *TagRepository) FindAllByUserIDAndNameContains(
+	ctx context.Context,
+	userID uuid.UUID,
+	name string,
+) ([]*ent.Tag, error) {
+	client := transactionClient(ctx, r.client)
+
+	tags, err := client.Tag.
+		Query().
+		Where(
+			tag.HasMemosWith(memo.HasOwnerWith(user.ID(userID))),
+			tag.NameContainsFold(name),
+		).
 		All(ctx)
 	if err != nil {
 		return nil, err

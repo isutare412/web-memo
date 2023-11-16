@@ -182,6 +182,15 @@ func (s *Service) ListTags(ctx context.Context, memoID uuid.UUID, requester *mod
 	return tagsFound, nil
 }
 
+func (s *Service) SearchTags(ctx context.Context, keyword string, requester *model.AppIDToken) ([]*ent.Tag, error) {
+	tags, err := s.tagRepository.FindAllByUserIDAndNameContains(ctx, requester.UserID, keyword)
+	if err != nil {
+		return nil, fmt.Errorf("finding tags: %w", err)
+	}
+
+	return tags, nil
+}
+
 func (s *Service) ReplaceTags(
 	ctx context.Context,
 	memoID uuid.UUID,

@@ -22,6 +22,7 @@ func NewServer(cfg Config, authService port.AuthService, memoService port.MemoSe
 	googleHandler := newGoogleHandler(cfg, authService)
 	userHandler := newUserHandler(authService)
 	memoHandler := newMemoHandler(memoService)
+	tagHandler := newTagHandler(memoService)
 
 	imi := newImmigration(authService)
 
@@ -42,6 +43,7 @@ func NewServer(cfg Config, authService port.AuthService, memoService port.MemoSe
 		auth := r.With(imi.issuePassport)
 		auth.Mount("/users", userHandler.router())
 		auth.Mount("/memos", memoHandler.router())
+		auth.Mount("/tags", tagHandler.router())
 	})
 
 	return &Server{

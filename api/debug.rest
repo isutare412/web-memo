@@ -61,3 +61,7 @@ PUT {{url}}/api/v1/memos/{{memoId}}/tags
 Authorization: Bearer {{idToken}}
 
 []
+
+###
+GET {{url}}/api/v1/tags?kw=
+Authorization: Bearer {{idToken}}

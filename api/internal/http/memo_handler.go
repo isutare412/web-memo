@@ -32,8 +32,8 @@ func (h *memoHandler) router() *chi.Mux {
 	r.Post("/", h.createMemo)
 	r.Put("/{memoID}", h.replaceMemo)
 	r.Delete("/{memoID}", h.deleteMemo)
-	r.Get("/{memoID}/tags", h.listTags)
-	r.Put("/{memoID}/tags", h.replaceTags)
+	r.Get("/{memoID}/tags", h.listMemoTags)
+	r.Put("/{memoID}/tags", h.replaceMemoTags)
 
 	return r
 }
@@ -195,7 +195,7 @@ func (h *memoHandler) deleteMemo(w http.ResponseWriter, r *http.Request) {
 	responseStatusCode(w, http.StatusOK)
 }
 
-func (h *memoHandler) replaceTags(w http.ResponseWriter, r *http.Request) {
+func (h *memoHandler) replaceMemoTags(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	memoID, err := getMemoID(r)
@@ -230,7 +230,7 @@ func (h *memoHandler) replaceTags(w http.ResponseWriter, r *http.Request) {
 	responseJSON(w, &resp)
 }
 
-func (h *memoHandler) listTags(w http.ResponseWriter, r *http.Request) {
+func (h *memoHandler) listMemoTags(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	memoID, err := getMemoID(r)

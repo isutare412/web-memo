@@ -215,6 +215,21 @@ func (mr *MockMemoServiceMockRecorder) ReplaceTags(ctx, memoID, tagNames, reques
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoService)(nil).ReplaceTags), ctx, memoID, tagNames, requester)
 }
 
+// SearchTags mocks base method.
+func (m *MockMemoService) SearchTags(ctx context.Context, keyword string, requester *model.AppIDToken) ([]*ent.Tag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchTags", ctx, keyword, requester)
+	ret0, _ := ret[0].([]*ent.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchTags indicates an expected call of SearchTags.
+func (mr *MockMemoServiceMockRecorder) SearchTags(ctx, keyword, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchTags", reflect.TypeOf((*MockMemoService)(nil).SearchTags), ctx, keyword, requester)
+}
+
 // UpdateMemo mocks base method.
 func (m *MockMemoService) UpdateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, requester *model.AppIDToken) (*ent.Memo, error) {
 	m.ctrl.T.Helper()

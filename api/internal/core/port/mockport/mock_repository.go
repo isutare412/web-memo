@@ -348,6 +348,21 @@ func (mr *MockTagRepositoryMockRecorder) FindAllByMemoID(ctx, memoID any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByMemoID", reflect.TypeOf((*MockTagRepository)(nil).FindAllByMemoID), ctx, memoID)
 }
 
+// FindAllByUserIDAndNameContains mocks base method.
+func (m *MockTagRepository) FindAllByUserIDAndNameContains(ctx context.Context, userID uuid.UUID, name string) ([]*ent.Tag, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAllByUserIDAndNameContains", ctx, userID, name)
+	ret0, _ := ret[0].([]*ent.Tag)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAllByUserIDAndNameContains indicates an expected call of FindAllByUserIDAndNameContains.
+func (mr *MockTagRepositoryMockRecorder) FindAllByUserIDAndNameContains(ctx, userID, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDAndNameContains", reflect.TypeOf((*MockTagRepository)(nil).FindAllByUserIDAndNameContains), ctx, userID, name)
+}
+
 // MockKVRepository is a mock of KVRepository interface.
 type MockKVRepository struct {
 	ctrl     *gomock.Controller
