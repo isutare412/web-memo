@@ -6,6 +6,8 @@
   import '@fontsource-variable/inter'
   import '../app.css'
   import type { LayoutData } from './$types'
+  import { navigating } from '$app/stores'
+  import LoadingSpinner from '$components/LoadingSpinner.svelte'
 
   export let data: LayoutData
 
@@ -33,7 +35,11 @@
   <main
     class="md:border-base-300 mx-auto mb-6 w-full max-w-3xl p-6 md:rounded-xl md:border md:shadow-md"
   >
-    <slot />
+    {#if $navigating !== null}
+      <LoadingSpinner />
+    {:else}
+      <slot />
+    {/if}
   </main>
   <ToastContainer />
 </div>

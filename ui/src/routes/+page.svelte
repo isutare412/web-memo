@@ -1,4 +1,5 @@
 <script lang="ts">
+  import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import MemoList from '$components/MemoList.svelte'
   import SignInStack from '$components/SignInStack.svelte'
   import TagFilter from '$components/TagFilter.svelte'
@@ -54,9 +55,7 @@
   <SignInStack />
 {:else}
   {#await isFetchingMemo}
-    <div class="mx-auto my-6 w-fit">
-      <span class="loading loading-spinner loading-lg" />
-    </div>
+    <LoadingSpinner />
   {:then}
     <div class="space-y-2">
       <TagFilter>
