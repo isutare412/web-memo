@@ -163,19 +163,19 @@ func (m *MockMemoRepository) EXPECT() *MockMemoRepositoryMockRecorder {
 	return m.recorder
 }
 
-// CountByUserID mocks base method.
-func (m *MockMemoRepository) CountByUserID(ctx context.Context, userID uuid.UUID) (int, error) {
+// CountByUserIDAndTagNames mocks base method.
+func (m *MockMemoRepository) CountByUserIDAndTagNames(ctx context.Context, userID uuid.UUID, tags []string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByUserID", ctx, userID)
+	ret := m.ctrl.Call(m, "CountByUserIDAndTagNames", ctx, userID, tags)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CountByUserID indicates an expected call of CountByUserID.
-func (mr *MockMemoRepositoryMockRecorder) CountByUserID(ctx, userID any) *gomock.Call {
+// CountByUserIDAndTagNames indicates an expected call of CountByUserIDAndTagNames.
+func (mr *MockMemoRepositoryMockRecorder) CountByUserIDAndTagNames(ctx, userID, tags any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByUserID", reflect.TypeOf((*MockMemoRepository)(nil).CountByUserID), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByUserIDAndTagNames", reflect.TypeOf((*MockMemoRepository)(nil).CountByUserIDAndTagNames), ctx, userID, tags)
 }
 
 // Create mocks base method.
@@ -207,19 +207,19 @@ func (mr *MockMemoRepositoryMockRecorder) Delete(ctx, memoID any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockMemoRepository)(nil).Delete), ctx, memoID)
 }
 
-// FindAllByUserIDAndTagIDWithTags mocks base method.
-func (m *MockMemoRepository) FindAllByUserIDAndTagIDWithTags(ctx context.Context, userID uuid.UUID, tagID int) ([]*ent.Memo, error) {
+// FindAllByUserIDAndTagNamesWithTags mocks base method.
+func (m *MockMemoRepository) FindAllByUserIDAndTagNamesWithTags(ctx context.Context, userID uuid.UUID, tags []string, option *model.QueryOption) ([]*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByUserIDAndTagIDWithTags", ctx, userID, tagID)
+	ret := m.ctrl.Call(m, "FindAllByUserIDAndTagNamesWithTags", ctx, userID, tags, option)
 	ret0, _ := ret[0].([]*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindAllByUserIDAndTagIDWithTags indicates an expected call of FindAllByUserIDAndTagIDWithTags.
-func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDAndTagIDWithTags(ctx, userID, tagID any) *gomock.Call {
+// FindAllByUserIDAndTagNamesWithTags indicates an expected call of FindAllByUserIDAndTagNamesWithTags.
+func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDAndTagNamesWithTags(ctx, userID, tags, option any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDAndTagIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDAndTagIDWithTags), ctx, userID, tagID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDAndTagNamesWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDAndTagNamesWithTags), ctx, userID, tags, option)
 }
 
 // FindAllByUserIDWithTags mocks base method.

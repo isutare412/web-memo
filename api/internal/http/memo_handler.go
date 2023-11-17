@@ -82,13 +82,15 @@ func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tags := getTagsQuery(r.URL.Query())
+
 	queryOption := model.QueryOption{
 		PageOffset: page,
 		PageSize:   pageSize,
 		Direction:  model.SortDirectionDesc,
 	}
 
-	memos, totalCount, err := h.memoService.ListMemos(ctx, passport.token.UserID, &queryOption)
+	memos, totalCount, err := h.memoService.ListMemos(ctx, passport.token.UserID, tags, &queryOption)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("listing memos: %w", err))
 		return
@@ -328,4 +330,8 @@ func getPageQuery(q url.Values) (page, pageSize int, err error) {
 	}
 
 	return page, pageSize, nil
+}
+
+func getTagsQuery(q url.Values) []string {
+	return q["tag"]
 }

@@ -8,9 +8,11 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 	"github.com/isutare412/web-memo/api/internal/core/model"
@@ -107,24 +109,38 @@ func (r *MemoRepository) FindAllByUserIDWithTags(
 	return memos, nil
 }
 
-func (r *MemoRepository) FindAllByUserIDAndTagIDWithTags(
+func (r *MemoRepository) FindAllByUserIDAndTagNamesWithTags(
 	ctx context.Context,
 	userID uuid.UUID,
-	tagID int,
+	tags []string,
+	opt *model.QueryOption,
 ) ([]*ent.Memo, error) {
 	client := transactionClient(ctx, r.client)
 
-	memos, err := client.Memo.
+	createTimeOrder := memo.ByCreateTime(sql.OrderDesc())
+	if opt.Direction == model.SortDirectionAsc {
+		createTimeOrder = memo.ByCreateTime(sql.OrderAsc())
+	}
+
+	query := client.Memo.
 		Query().
-		Where(
-			memo.And(
-				memo.HasOwnerWith(user.ID(userID)),
-				memo.HasTagsWith(tag.ID(tagID)),
-			),
-		).
+		Where(memo.HasOwnerWith(user.ID(userID))).
 		WithTags().
-		Order(memo.ByCreateTime(sql.OrderDesc())).
-		All(ctx)
+		Order(createTimeOrder)
+
+	if opt.PageOffset > 0 && opt.PageSize > 0 {
+		offset := (opt.PageOffset - 1) * opt.PageSize
+		query = query.Offset(offset).Limit(opt.PageSize)
+	}
+
+	if len(tags) > 0 {
+		tagsMatch := lo.Map(
+			tags,
+			func(tagName string, _ int) predicate.Memo { return memo.HasTagsWith(tag.Name(tagName)) })
+		query = query.Where(memo.And(tagsMatch...))
+	}
+
+	memos, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -136,13 +152,21 @@ func (r *MemoRepository) FindAllByUserIDAndTagIDWithTags(
 	return memos, nil
 }
 
-func (r *MemoRepository) CountByUserID(ctx context.Context, userID uuid.UUID) (int, error) {
+func (r *MemoRepository) CountByUserIDAndTagNames(ctx context.Context, userID uuid.UUID, tags []string) (int, error) {
 	client := transactionClient(ctx, r.client)
 
-	count, err := client.Memo.
+	query := client.Memo.
 		Query().
-		Where(memo.OwnerID(userID)).
-		Count(ctx)
+		Where(memo.OwnerID(userID))
+
+	if len(tags) > 0 {
+		tagsMatch := lo.Map(
+			tags,
+			func(tagName string, _ int) predicate.Memo { return memo.HasTagsWith(tag.Name(tagName)) })
+		query = query.Where(memo.And(tagsMatch...))
+	}
+
+	count, err := query.Count(ctx)
 	if err != nil {
 		return 0, err
 	}

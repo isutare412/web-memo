@@ -47,19 +47,23 @@ func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *mode
 	return memo, nil
 }
 
-func (s *Service) ListMemos(ctx context.Context, userID uuid.UUID, option *model.QueryOption) (memos []*ent.Memo, totalCount int, err error) {
+func (s *Service) ListMemos(
+	ctx context.Context,
+	userID uuid.UUID,
+	tags []string, option *model.QueryOption,
+) (memos []*ent.Memo, totalCount int, err error) {
 	var (
 		memosFound []*ent.Memo
 		memoCount  int
 	)
 
 	err = s.transactionManager.WithTx(ctx, func(ctxWithTx context.Context) error {
-		memos, err := s.memoRepository.FindAllByUserIDWithTags(ctx, userID, option)
+		memos, err := s.memoRepository.FindAllByUserIDAndTagNamesWithTags(ctx, userID, tags, option)
 		if err != nil {
 			return fmt.Errorf("finding memos of user(%s): %w", userID.String(), err)
 		}
 
-		count, err := s.memoRepository.CountByUserID(ctx, userID)
+		count, err := s.memoRepository.CountByUserIDAndTagNames(ctx, userID, tags)
 		if err != nil {
 			return fmt.Errorf("getting memo count of user(%s): %w", userID.String(), err)
 		}
