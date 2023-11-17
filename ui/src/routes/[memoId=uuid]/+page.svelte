@@ -3,22 +3,23 @@
   import { page } from '$app/stores'
   import Markdown from '$components/Markdown.svelte'
   import Tag from '$components/Tag.svelte'
-  import { deleteMemo } from '$lib/apis/backend/memo'
-  import { memoStore, syncMemo } from '$lib/memo'
+  import { deleteMemo, getMemo } from '$lib/apis/backend/memo'
+  import { mapToMemo, memoStore } from '$lib/memo'
   import { addToast } from '$lib/toast'
   import { formatDate } from '$lib/utils/date'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
 
   $: memoId = $page.params.memoId
-  $: memo = $memoStore.memos.find((memo) => memo.id === memoId)
+  let memo = $memoStore.pagedMemos?.memos.find((memo) => memo.id === memoId)
 
   let deleteConfirmModal: HTMLDialogElement
   let isDeleting = false
 
   onMount(async () => {
     try {
-      await syncMemo(memoId)
+      const newMemo = mapToMemo(await getMemo(memoId))
+      memo = newMemo
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')

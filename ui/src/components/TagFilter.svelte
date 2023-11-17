@@ -2,8 +2,9 @@
   import Autocomplete from '$components/Autocomplete.svelte'
   import Tag from '$components/Tag.svelte'
   import Funnel from '$components/icons/Funnel.svelte'
+  import { listTags } from '$lib/apis/backend/memo'
   import { insertTagFilter, memoStore, removeTagFilter } from '$lib/memo'
-  import { partition, sortBy, sortedUniq } from 'lodash-es'
+  import { debounce, partition } from 'lodash-es'
 
   $: selectedTags = $memoStore.selectedTags
 
@@ -15,33 +16,21 @@
   let tagInput: HTMLInputElement
   let tagInputContainer: HTMLDivElement
 
-  function updateTagCandidates() {
-    const uniqueTags = sortedUniq(
-      sortBy(
-        $memoStore.memos.flatMap((memo) => memo.tags),
-        (tag) => tag.toLowerCase()
-      )
-    )
+  async function updateTagCandidates() {
+    const tags = await listTags(inputValue.trim())
 
-    if (inputValue === '') {
-      tagCandidates = uniqueTags
-      return
-    }
-
-    const inputValueLowered = inputValue.toLowerCase()
-    const includeInput = uniqueTags.filter((tag) => tag.toLowerCase().includes(inputValueLowered))
-    tagCandidates = partition(includeInput, (tag) =>
-      tag.toLowerCase().startsWith(inputValueLowered)
+    tagCandidates = partition(tags, (tag) =>
+      tag.toLowerCase().startsWith(inputValue.toLowerCase())
     ).flat()
   }
 
-  function onTagInput() {
-    updateTagCandidates()
+  async function onTagInput() {
+    await updateTagCandidates()
     showAutocomplete = true
   }
 
-  function onTagInputFocus() {
-    updateTagCandidates()
+  async function onTagInputFocus() {
+    await updateTagCandidates()
     showAutocomplete = true
   }
 
@@ -107,7 +96,7 @@
           bind:this={tagInput}
           bind:value={inputValue}
           on:keyup={onTagInputKeyUp}
-          on:input={onTagInput}
+          on:input={debounce(onTagInput, 500)}
           on:focus={onTagInputFocus}
           class="input input-sm input-bordered focus:border-primary w-full text-base focus:outline-none"
         />

@@ -1,4 +1,4 @@
-import { getMemo, listMemos } from '$lib/apis/backend/memo'
+import { listMemos, type RawMemo } from '$lib/apis/backend/memo'
 import { map, remove, sortBy } from 'lodash-es'
 import { writable } from 'svelte/store'
 
@@ -11,59 +11,46 @@ export interface Memo {
   tags: string[]
 }
 
-interface MemoState {
+interface PagedMemos {
+  currentPage: number
+  lastPage: number
+  pageSize: number
+  totalMemoCount: number
   memos: Memo[]
+}
+
+interface MemoState {
+  pagedMemos: PagedMemos | null
   selectedTags: string[]
 }
 
-export const memoStore = writable<MemoState>({ memos: [], selectedTags: [] })
+export const memoStore = writable<MemoState>({ pagedMemos: null, selectedTags: [] })
 
-export async function syncMemos() {
-  const response = await listMemos()
-
-  const memos = map(response, (memo) => {
-    return {
-      id: memo.id,
-      createTime: new Date(memo.createTime),
-      updateTime: new Date(memo.updateTime),
-      title: memo.title,
-      content: memo.content,
-      tags: memo.tags,
-    } satisfies Memo
-  })
+export async function fetchPagedMemos(page: number, pageSize: number, tags: string[]) {
+  const response = await listMemos(page, pageSize, tags)
+  const memos = map(response.memos, mapToMemo)
 
   memoStore.update((state) => {
-    state.memos = memos
+    state.pagedMemos = {
+      currentPage: response.page,
+      lastPage: response.lastPage,
+      pageSize: response.pageSize,
+      totalMemoCount: response.totalMemoCount,
+      memos,
+    }
     return state
   })
 }
 
-export async function syncMemo(memoId: string) {
-  const response = await getMemo(memoId)
-
-  memoStore.update((state) => {
-    const memoFound = state.memos.find((memo) => memo.id === response.id)
-    if (memoFound !== undefined) {
-      memoFound.createTime = new Date(response.createTime)
-      memoFound.updateTime = new Date(response.updateTime)
-      memoFound.title = response.title
-      memoFound.content = response.content
-      memoFound.tags = response.tags
-    } else {
-      state.memos.push({
-        id: response.id,
-        createTime: new Date(response.createTime),
-        updateTime: new Date(response.updateTime),
-        title: response.title,
-        content: response.content,
-        tags: response.tags,
-      } satisfies Memo)
-
-      state.memos.sort((a, b) => a.createTime.getTime() - b.createTime.getTime())
-    }
-
-    return state
-  })
+export function mapToMemo(memo: RawMemo): Memo {
+  return {
+    id: memo.id,
+    createTime: new Date(memo.createTime),
+    updateTime: new Date(memo.updateTime),
+    title: memo.title,
+    content: memo.content,
+    tags: memo.tags,
+  } satisfies Memo
 }
 
 export function insertTagFilter(tag: string) {
