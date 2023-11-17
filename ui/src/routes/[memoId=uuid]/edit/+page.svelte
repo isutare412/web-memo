@@ -1,24 +1,20 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
+  import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import MemoEditor from '$components/MemoEditor.svelte'
   import { getMemo, replaceMemo } from '$lib/apis/backend/memo'
-  import { mapToMemo, memoStore } from '$lib/memo'
+  import { mapToMemo, type Memo } from '$lib/memo'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
 
   $: memoId = $page.params.memoId
-  let memo = $memoStore.pagedMemos?.memos.find((memo) => memo.id === memoId)
-
-  $: title = memo?.title ?? ''
-  $: content = memo?.content ?? ''
-  $: tags = memo?.tags ?? []
+  let memo: Memo | undefined
 
   onMount(async () => {
     try {
-      const newMemo = mapToMemo(await getMemo(memoId))
-      memo = newMemo
+      memo = mapToMemo(await getMemo(memoId))
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')
@@ -49,4 +45,8 @@
   }
 </script>
 
-<MemoEditor {title} {content} {tags} on:submit={onMemoSubmit} on:cancel={onMemoCancel} />
+{#if memo === undefined}
+  <LoadingSpinner />
+{:else}
+  <MemoEditor {...memo} on:submit={onMemoSubmit} on:cancel={onMemoCancel} />
+{/if}

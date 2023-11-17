@@ -1,25 +1,25 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
+  import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import Markdown from '$components/Markdown.svelte'
   import Tag from '$components/Tag.svelte'
   import { deleteMemo, getMemo } from '$lib/apis/backend/memo'
-  import { mapToMemo, memoStore } from '$lib/memo'
+  import { mapToMemo, type Memo } from '$lib/memo'
   import { addToast } from '$lib/toast'
   import { formatDate } from '$lib/utils/date'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
 
   $: memoId = $page.params.memoId
-  let memo = $memoStore.pagedMemos?.memos.find((memo) => memo.id === memoId)
+  let memo: Memo | undefined
 
   let deleteConfirmModal: HTMLDialogElement
   let isDeleting = false
 
   onMount(async () => {
     try {
-      const newMemo = mapToMemo(await getMemo(memoId))
-      memo = newMemo
+      memo = mapToMemo(await getMemo(memoId))
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')
@@ -28,20 +28,14 @@
   })
 
   function onEditClick() {
-    if (memo === undefined) return
-
     goto(`/${memoId}/edit`)
   }
 
   async function onDeleteClick() {
-    if (memo === undefined) return
-
     deleteConfirmModal.showModal()
   }
 
   async function onDeleteConfirm() {
-    if (memo === undefined) return
-
     isDeleting = true
     await deleteMemo(memoId)
     isDeleting = false
@@ -50,7 +44,9 @@
   }
 </script>
 
-{#if memo !== undefined}
+{#if memo === undefined}
+  <LoadingSpinner />
+{:else}
   <h1 class="break-words border-b py-2 text-3xl">{memo.title}</h1>
   {#if memo.tags.length > 0}
     <div class="mt-4 flex flex-wrap gap-1">

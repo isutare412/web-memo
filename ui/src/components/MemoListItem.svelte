@@ -1,6 +1,6 @@
 <script lang="ts">
   import Tag from '$components/Tag.svelte'
-  import { insertTagFilter, memoStore, type Memo } from '$lib/memo'
+  import { informUpdate, insertTagFilter, memoStore, type Memo } from '$lib/memo'
   import { formatDate } from '$lib/utils/date'
   import { map } from 'lodash-es'
 
@@ -13,6 +13,7 @@
 
   function selectTag(event: CustomEvent<{ name: string }>) {
     insertTagFilter(event.detail.name)
+    informUpdate()
   }
 </script>
 

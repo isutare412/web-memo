@@ -1,6 +1,12 @@
-import { listMemos, type RawMemo } from '$lib/apis/backend/memo'
-import { map, remove, sortBy } from 'lodash-es'
-import { writable } from 'svelte/store'
+import type { RawMemo } from '$lib/apis/backend/memo'
+import { remove, sortBy } from 'lodash-es'
+import { get, writable } from 'svelte/store'
+
+export const defaultPageSize = 10
+
+export const depKeys = {
+  memoList: 'memo:list',
+}
 
 export interface Memo {
   id: string
@@ -11,36 +17,27 @@ export interface Memo {
   tags: string[]
 }
 
-interface PagedMemos {
-  currentPage: number
-  lastPage: number
+export interface MemoListPageData {
+  page: number
   pageSize: number
+  lastPage: number
   totalMemoCount: number
   memos: Memo[]
 }
 
 interface MemoState {
-  pagedMemos: PagedMemos | null
+  currentPage: number
+  pageSize: number
   selectedTags: string[]
+  informUpdate: () => void
 }
 
-export const memoStore = writable<MemoState>({ pagedMemos: null, selectedTags: [] })
-
-export async function fetchPagedMemos(page: number, pageSize: number, tags: string[]) {
-  const response = await listMemos(page, pageSize, tags)
-  const memos = map(response.memos, mapToMemo)
-
-  memoStore.update((state) => {
-    state.pagedMemos = {
-      currentPage: response.page,
-      lastPage: response.lastPage,
-      pageSize: response.pageSize,
-      totalMemoCount: response.totalMemoCount,
-      memos,
-    }
-    return state
-  })
-}
+export const memoStore = writable<MemoState>({
+  currentPage: 1,
+  pageSize: defaultPageSize,
+  selectedTags: [],
+  informUpdate: () => {},
+})
 
 export function mapToMemo(memo: RawMemo): Memo {
   return {
@@ -53,12 +50,27 @@ export function mapToMemo(memo: RawMemo): Memo {
   } satisfies Memo
 }
 
+export function updateCurrentPage(page: number) {
+  memoStore.update((state) => {
+    state.currentPage = page
+    return state
+  })
+}
+
+export function updatePageSize(size: number) {
+  memoStore.update((state) => {
+    state.pageSize = size
+    return state
+  })
+}
+
 export function insertTagFilter(tag: string) {
   memoStore.update((state) => {
     if (state.selectedTags.includes(tag)) return state
 
     state.selectedTags.push(tag)
     state.selectedTags = sortBy(state.selectedTags, (tag) => tag.toLowerCase())
+    state.currentPage = 1
     return state
   })
 }
@@ -66,13 +78,25 @@ export function insertTagFilter(tag: string) {
 export function removeTagFilter(tag: string) {
   memoStore.update((state) => {
     remove(state.selectedTags, (t) => t === tag)
+    state.currentPage = 1
     return state
   })
 }
 
-export function clearTagFilter() {
+export function informUpdate() {
+  get(memoStore).informUpdate()
+}
+
+export function setUpdateInformer(fn: () => void) {
   memoStore.update((state) => {
-    state.selectedTags = []
+    state.informUpdate = fn
+    return state
+  })
+}
+
+export function clearUpdateInformer() {
+  memoStore.update((state) => {
+    state.informUpdate = () => {}
     return state
   })
 }

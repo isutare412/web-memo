@@ -3,7 +3,7 @@
   import Tag from '$components/Tag.svelte'
   import Funnel from '$components/icons/Funnel.svelte'
   import { listTags } from '$lib/apis/backend/memo'
-  import { insertTagFilter, memoStore, removeTagFilter } from '$lib/memo'
+  import { informUpdate, insertTagFilter, memoStore, removeTagFilter } from '$lib/memo'
   import { debounce, partition } from 'lodash-es'
 
   $: selectedTags = $memoStore.selectedTags
@@ -54,6 +54,7 @@
 
   function onTagFilterClick(event: CustomEvent<{ name: string }>) {
     removeTagFilter(event.detail.name)
+    informUpdate()
   }
 
   function addTag() {
@@ -61,6 +62,8 @@
     if (trimmedInput.trim() === '') return
 
     insertTagFilter(trimmedInput)
+    informUpdate()
+
     inputValue = ''
     tagInput.blur()
   }

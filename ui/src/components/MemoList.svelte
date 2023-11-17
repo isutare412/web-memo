@@ -2,10 +2,6 @@
   import MemoListItem from '$components/MemoListItem.svelte'
   import type { Memo } from '$lib/memo'
 
-  export let currentPage: number
-  export let lastPage: number
-  export let pageSize: number
-  export let totalMemoCount: number
   export let memos: Memo[]
 </script>
 
