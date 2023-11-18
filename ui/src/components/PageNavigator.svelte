@@ -45,6 +45,13 @@
     dispatchNavigateEvent(page)
   }
 
+  function onPageInputFocusOut() {
+    const page = Number(pageInput)
+    if (isNaN(page) || page < 1 || page > Number(lastPage)) return
+
+    dispatchNavigateEvent(page)
+  }
+
   function dispatchNavigateEvent(page: number) {
     dispatch('navigate', { page })
   }
@@ -71,6 +78,7 @@
       inputmode="numeric"
       bind:value={pageInput}
       on:keyup={onPageInputKeyUp}
+      on:focusout={onPageInputFocusOut}
       class="input input-bordered input-sm w-full max-w-[44px] px-2 text-center"
     />
     <span class="text-sm font-light opacity-75">of {lastPage}</span>
