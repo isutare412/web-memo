@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import MemoList from '$components/MemoList.svelte'
   import PageNavigator from '$components/PageNavigator.svelte'
@@ -8,37 +10,42 @@
   import Refresh from '$components/icons/Refresh.svelte'
   import { listMemos } from '$lib/apis/backend/memo'
   import { authStore } from '$lib/auth'
-  import {
-      clearUpdateInformer,
-      informUpdate,
-      mapToMemo,
-      memoStore,
-      setUpdateInformer,
-      updateCurrentPage,
-      type MemoListPageData,
-  } from '$lib/memo'
-  import { onDestroy, onMount } from 'svelte'
+  import { defaultPageSize, mapToMemo, type MemoListPageData } from '$lib/memo'
+  import { setPageOfSearchParams } from '$lib/searchParams'
+  import { addToast } from '$lib/toast'
+  import { onMount } from 'svelte'
   import { get } from 'svelte/store'
 
   $: user = $authStore.user
+  $: tags = $page.url.searchParams.getAll('tag')
+
+  let currentPage: number = 1
   let listData: MemoListPageData | undefined
 
+  $: {
+    const rawPageStr = $page.url.searchParams.get('p') ?? '1'
+    const rawPage = Number(rawPageStr)
+    if (isNaN(rawPage)) {
+      addToast(`page '${rawPageStr}' is invalid`, 'error')
+      goto('/')
+    } else {
+      currentPage = rawPage
+    }
+  }
+
   onMount(() => {
-    setUpdateInformer(fetchMemos)
     fetchMemos()
   })
 
-  onDestroy(() => {
-    clearUpdateInformer()
-  })
-
   function onRefreshButtonClick() {
-    informUpdate()
+    fetchMemos()
   }
 
   function onNavigateEvent(event: CustomEvent<{ page: number }>) {
-    updateCurrentPage(event.detail.page)
-    informUpdate()
+    const searchParams = get(page).url.searchParams
+    if (!setPageOfSearchParams(searchParams, event.detail.page)) return
+
+    goto(`/?${searchParams.toString()}`)
   }
 
   async function fetchMemos() {
@@ -48,8 +55,7 @@
 
     listData = undefined
 
-    const { currentPage, pageSize, selectedTags } = get(memoStore)
-    const response = await listMemos(currentPage, pageSize, selectedTags)
+    const response = await listMemos(currentPage, defaultPageSize, tags)
     listData = {
       page: response.page,
       pageSize: response.pageSize,

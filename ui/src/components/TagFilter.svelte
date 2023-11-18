@@ -1,12 +1,19 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
   import Autocomplete from '$components/Autocomplete.svelte'
   import Tag from '$components/Tag.svelte'
   import Funnel from '$components/icons/Funnel.svelte'
   import { listTags } from '$lib/apis/backend/memo'
-  import { informUpdate, insertTagFilter, memoStore, removeTagFilter } from '$lib/memo'
+  import {
+      addTagToSearchParams,
+      deleteTagFromSearchParams,
+      setPageOfSearchParams,
+  } from '$lib/searchParams'
   import { debounce, partition } from 'lodash-es'
+  import { get } from 'svelte/store'
 
-  $: selectedTags = $memoStore.selectedTags
+  $: selectedTags = $page.url.searchParams.getAll('tag')
 
   let showAutocomplete = false
   let tagCandidates: string[] = []
@@ -53,19 +60,22 @@
   }
 
   function onTagFilterClick(event: CustomEvent<{ name: string }>) {
-    removeTagFilter(event.detail.name)
-    informUpdate()
+    const searchParams = get(page).url.searchParams
+    if (!deleteTagFromSearchParams(searchParams, event.detail.name)) return
+
+    setPageOfSearchParams(searchParams, 1)
+    goto(`/?${searchParams.toString()}`)
   }
 
   function addTag() {
     const trimmedInput = inputValue.trim()
     if (trimmedInput.trim() === '') return
 
-    insertTagFilter(trimmedInput)
-    informUpdate()
+    const searchParams = get(page).url.searchParams
+    if (!addTagToSearchParams(searchParams, trimmedInput)) return
 
-    inputValue = ''
-    tagInput.blur()
+    setPageOfSearchParams(searchParams, 1)
+    goto(`/?${searchParams.toString()}`)
   }
 </script>
 
