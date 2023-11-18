@@ -19,7 +19,10 @@
 
 <li class="flex flex-col gap-y-1">
   <div class="flex items-center">
-    <a href={`/${memo.id}`} class="link link-hover inline-block max-w-full truncate text-lg">
+    <a
+      href={`/${memo.id}`}
+      class="link link-hover inline-block max-w-full flex-auto truncate text-lg"
+    >
       {memo.title}
     </a>
   </div>
