@@ -1,5 +1,4 @@
-import { getErrorResponse } from '$lib/apis/backend/error'
-import { error } from '@sveltejs/kit'
+import { buildErrorMessage, getErrorResponse } from '$lib/apis/backend/error'
 
 interface GetSelfUserResponse {
   id: string
@@ -19,7 +18,7 @@ export async function getSelfUser(): Promise<GetSelfUserResponse | undefined> {
     }
 
     const errorResponse = await getErrorResponse(response)
-    throw error(response.status, errorResponse.msg)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
   }
   return response.json()
 }
@@ -28,6 +27,6 @@ export async function signOutUser(): Promise<void> {
   const response = await fetch('/api/v1/users/sign-out')
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
-    throw error(response.status, errorResponse.msg)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
   }
 }

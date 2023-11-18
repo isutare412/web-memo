@@ -1,5 +1,4 @@
-import { getErrorResponse } from '$lib/apis/backend/error'
-import { error } from '@sveltejs/kit'
+import { buildErrorMessage, getErrorResponse } from '$lib/apis/backend/error'
 
 export interface RawMemo {
   id: string
@@ -35,7 +34,7 @@ export async function getMemo(id: string): Promise<RawMemo> {
   const response = await fetch(`/api/v1/memos/${id}`)
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
-    throw error(response.status, errorResponse.msg)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
   }
 
   return response.json()
@@ -56,7 +55,7 @@ export async function listMemos(
   const response = await fetch(`/api/v1/memos?${searchParams.toString()}`)
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
-    throw error(response.status, errorResponse.msg)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
   }
 
   return response.json()
@@ -69,7 +68,7 @@ export async function createMemo(request: CreateMemoRequest): Promise<RawMemo> {
   })
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
-    throw error(response.status, errorResponse.msg)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
   }
 
   return response.json()
@@ -86,7 +85,7 @@ export async function replaceMemo(request: ReplaceMemoRequest): Promise<RawMemo>
   })
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
-    throw error(response.status, errorResponse.msg)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
   }
 
   return response.json()
@@ -98,7 +97,7 @@ export async function deleteMemo(id: string): Promise<void> {
   })
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
-    throw error(response.status, errorResponse.msg)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
   }
 
   return
@@ -110,7 +109,7 @@ export async function listTags(keyword?: string): Promise<string[]> {
   const response = await fetch(apiUrl)
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
-    throw error(response.status, errorResponse.msg)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
   }
 
   return response.json()
