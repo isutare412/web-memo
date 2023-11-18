@@ -13,6 +13,7 @@
   import { defaultPageSize, mapToMemo, type MemoListPageData } from '$lib/memo'
   import { setPageOfSearchParams } from '$lib/searchParams'
   import { addToast } from '$lib/toast'
+  import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
 
@@ -55,13 +56,18 @@
 
     listData = undefined
 
-    const response = await listMemos(currentPage, defaultPageSize, tags)
-    listData = {
-      page: response.page,
-      pageSize: response.pageSize,
-      lastPage: response.lastPage,
-      totalMemoCount: response.totalMemoCount,
-      memos: response.memos.map(mapToMemo),
+    try {
+      const response = await listMemos(currentPage, defaultPageSize, tags)
+      listData = {
+        page: response.page,
+        pageSize: response.pageSize,
+        lastPage: response.lastPage,
+        totalMemoCount: response.totalMemoCount,
+        memos: response.memos.map(mapToMemo),
+      }
+    } catch (error) {
+      addToast(getErrorMessage(error), 'error')
+      goto('/')
     }
   }
 </script>
