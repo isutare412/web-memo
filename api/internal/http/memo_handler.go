@@ -102,7 +102,7 @@ func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := listMemosResposne{
+	resp := listMemosResponse{
 		Page:           page,
 		PageSize:       pageSize,
 		LastPage:       lastPage,

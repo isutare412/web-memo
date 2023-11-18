@@ -31,7 +31,7 @@ func (m *memo) fromMemo(memo *ent.Memo) {
 	})
 }
 
-type listMemosResposne struct {
+type listMemosResponse struct {
 	Page           int     `json:"page"`
 	PageSize       int     `json:"pageSize"`
 	LastPage       int     `json:"lastPage"`
