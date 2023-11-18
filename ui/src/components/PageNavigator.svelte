@@ -63,14 +63,14 @@
     disabled={!enablePrev}
     class="btn btn-ghost btn-sm btn-square disabled:bg-transparent"
   >
-    <div class="w-[26px] rotate-180"><AngleRightDouble /></div>
+    <div class="w-[30px] rotate-180"><AngleRightDouble /></div>
   </button>
   <button
     on:click={onClickPrevButton}
     disabled={!enablePrev}
     class="btn btn-ghost btn-sm btn-square disabled:bg-transparent"
   >
-    <div class="w-[26px] rotate-180"><AngleRight /></div>
+    <div class="w-[30px] rotate-180"><AngleRight /></div>
   </button>
   <div class="flex items-center gap-x-2">
     <input
@@ -79,7 +79,7 @@
       bind:value={pageInput}
       on:keyup={onPageInputKeyUp}
       on:focusout={onPageInputFocusOut}
-      class="input input-bordered input-sm w-full max-w-[44px] px-2 text-center"
+      class="input input-bordered input-sm w-full max-w-[44px] px-2 text-center text-base"
     />
     <span class="text-sm font-light opacity-75">of {lastPage}</span>
   </div>
@@ -88,13 +88,13 @@
     disabled={!enableNext}
     class="btn btn-ghost btn-sm btn-square disabled:bg-transparent"
   >
-    <div class="w-[26px]"><AngleRight /></div>
+    <div class="w-[30px]"><AngleRight /></div>
   </button>
   <button
     on:click={onClickLastButton}
     disabled={!enableNext}
     class="btn btn-ghost btn-sm btn-square disabled:bg-transparent"
   >
-    <div class="w-[26px]"><AngleRightDouble /></div>
+    <div class="w-[30px]"><AngleRightDouble /></div>
   </button>
 </div>
