@@ -4,33 +4,49 @@
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import MemoList from '$components/MemoList.svelte'
   import PageNavigator from '$components/PageNavigator.svelte'
+  import PageSizeSelector from '$components/PageSizeSelector.svelte'
   import SignInStack from '$components/SignInStack.svelte'
   import TagFilter from '$components/TagFilter.svelte'
   import Plus from '$components/icons/Plus.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
   import { listMemos } from '$lib/apis/backend/memo'
   import { authStore } from '$lib/auth'
-  import { defaultPageSize, mapToMemo, type MemoListPageData } from '$lib/memo'
-  import { setPageOfSearchParams } from '$lib/searchParams'
+  import {
+      defaultPageSize,
+      mapToMemo,
+      setPreferredPageSize,
+      type MemoListPageData,
+  } from '$lib/memo'
+  import { setPageOfSearchParams, setPageSizeOfSearchParams } from '$lib/searchParams'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
-  import { get } from 'svelte/store'
 
   $: user = $authStore.user
   $: tags = $page.url.searchParams.getAll('tag')
+  $: searchParams = $page.url.searchParams
 
-  let currentPage: number = 1
+  let currentPage = 1
+  let pageSize = defaultPageSize
   let listData: MemoListPageData | undefined
 
   $: {
-    const rawPageStr = $page.url.searchParams.get('p') ?? '1'
+    const rawPageStr = searchParams.get('p') ?? '1'
     const rawPage = Number(rawPageStr)
     if (isNaN(rawPage)) {
       addToast(`page '${rawPageStr}' is invalid`, 'error')
       goto('/')
     } else {
       currentPage = rawPage
+    }
+
+    const rawPageSizeStr = searchParams.get('ps') ?? defaultPageSize.toString()
+    const rawPageSize = Number(rawPageSizeStr)
+    if (isNaN(rawPageSize)) {
+      addToast(`page size '${rawPageSizeStr}' is invalid`, 'error')
+      goto('/')
+    } else {
+      pageSize = rawPageSize
     }
   }
 
@@ -43,8 +59,16 @@
   }
 
   function onNavigateEvent(event: CustomEvent<{ page: number }>) {
-    const searchParams = get(page).url.searchParams
     if (!setPageOfSearchParams(searchParams, event.detail.page)) return
+
+    goto(`/?${searchParams.toString()}`)
+  }
+
+  function onPageSizeSelectChange(event: CustomEvent<{ pageSize: number }>) {
+    if (!setPageSizeOfSearchParams(searchParams, event.detail.pageSize)) return
+
+    setPreferredPageSize(event.detail.pageSize)
+    setPageOfSearchParams(searchParams, 1)
 
     goto(`/?${searchParams.toString()}`)
   }
@@ -57,7 +81,7 @@
     listData = undefined
 
     try {
-      const response = await listMemos(currentPage, defaultPageSize, tags)
+      const response = await listMemos(currentPage, pageSize, tags)
       listData = {
         page: response.page,
         pageSize: response.pageSize,
@@ -93,12 +117,15 @@
       </div>
     </TagFilter>
     <MemoList memos={listData.memos} />
-    <div class="mt-6 flex justify-center">
+    <div class="flex justify-center">
       <PageNavigator
         currentPage={listData.page.toString()}
         lastPage={listData.lastPage.toString()}
         on:navigate={onNavigateEvent}
       />
+    </div>
+    <div class="flex justify-end">
+      <PageSizeSelector currentSize={pageSize} on:change={onPageSizeSelectChange} />
     </div>
   </div>
 {/if}

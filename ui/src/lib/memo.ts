@@ -2,6 +2,8 @@ import type { RawMemo } from '$lib/apis/backend/memo'
 
 export const defaultPageSize = 10
 
+const pageSizeKey = 'preferredPageSize'
+
 export interface Memo {
   id: string
   createTime: Date
@@ -28,4 +30,18 @@ export function mapToMemo(memo: RawMemo): Memo {
     content: memo.content,
     tags: memo.tags,
   } satisfies Memo
+}
+
+export function getPreferredPageSize(): number | null {
+  const pageSizeStr = localStorage.getItem(pageSizeKey)
+  if (pageSizeStr === null) return null
+
+  const pageSize = Number(pageSizeStr)
+  if (isNaN(pageSize)) return null
+
+  return pageSize
+}
+
+export function setPreferredPageSize(size: number) {
+  localStorage.setItem(pageSizeKey, size.toString())
 }
