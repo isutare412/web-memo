@@ -79,7 +79,7 @@
       bind:value={pageInput}
       on:keyup={onPageInputKeyUp}
       on:focusout={onPageInputFocusOut}
-      class="input input-bordered input-sm w-full max-w-[44px] px-2 text-center text-base"
+      class="input input-bordered input-sm focus:border-primary w-full max-w-[44px] px-2 text-center text-base focus:outline-none"
     />
     <span class="text-sm font-light opacity-75">of {lastPage}</span>
   </div>
