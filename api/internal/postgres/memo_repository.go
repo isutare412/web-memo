@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"slices"
 	"strings"
@@ -47,6 +48,12 @@ func (r *MemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.M
 		return nil, err
 	}
 
+	contentDecoded, err := base64Decode(memo.Content)
+	if err != nil {
+		return nil, err
+	}
+	memo.Content = contentDecoded
+
 	return memo, nil
 }
 
@@ -70,6 +77,12 @@ func (r *MemoRepository) FindByIDWithTags(ctx context.Context, memoID uuid.UUID)
 	}
 
 	slices.SortFunc(memo.Edges.Tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
+
+	contentDecoded, err := base64Decode(memo.Content)
+	if err != nil {
+		return nil, err
+	}
+	memo.Content = contentDecoded
 
 	return memo, nil
 }
@@ -104,6 +117,12 @@ func (r *MemoRepository) FindAllByUserIDWithTags(
 
 	for _, m := range memos {
 		slices.SortFunc(m.Edges.Tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
+
+		contentDecoded, err := base64Decode(m.Content)
+		if err != nil {
+			return nil, err
+		}
+		m.Content = contentDecoded
 	}
 
 	return memos, nil
@@ -147,6 +166,12 @@ func (r *MemoRepository) FindAllByUserIDAndTagNamesWithTags(
 
 	for _, m := range memos {
 		slices.SortFunc(m.Edges.Tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
+
+		contentDecoded, err := base64Decode(m.Content)
+		if err != nil {
+			return nil, err
+		}
+		m.Content = contentDecoded
 	}
 
 	return memos, nil
@@ -185,7 +210,7 @@ func (r *MemoRepository) Create(
 	memoCreated, err := client.Memo.
 		Create().
 		SetTitle(memo.Title).
-		SetContent(memo.Content).
+		SetContent(base64Encode(memo.Content)).
 		SetOwnerID(userID).
 		AddTagIDs(tagIDs...).
 		Save(ctx)
@@ -202,7 +227,7 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 	memoUpdated, err := client.Memo.
 		UpdateOneID(memo.ID).
 		SetTitle(memo.Title).
-		SetContent(memo.Content).
+		SetContent(base64Encode(memo.Content)).
 		Save(ctx)
 	switch {
 	case ent.IsNotFound(err):
@@ -258,4 +283,16 @@ func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagI
 	}
 
 	return nil
+}
+
+func base64Encode(s string) string {
+	return base64.StdEncoding.EncodeToString([]byte(s))
+}
+
+func base64Decode(s string) (string, error) {
+	decodedBytes, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return "", fmt.Errorf("base64 decoding string: %w", err)
+	}
+	return string(decodedBytes), nil
 }
