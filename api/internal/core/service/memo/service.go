@@ -57,7 +57,7 @@ func (s *Service) ListMemos(
 		memoCount  int
 	)
 
-	err = s.transactionManager.WithTx(ctx, func(ctxWithTx context.Context) error {
+	err = s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
 		memos, err := s.memoRepository.FindAllByUserIDAndTagNamesWithTags(ctx, userID, tags, option)
 		if err != nil {
 			return fmt.Errorf("finding memos of user(%s): %w", userID.String(), err)
