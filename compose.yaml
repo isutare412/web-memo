@@ -13,6 +13,7 @@ services:
       - app-tier
     ports:
       - ${POSTGRESQL_PORT}:5432
+    restart: unless-stopped
     volumes:
       - postgres-storage:/bitnami/postgresql
     environment:
@@ -27,6 +28,7 @@ services:
       - app-tier
     ports:
       - ${REDIS_PORT}:6379
+    restart: unless-stopped
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_AOF_ENABLED: 'no'
