@@ -6,6 +6,7 @@
   import Tag from '$components/Tag.svelte'
   import { deleteMemo, getMemo } from '$lib/apis/backend/memo'
   import { mapToMemo, type Memo } from '$lib/memo'
+  import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
   import { addToast } from '$lib/toast'
   import { formatDate } from '$lib/utils/date'
   import { getErrorMessage } from '$lib/utils/error'
@@ -35,6 +36,13 @@
     deleteConfirmModal.showModal()
   }
 
+  function onTagClick(event: CustomEvent<{ name: string }>) {
+    const params = new URLSearchParams()
+    setPageOfSearchParams(params, 1)
+    addTagToSearchParams(params, event.detail.name)
+    goto(`/?${params.toString()}`)
+  }
+
   async function onDeleteConfirm() {
     isDeleting = true
     await deleteMemo(memoId)
@@ -51,7 +59,7 @@
   {#if memo.tags.length > 0}
     <div class="mt-4 flex flex-wrap gap-1">
       {#each memo.tags as tag (tag)}
-        <Tag value={tag} outline={true} isButton={false} />
+        <Tag value={tag} outline={true} on:click={onTagClick} />
       {/each}
     </div>
   {/if}
