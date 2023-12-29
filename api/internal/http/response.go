@@ -46,7 +46,11 @@ func responseError(w http.ResponseWriter, r *http.Request, err error) {
 	header := w.Header()
 	header.Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	w.Write(bodyBytes)
+
+	if _, err := w.Write(bodyBytes); err != nil {
+		slog.Error("failed to write error response as HTTP response", "error", err)
+		return
+	}
 }
 
 func responseJSON(w http.ResponseWriter, obj any) {
