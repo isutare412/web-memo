@@ -1,10 +1,12 @@
 package http
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
 )
@@ -33,18 +35,22 @@ func (h *healthHandler) checkLiveness(w http.ResponseWriter, r *http.Request) {
 
 func (h *healthHandler) checkReadiness(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	eg, ctx := errgroup.WithContext(ctx)
 
-	var isPingFail bool
 	for _, pinger := range h.pingers {
-		if err := pinger.Ping(ctx); err != nil {
-			slog.Error("ping failed", "target", pinger.Name())
-			isPingFail = true
-			break
-		}
+		pinger := pinger
+
+		eg.Go(func() error {
+			if err := pinger.Ping(ctx); err != nil {
+				return fmt.Errorf("pinging target(%s): %w", pinger.Name(), err)
+			}
+			return nil
+		})
 	}
 
 	code := http.StatusOK
-	if isPingFail {
+	if err := eg.Wait(); err != nil {
+		slog.Error("ping failed", "error", err)
 		code = http.StatusServiceUnavailable
 	}
 

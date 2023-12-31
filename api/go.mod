@@ -19,6 +19,7 @@ require (
 	github.com/samber/lo v1.38.1
 	github.com/spf13/viper v1.16.0
 	go.uber.org/mock v0.3.0
+	golang.org/x/sync v0.3.0
 )
 
 require (
