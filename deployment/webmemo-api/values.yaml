@@ -92,9 +92,8 @@ config:
       - name: v1
         private: <private_key>
         public: <public_key>
-  repeat-job:
-    intervals:
-      tag-cleanup: 1h
+  cron:
+    tag-cleanup-interval: 1h
   service:
     auth:
       oauth-state-timeout: 10m
