@@ -1,4 +1,4 @@
-package repeatjob
+package cron
 
 import "time"
 

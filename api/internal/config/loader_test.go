@@ -87,9 +87,8 @@ jwt:
         o0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4
         zQIDAQAB
         -----END PUBLIC KEY-----
-repeat-job:
-  intervals:
-    tag-cleanup: 19m
+cron:
+  tag-cleanup-interval: 19m
 service:
   auth:
     oauth-state-timeout: 42m
@@ -149,10 +148,8 @@ service:
 						}},
 						Expiration: 720 * time.Hour,
 					},
-					RepeatJob: config.RepeatJobConfig{
-						Intervals: config.RepeatJobIntervalConfig{
-							TagCleanup: 19 * time.Minute,
-						},
+					Cron: config.CronConfig{
+						TagCleanupInterval: 19 * time.Minute,
 					},
 					Service: config.ServiceConfig{
 						Auth: config.AuthServiceConfig{
@@ -220,10 +217,8 @@ service:
 						}},
 						Expiration: 720 * time.Hour,
 					},
-					RepeatJob: config.RepeatJobConfig{
-						Intervals: config.RepeatJobIntervalConfig{
-							TagCleanup: 19 * time.Minute,
-						},
+					Cron: config.CronConfig{
+						TagCleanupInterval: 19 * time.Minute,
 					},
 					Service: config.ServiceConfig{
 						Auth: config.AuthServiceConfig{
@@ -296,10 +291,8 @@ service:
 						}},
 						Expiration: 720 * time.Hour,
 					},
-					RepeatJob: config.RepeatJobConfig{
-						Intervals: config.RepeatJobIntervalConfig{
-							TagCleanup: 19 * time.Minute,
-						},
+					Cron: config.CronConfig{
+						TagCleanupInterval: 19 * time.Minute,
 					},
 					Service: config.ServiceConfig{
 						Auth: config.AuthServiceConfig{

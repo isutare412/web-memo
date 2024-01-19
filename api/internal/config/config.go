@@ -4,25 +4,25 @@ import (
 	"time"
 
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
+	"github.com/isutare412/web-memo/api/internal/cron"
 	"github.com/isutare412/web-memo/api/internal/google"
 	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/jwt"
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
-	"github.com/isutare412/web-memo/api/internal/repeatjob"
 )
 
 type Config struct {
-	Wire      WireConfig      `mapstructure:"wire"`
-	Log       log.Config      `mapstructure:"log"`
-	HTTP      HTTPConfig      `mapstructure:"http"`
-	Postgres  postgres.Config `mapstructure:"postgres"`
-	Redis     redis.Config    `mapstructure:"redis"`
-	Google    GoogleConfig    `mapstructure:"google"`
-	JWT       jwt.Config      `mapstructure:"jwt"`
-	RepeatJob RepeatJobConfig `mapstructure:"repeat-job"`
-	Service   ServiceConfig   `mapstructure:"service"`
+	Wire     WireConfig      `mapstructure:"wire"`
+	Log      log.Config      `mapstructure:"log"`
+	HTTP     HTTPConfig      `mapstructure:"http"`
+	Postgres postgres.Config `mapstructure:"postgres"`
+	Redis    redis.Config    `mapstructure:"redis"`
+	Google   GoogleConfig    `mapstructure:"google"`
+	JWT      jwt.Config      `mapstructure:"jwt"`
+	Cron     CronConfig      `mapstructure:"cron"`
+	Service  ServiceConfig   `mapstructure:"service"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
@@ -56,9 +56,9 @@ func (c *Config) ToJWTConfig() jwt.Config {
 	return jwt.Config(c.JWT)
 }
 
-func (c *Config) ToRepeatJobConfig() repeatjob.Config {
-	return repeatjob.Config{
-		TagCleanupInterval: c.RepeatJob.Intervals.TagCleanup,
+func (c *Config) ToCronConfig() cron.Config {
+	return cron.Config{
+		TagCleanupInterval: c.Cron.TagCleanupInterval,
 	}
 }
 
@@ -97,12 +97,8 @@ type GoogleOAuthConfig struct {
 	ClientSecret string `mapstructure:"client-secret" validate:"required"`
 }
 
-type RepeatJobConfig struct {
-	Intervals RepeatJobIntervalConfig `mapstructure:"intervals"`
-}
-
-type RepeatJobIntervalConfig struct {
-	TagCleanup time.Duration `mapstructure:"tag-cleanup" validate:"required,min=1m"`
+type CronConfig struct {
+	TagCleanupInterval time.Duration `mapstructure:"tag-cleanup-interval" validate:"required,min=1m"`
 }
 
 type ServiceConfig struct {

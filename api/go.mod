@@ -16,6 +16,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.12.1
 	github.com/onsi/gomega v1.27.10
 	github.com/redis/go-redis/v9 v9.2.1
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.38.1
 	github.com/spf13/viper v1.16.0
 	go.uber.org/mock v0.3.0
