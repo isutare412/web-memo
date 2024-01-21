@@ -31,9 +31,8 @@ jwt:
     - name: v1
       private: <private_key>
       public: <public_key>
+oauth:
+  state-timeout: 10m
+  callback-path: /api/v1/google/sign-in/finish
 cron:
   tag-cleanup-interval: 10m
-service:
-  auth:
-    oauth-state-timeout: 10m
-    google-callback-path: /api/v1/google/sign-in/finish

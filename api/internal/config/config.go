@@ -21,8 +21,8 @@ type Config struct {
 	Redis    redis.Config    `mapstructure:"redis"`
 	Google   GoogleConfig    `mapstructure:"google"`
 	JWT      jwt.Config      `mapstructure:"jwt"`
+	OAuth    OAuthConfig     `mapstructure:"oauth"`
 	Cron     CronConfig      `mapstructure:"cron"`
-	Service  ServiceConfig   `mapstructure:"service"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
@@ -67,9 +67,9 @@ func (c *Config) ToAuthServiceConfig() auth.Config {
 		Google: auth.GoogleConfig{
 			OAuthEndpoint:     c.Google.Endpoints.OAuth,
 			OAuthClientID:     c.Google.OAuth.ClientID,
-			OAuthCallbackPath: c.Service.Auth.GoogleCallbackPath,
+			OAuthCallbackPath: c.OAuth.CallbackPath,
 		},
-		OAuthStateTimeout: c.Service.Auth.OAuthStateTimeout,
+		OAuthStateTimeout: c.OAuth.StateTimeout,
 	}
 }
 
@@ -97,15 +97,11 @@ type GoogleOAuthConfig struct {
 	ClientSecret string `mapstructure:"client-secret" validate:"required"`
 }
 
+type OAuthConfig struct {
+	StateTimeout time.Duration `mapstructure:"state-timeout" validate:"required,min=1m"`
+	CallbackPath string        `mapstructure:"callback-path" validate:"required"`
+}
+
 type CronConfig struct {
 	TagCleanupInterval time.Duration `mapstructure:"tag-cleanup-interval" validate:"required,min=1m"`
-}
-
-type ServiceConfig struct {
-	Auth AuthServiceConfig `mapstructure:"auth"`
-}
-
-type AuthServiceConfig struct {
-	OAuthStateTimeout  time.Duration `mapstructure:"oauth-state-timeout" validate:"required"`
-	GoogleCallbackPath string        `mapstructure:"google-callback-path" validate:"required"`
 }

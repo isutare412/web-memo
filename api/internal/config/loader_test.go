@@ -87,12 +87,11 @@ jwt:
         o0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4
         zQIDAQAB
         -----END PUBLIC KEY-----
+oauth:
+  state-timeout: 42m
+  callback-path: /api/v1/google/sign-in/finish
 cron:
-  tag-cleanup-interval: 19m
-service:
-  auth:
-    oauth-state-timeout: 42m
-    google-callback-path: /api/v1/google/sign-in/finish`
+  tag-cleanup-interval: 19m`
 		)
 
 		BeforeEach(func() {
@@ -148,14 +147,12 @@ service:
 						}},
 						Expiration: 720 * time.Hour,
 					},
+					OAuth: config.OAuthConfig{
+						StateTimeout: 42 * time.Minute,
+						CallbackPath: "/api/v1/google/sign-in/finish",
+					},
 					Cron: config.CronConfig{
 						TagCleanupInterval: 19 * time.Minute,
-					},
-					Service: config.ServiceConfig{
-						Auth: config.AuthServiceConfig{
-							OAuthStateTimeout:  42 * time.Minute,
-							GoogleCallbackPath: "/api/v1/google/sign-in/finish",
-						},
 					},
 				}
 			)
@@ -217,14 +214,12 @@ service:
 						}},
 						Expiration: 720 * time.Hour,
 					},
+					OAuth: config.OAuthConfig{
+						StateTimeout: 42 * time.Minute,
+						CallbackPath: "/api/v1/google/sign-in/finish",
+					},
 					Cron: config.CronConfig{
 						TagCleanupInterval: 19 * time.Minute,
-					},
-					Service: config.ServiceConfig{
-						Auth: config.AuthServiceConfig{
-							OAuthStateTimeout:  42 * time.Minute,
-							GoogleCallbackPath: "/api/v1/google/sign-in/finish",
-						},
 					},
 				}
 			)
@@ -242,9 +237,8 @@ service:
 			var (
 				givenConfigTextOverwrite = `http:
   port: 12345
-service:
-  auth:
-    oauth-state-timeout: 1h`
+oauth:
+  state-timeout: 1h`
 			)
 
 			var (
@@ -291,14 +285,12 @@ service:
 						}},
 						Expiration: 720 * time.Hour,
 					},
+					OAuth: config.OAuthConfig{
+						StateTimeout: time.Hour,
+						CallbackPath: "/api/v1/google/sign-in/finish",
+					},
 					Cron: config.CronConfig{
 						TagCleanupInterval: 19 * time.Minute,
-					},
-					Service: config.ServiceConfig{
-						Auth: config.AuthServiceConfig{
-							OAuthStateTimeout:  time.Hour,
-							GoogleCallbackPath: "/api/v1/google/sign-in/finish",
-						},
 					},
 				}
 			)
