@@ -59,4 +59,4 @@ $(MOCKGEN): $(LOCALBIN)
 .PHONY: ginkgo
 ginkgo: $(GINKGO) ## Install ginkgo.
 $(GINKGO): $(LOCALBIN)
-	@test -s $(GINKGO) || GOBIN=$(LOCALBIN) go install github.com/onsi/ginkgo/v2/ginkgo@v2.12.1
+	@test -s $(GINKGO) || GOBIN=$(LOCALBIN) go install github.com/onsi/ginkgo/v2/ginkgo@v2.15.0

@@ -43,15 +43,39 @@ func (mu *MemoUpdate) SetOwnerID(u uuid.UUID) *MemoUpdate {
 	return mu
 }
 
+// SetNillableOwnerID sets the "owner_id" field if the given value is not nil.
+func (mu *MemoUpdate) SetNillableOwnerID(u *uuid.UUID) *MemoUpdate {
+	if u != nil {
+		mu.SetOwnerID(*u)
+	}
+	return mu
+}
+
 // SetTitle sets the "title" field.
 func (mu *MemoUpdate) SetTitle(s string) *MemoUpdate {
 	mu.mutation.SetTitle(s)
 	return mu
 }
 
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (mu *MemoUpdate) SetNillableTitle(s *string) *MemoUpdate {
+	if s != nil {
+		mu.SetTitle(*s)
+	}
+	return mu
+}
+
 // SetContent sets the "content" field.
 func (mu *MemoUpdate) SetContent(s string) *MemoUpdate {
 	mu.mutation.SetContent(s)
+	return mu
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (mu *MemoUpdate) SetNillableContent(s *string) *MemoUpdate {
+	if s != nil {
+		mu.SetContent(*s)
+	}
 	return mu
 }
 
@@ -288,15 +312,39 @@ func (muo *MemoUpdateOne) SetOwnerID(u uuid.UUID) *MemoUpdateOne {
 	return muo
 }
 
+// SetNillableOwnerID sets the "owner_id" field if the given value is not nil.
+func (muo *MemoUpdateOne) SetNillableOwnerID(u *uuid.UUID) *MemoUpdateOne {
+	if u != nil {
+		muo.SetOwnerID(*u)
+	}
+	return muo
+}
+
 // SetTitle sets the "title" field.
 func (muo *MemoUpdateOne) SetTitle(s string) *MemoUpdateOne {
 	muo.mutation.SetTitle(s)
 	return muo
 }
 
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (muo *MemoUpdateOne) SetNillableTitle(s *string) *MemoUpdateOne {
+	if s != nil {
+		muo.SetTitle(*s)
+	}
+	return muo
+}
+
 // SetContent sets the "content" field.
 func (muo *MemoUpdateOne) SetContent(s string) *MemoUpdateOne {
 	muo.mutation.SetContent(s)
+	return muo
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (muo *MemoUpdateOne) SetNillableContent(s *string) *MemoUpdateOne {
+	if s != nil {
+		muo.SetContent(*s)
+	}
 	return muo
 }
 

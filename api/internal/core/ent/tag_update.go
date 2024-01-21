@@ -42,6 +42,14 @@ func (tu *TagUpdate) SetName(s string) *TagUpdate {
 	return tu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (tu *TagUpdate) SetNillableName(s *string) *TagUpdate {
+	if s != nil {
+		tu.SetName(*s)
+	}
+	return tu
+}
+
 // AddMemoIDs adds the "memos" edge to the Memo entity by IDs.
 func (tu *TagUpdate) AddMemoIDs(ids ...uuid.UUID) *TagUpdate {
 	tu.mutation.AddMemoIDs(ids...)
@@ -221,6 +229,14 @@ func (tuo *TagUpdateOne) SetUpdateTime(t time.Time) *TagUpdateOne {
 // SetName sets the "name" field.
 func (tuo *TagUpdateOne) SetName(s string) *TagUpdateOne {
 	tuo.mutation.SetName(s)
+	return tuo
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (tuo *TagUpdateOne) SetNillableName(s *string) *TagUpdateOne {
+	if s != nil {
+		tuo.SetName(*s)
+	}
 	return tuo
 }
 
