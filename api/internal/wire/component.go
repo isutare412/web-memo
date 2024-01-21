@@ -27,7 +27,7 @@ type Components struct {
 	postgresClient *postgres.Client
 	redisClient    *redis.Client
 	httpServer     *http.Server
-	cronTable      *cron.Table
+	cronScheduler  *cron.Scheduler
 }
 
 func NewComponents(cfg *config.Config) (*Components, error) {
@@ -61,7 +61,10 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 
 	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService, memoService, pingers)
 
-	cronTable := cron.NewTable(cfg.ToCronConfig(), memoService)
+	cronScheduler, err := cron.NewScheduler(cfg.ToCronConfig(), memoService)
+	if err != nil {
+		return nil, fmt.Errorf("creating cron scheduler: %w", err)
+	}
 
 	return &Components{
 		cfg: cfg,
@@ -69,7 +72,7 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 		postgresClient: postgresClient,
 		redisClient:    redisClient,
 		httpServer:     httpServer,
-		cronTable:      cronTable,
+		cronScheduler:  cronScheduler,
 	}, nil
 }
 
@@ -93,7 +96,7 @@ func (c *Components) Initialize() (err error) {
 
 func (c *Components) Run() {
 	httpServerErrs := c.httpServer.Run()
-	cronTableErrs := c.cronTable.Run()
+	cronSchedulerErrs := c.cronScheduler.Run()
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -103,8 +106,8 @@ func (c *Components) Run() {
 		slog.Info("received signal", "signal", s.String())
 	case err := <-httpServerErrs:
 		slog.Error("fatal error from http server", "error", err)
-	case err := <-cronTableErrs:
-		slog.Error("fatal error from cron table", "error", err)
+	case err := <-cronSchedulerErrs:
+		slog.Error("fatal error from cron scheduler", "error", err)
 	}
 }
 
@@ -118,9 +121,9 @@ func (c *Components) Shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), c.cfg.Wire.ShutdownTimeout)
 	defer cancel()
 
-	slog.Info("shutdown cronTable")
-	if err := c.cronTable.Shutdown(ctx); err != nil {
-		slog.Error("failed to shutdown cronTable", "error", err)
+	slog.Info("shutdown cronScheduler")
+	if err := c.cronScheduler.Shutdown(ctx); err != nil {
+		slog.Error("failed to shutdown cronScheduler", "error", err)
 	}
 
 	slog.Info("shutdown httpServer")
