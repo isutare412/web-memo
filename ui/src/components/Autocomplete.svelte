@@ -75,7 +75,9 @@
 
 {#if items.length > 0}
   <div class="relative">
-    <ul class="bg-base-100 absolute top-1 max-h-60 overflow-y-scroll rounded-md p-2 shadow-lg">
+    <ul
+      class="bg-base-100 border-primary absolute top-1 max-h-60 overflow-y-scroll rounded-md border p-2 shadow-lg"
+    >
       {#each items as option, i (option)}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
