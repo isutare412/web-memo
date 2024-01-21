@@ -14,6 +14,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lmittmann/tint v1.0.2
 	github.com/mattn/go-isatty v0.0.19
+	github.com/mattn/go-sqlite3 v1.14.19
 	github.com/onsi/ginkgo/v2 v2.12.1
 	github.com/onsi/gomega v1.27.10
 	github.com/redis/go-redis/v9 v9.2.1

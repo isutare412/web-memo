@@ -240,6 +240,12 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 		return nil, err
 	}
 
+	contentDecoded, err := base64Decode(memoUpdated.Content)
+	if err != nil {
+		return nil, err
+	}
+	memoUpdated.Content = contentDecoded
+
 	return memoUpdated, nil
 }
 
