@@ -12,6 +12,6 @@ export const load = (async (event) => {
     preferredPageSize !== null &&
     setPageSizeOfSearchParams(searchParams, preferredPageSize)
   ) {
-    throw redirect(302, `/?${searchParams.toString()}`)
+    redirect(302, `/?${searchParams.toString()}`)
   }
 }) satisfies PageLoad

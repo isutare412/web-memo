@@ -8,6 +8,6 @@ export const load = (async (event) => {
   await parent()
 
   if (get(authStore).user === undefined) {
-    throw redirect(302, '/')
+    redirect(302, '/')
   }
 }) satisfies PageLoad
