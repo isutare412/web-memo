@@ -21,6 +21,7 @@ interface AuthState {
 export async function syncUserData() {
   const response = await getSelfUser()
   if (response === undefined) {
+    authStore.set({ user: undefined })
     return
   }
 
