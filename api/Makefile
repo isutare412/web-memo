@@ -14,7 +14,7 @@ run: ## Run server locally.
 
 .PHONY: test
 test: ginkgo ## Run tests.
-	$(GINKGO) ./...
+	$(GINKGO) --coverprofile coverage.out ./... && go tool cover -func coverage.out > coverage-report.txt
 
 .PHONY: mocks
 mocks: mockgen ## Generate mock implementations.
