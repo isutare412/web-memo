@@ -7,7 +7,6 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
-	"github.com/isutare412/web-memo/api/internal/core/ent/enttest"
 	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
@@ -20,11 +19,17 @@ var _ = Describe("MemoRepository", func() {
 		userRepository *UserRepository
 	)
 
-	BeforeEach(func() {
-		client := enttest.Open(GinkgoT(), "sqlite3", "file:ent?mode=memory&_fk=1")
-		tagRepository = NewTagRepository(&Client{entClient: client})
-		memoRepository = NewMemoRepository(&Client{entClient: client})
-		userRepository = NewUserRepository(&Client{entClient: client})
+	BeforeEach(func(ctx SpecContext) {
+		entClient, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared")
+		Expect(err).NotTo(HaveOccurred())
+
+		client := &Client{entClient: entClient}
+		err = client.MigrateSchemas(ctx)
+		Expect(err).NotTo(HaveOccurred())
+
+		tagRepository = NewTagRepository(client)
+		memoRepository = NewMemoRepository(client)
+		userRepository = NewUserRepository(client)
 	})
 
 	Context("with fake data", func() {
