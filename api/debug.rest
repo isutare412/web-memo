@@ -49,6 +49,14 @@ Authorization: Bearer {{idToken}}
 }
 
 ###
+POST {{url}}/api/v1/memos/{{memoId}}/publish
+Authorization: Bearer {{idToken}}
+
+{
+    "publish": true
+}
+
+###
 DELETE {{url}}/api/v1/memos/{{memoId}}
 Authorization: Bearer {{idToken}}
 

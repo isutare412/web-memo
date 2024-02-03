@@ -38,9 +38,20 @@ type AppIDToken struct {
 	PhotoURL   string
 }
 
-func (t *AppIDToken) CanAccessMemo(memo *ent.Memo) bool {
+func (t *AppIDToken) CanWriteMemo(memo *ent.Memo) bool {
+	if t == nil {
+		return false
+	}
+
 	if t.UserType == enum.UserTypeOperator {
 		return true
 	}
 	return memo.OwnerID == t.UserID
+}
+
+func (t *AppIDToken) CanReadMemo(memo *ent.Memo) bool {
+	if t.CanWriteMemo(memo) {
+		return true
+	}
+	return memo.IsPublished
 }

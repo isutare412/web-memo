@@ -244,9 +244,10 @@ var _ = Describe("MemoRepository", func() {
 			It("updates memo", func(ctx SpecContext) {
 				var (
 					givenMemo = &ent.Memo{
-						ID:      fakeMemos[0].ID,
-						Title:   "new-title",
-						Content: "new-content",
+						ID:          fakeMemos[0].ID,
+						Title:       "new-title",
+						Content:     "new-content",
+						IsPublished: true,
 					}
 				)
 
@@ -256,6 +257,7 @@ var _ = Describe("MemoRepository", func() {
 				Expect(memo.ID).To(Equal(fakeMemos[0].ID))
 				Expect(memo.Title).To(Equal(givenMemo.Title))
 				Expect(memo.Content).To(Equal(givenMemo.Content))
+				Expect(memo.IsPublished).To(Equal(givenMemo.IsPublished))
 			})
 
 			It("returns not found error if id does not exist", func(ctx SpecContext) {

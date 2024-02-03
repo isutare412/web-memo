@@ -40,7 +40,7 @@ func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *mode
 		return nil, fmt.Errorf("finding memo: %w", err)
 	}
 
-	if !requester.CanAccessMemo(memo) {
+	if !requester.CanReadMemo(memo) {
 		return nil, pkgerr.Known{Code: pkgerr.CodePermissionDenied}
 	}
 
@@ -130,7 +130,7 @@ func (s *Service) UpdateMemo(
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanAccessMemo(memoFound) {
+		if !requester.CanWriteMemo(memoFound) {
 			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
 		}
 
@@ -155,6 +155,46 @@ func (s *Service) UpdateMemo(
 	return memoUpdated, nil
 }
 
+func (s *Service) UpdateMemoPublishedState(
+	ctx context.Context,
+	memoID uuid.UUID,
+	publish bool,
+	requester *model.AppIDToken,
+) (*ent.Memo, error) {
+	var memoUpdated *ent.Memo
+
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memoFound, err := s.memoRepository.FindByIDWithTags(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanWriteMemo(memoFound) {
+			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+		}
+
+		if memoFound.IsPublished == publish {
+			memoUpdated = memoFound
+			return nil
+		}
+
+		memoFound.IsPublished = publish
+		memo, err := s.memoRepository.Update(ctx, memoFound)
+		if err != nil {
+			return fmt.Errorf("updating memo published state: %w", err)
+		}
+
+		memoUpdated = memo
+		memoUpdated.Edges.Tags = memoFound.Edges.Tags
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("during transaction: %w", err)
+	}
+
+	return memoUpdated, nil
+}
+
 func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
 		memo, err := s.memoRepository.FindByID(ctx, memoID)
@@ -162,7 +202,7 @@ func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *m
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanAccessMemo(memo) {
+		if !requester.CanWriteMemo(memo) {
 			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
 		}
 
@@ -188,7 +228,7 @@ func (s *Service) ListTags(ctx context.Context, memoID uuid.UUID, requester *mod
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanAccessMemo(memo) {
+		if !requester.CanReadMemo(memo) {
 			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
 		}
 
@@ -232,7 +272,7 @@ func (s *Service) ReplaceTags(
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanAccessMemo(memo) {
+		if !requester.CanWriteMemo(memo) {
 			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
 		}
 

@@ -245,3 +245,18 @@ func (mr *MockMemoServiceMockRecorder) UpdateMemo(ctx, memo, tagNames, requester
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMemo", reflect.TypeOf((*MockMemoService)(nil).UpdateMemo), ctx, memo, tagNames, requester)
 }
+
+// UpdateMemoPublishedState mocks base method.
+func (m *MockMemoService) UpdateMemoPublishedState(ctx context.Context, memoID uuid.UUID, publish bool, requester *model.AppIDToken) (*ent.Memo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMemoPublishedState", ctx, memoID, publish, requester)
+	ret0, _ := ret[0].(*ent.Memo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateMemoPublishedState indicates an expected call of UpdateMemoPublishedState.
+func (mr *MockMemoServiceMockRecorder) UpdateMemoPublishedState(ctx, memoID, publish, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMemoPublishedState", reflect.TypeOf((*MockMemoService)(nil).UpdateMemoPublishedState), ctx, memoID, publish, requester)
+}

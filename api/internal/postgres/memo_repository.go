@@ -203,6 +203,7 @@ func (r *MemoRepository) Create(
 		SetTitle(memo.Title).
 		SetContent(base64Encode(memo.Content)).
 		SetOwnerID(userID).
+		SetIsPublished(memo.IsPublished).
 		AddTagIDs(tagIDs...).
 		Save(ctx)
 	if err != nil {
@@ -219,6 +220,7 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 		UpdateOneID(memo.ID).
 		SetTitle(memo.Title).
 		SetContent(base64Encode(memo.Content)).
+		SetIsPublished(memo.IsPublished).
 		Save(ctx)
 	switch {
 	case ent.IsNotFound(err):

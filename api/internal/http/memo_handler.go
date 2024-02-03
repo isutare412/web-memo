@@ -35,6 +35,7 @@ func (h *memoHandler) router() *chi.Mux {
 	r.Get("/", h.listMemos)
 	r.Post("/", h.createMemo)
 	r.Put("/{memoID}", h.replaceMemo)
+	r.Post("/{memoID}/publish", h.publishMemo)
 	r.Delete("/{memoID}", h.deleteMemo)
 	r.Get("/{memoID}/tags", h.listMemoTags)
 	r.Put("/{memoID}/tags", h.replaceMemoTags)
@@ -199,6 +200,46 @@ func (h *memoHandler) replaceMemo(w http.ResponseWriter, r *http.Request) {
 	memoUpdated, err := h.memoService.UpdateMemo(ctx, memoToUpdate, req.Tags, passport.token)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("updating memo: %w", err))
+		return
+	}
+
+	var resp memo
+	resp.fromMemo(memoUpdated)
+	responseJSON(w, &resp)
+}
+
+func (h *memoHandler) publishMemo(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responseError(w, r, fmt.Errorf("passport not found"))
+		return
+	}
+
+	var req publishMemoRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			Origin:    fmt.Errorf("decoding request body: %w", err),
+			ClientMsg: "invalid request body",
+		})
+		return
+	}
+	if err := validate.Struct(&req); err != nil {
+		responseError(w, r, fmt.Errorf("validating request body: %w", err))
+		return
+	}
+
+	memoUpdated, err := h.memoService.UpdateMemoPublishedState(ctx, memoID, req.Publish, passport.token)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("updating memo published state: %w", err))
 		return
 	}
 

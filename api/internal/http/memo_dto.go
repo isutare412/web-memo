@@ -12,12 +12,13 @@ import (
 )
 
 type memo struct {
-	ID         uuid.UUID `json:"id"`
-	CreateTime time.Time `json:"createTime"`
-	UpdateTime time.Time `json:"updateTime"`
-	Title      string    `json:"title"`
-	Content    string    `json:"content"`
-	Tags       []string  `json:"tags"`
+	ID          uuid.UUID `json:"id"`
+	CreateTime  time.Time `json:"createTime"`
+	UpdateTime  time.Time `json:"updateTime"`
+	Title       string    `json:"title"`
+	Content     string    `json:"content"`
+	IsPublished bool      `json:"isPublished"`
+	Tags        []string  `json:"tags"`
 }
 
 func (m *memo) fromMemo(memo *ent.Memo) {
@@ -26,6 +27,7 @@ func (m *memo) fromMemo(memo *ent.Memo) {
 	m.UpdateTime = memo.UpdateTime
 	m.Title = memo.Title
 	m.Content = memo.Content
+	m.IsPublished = memo.IsPublished
 	m.Tags = lo.Map(memo.Edges.Tags, func(t *ent.Tag, _ int) string {
 		return t.Name
 	})
@@ -83,4 +85,8 @@ func (r *replaceMemoRequest) toMemo() *ent.Memo {
 		Title:   r.Title,
 		Content: r.Content,
 	}
+}
+
+type publishMemoRequest struct {
+	Publish bool `json:"publish" validate:"required"`
 }
