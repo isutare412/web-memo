@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM --platform=linux/amd64 node:18-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -31,8 +31,14 @@ COPY package.json \
 RUN npm run build
 
 # Production image, copy all the files and run
-FROM --platform=linux/amd64 nginx:1.25-bookworm
+FROM base AS runner
 
 WORKDIR /app
-COPY --from=builder /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY package.json package-lock.json ./
+COPY --from=builder /app/build ./server
+RUN npm ci --omit dev
+
+ENV HOST=0.0.0.0
+ENV PORT=80
+
+CMD ["node", "server"]

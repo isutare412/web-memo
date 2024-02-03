@@ -4,12 +4,22 @@
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
   import ToastContainer from '$components/ToastContainer.svelte'
-  import { setDocumentDataTheme, setPreferredTheme, type ThemeMode } from '$lib/theme'
+  import {
+      getPreferredTheme,
+      setDocumentDataTheme,
+      setPreferredTheme,
+      type ThemeMode,
+  } from '$lib/theme'
   import '@fontsource-variable/inter'
+  import { onMount } from 'svelte'
   import '../app.css'
-  import type { LayoutData } from './$types'
 
-  export let data: LayoutData
+  let preferredTheme: ThemeMode | undefined = undefined
+
+  onMount(async () => {
+    preferredTheme = getPreferredTheme()
+    setDocumentDataTheme(preferredTheme)
+  })
 
   function onThemeToggle(theme: ThemeMode) {
     setDocumentDataTheme(theme)
@@ -31,7 +41,7 @@
     <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
       <a class="text-3xl" href="/">Web Memo</a>
       <div class="flex items-center gap-x-3">
-        <ThemeToggle {onThemeToggle} initialMode={data.preferredTheme} />
+        <ThemeToggle {onThemeToggle} initialMode={preferredTheme} />
         <Avatar />
       </div>
     </div>

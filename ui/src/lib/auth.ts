@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation'
 import { getSelfUser, signOutUser } from '$lib/apis/backend/user'
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 
 export const authStore = writable<AuthState>({})
 
@@ -16,12 +16,19 @@ interface UserData {
 
 interface AuthState {
   user?: UserData
+  lastSync?: Date
 }
 
 export async function syncUserData() {
+  const lastSync = get(authStore).lastSync?.getTime()
+  if (lastSync !== undefined) {
+    const hourAgo = Date.now() - 60 * 60 * 1000
+    if (lastSync > hourAgo) return
+  }
+
   const response = await getSelfUser()
   if (response === undefined) {
-    authStore.set({ user: undefined })
+    authStore.set({ user: undefined, lastSync: undefined })
     return
   }
 
@@ -35,6 +42,7 @@ export async function syncUserData() {
       familyName: response.familyName,
       photoUrl: response.photoUrl,
     },
+    lastSync: new Date(),
   })
 }
 

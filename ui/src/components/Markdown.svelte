@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Marked } from '@ts-stack/markdown'
-  import DOMPurify from 'dompurify'
+  import DOMPurify from 'isomorphic-dompurify'
 
   export let content: string
 

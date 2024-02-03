@@ -4,7 +4,7 @@
   export let initialMode: ThemeMode = ThemeMode.Light
   export let onThemeToggle: (mode: ThemeMode) => void
 
-  let checked = initialMode == ThemeMode.Light
+  $: checked = initialMode == ThemeMode.Light
 
   function onClick(event: MouseEvent & { currentTarget: EventTarget & HTMLInputElement }) {
     const { currentTarget } = event

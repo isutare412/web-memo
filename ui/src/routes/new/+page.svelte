@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation'
   import MemoEditor from '$components/MemoEditor.svelte'
   import { createMemo } from '$lib/apis/backend/memo'
+  import { syncUserData } from '$lib/auth'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
 
@@ -9,6 +10,8 @@
     event: CustomEvent<{ title: string; content: string; tags: string[] }>
   ) {
     try {
+      await syncUserData()
+
       await createMemo(event.detail)
     } catch (error) {
       addToast(getErrorMessage(error), 'error')

@@ -10,7 +10,7 @@
   import Plus from '$components/icons/Plus.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
   import { listMemos } from '$lib/apis/backend/memo'
-  import { authStore } from '$lib/auth'
+  import { authStore, syncUserData } from '$lib/auth'
   import {
       defaultPageSize,
       mapToMemo,
@@ -50,8 +50,14 @@
     }
   }
 
-  onMount(() => {
-    fetchMemos()
+  onMount(async () => {
+    try {
+      await syncUserData()
+      await fetchMemos()
+    } catch (error) {
+      addToast(getErrorMessage(error), 'error')
+      return
+    }
   })
 
   function onRefreshButtonClick() {

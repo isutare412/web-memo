@@ -6,17 +6,20 @@
   import Tag from '$components/Tag.svelte'
   import Share from '$components/icons/Share.svelte'
   import { deleteMemo, getMemo, publishMemo } from '$lib/apis/backend/memo'
-  import { authStore } from '$lib/auth'
-  import { mapToMemo, type Memo } from '$lib/memo'
+  import { authStore, syncUserData } from '$lib/auth'
+  import { mapToMemo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
   import { addToast } from '$lib/toast'
   import { formatDate } from '$lib/utils/date'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
+  import type { PageServerData } from './$types'
+
+  export let data: PageServerData
 
   $: user = $authStore.user
   $: memoId = $page.params.memoId
-  let memo: Memo | undefined
+  $: ({ memo } = data)
 
   let publishConfirmModal: HTMLDialogElement
   let isPublishing = false
@@ -26,7 +29,9 @@
 
   onMount(async () => {
     try {
-      memo = mapToMemo(await getMemo(memoId))
+      await syncUserData()
+
+      if (memo === undefined) memo = mapToMemo(await getMemo(memoId))
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')
@@ -85,8 +90,6 @@
         addToast(getErrorMessage(error), 'error')
         goto('/')
       })
-
-    console.log(`userAgent: ${navigator.userAgent}`)
 
     if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
       navigator.clipboard

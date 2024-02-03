@@ -4,8 +4,7 @@ import { redirect } from '@sveltejs/kit'
 import type { PageLoad } from './$types'
 
 export const load = (async (event) => {
-  const { parent, url } = event
-  await parent()
+  const { url } = event
 
   const preferredPageSize = getPreferredPageSize()
 

@@ -4,6 +4,7 @@
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import MemoEditor from '$components/MemoEditor.svelte'
   import { getMemo, replaceMemo } from '$lib/apis/backend/memo'
+  import { syncUserData } from '$lib/auth'
   import { mapToMemo, type Memo } from '$lib/memo'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
@@ -14,6 +15,8 @@
 
   onMount(async () => {
     try {
+      await syncUserData()
+
       memo = mapToMemo(await getMemo(memoId))
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
