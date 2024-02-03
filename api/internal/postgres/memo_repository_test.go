@@ -91,7 +91,7 @@ var _ = Describe("MemoRepository", func() {
 				_ = memoRepository.Delete(ctx, memo.ID)
 			}
 
-			_, err = tagRepository.DeleteAllWithoutMemo(ctx)
+			_, err = tagRepository.DeleteAllWithoutMemo(ctx, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 

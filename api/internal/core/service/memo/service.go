@@ -16,6 +16,14 @@ import (
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
+const (
+	tagPublished = "published"
+)
+
+var reservedTags = []string{
+	tagPublished,
+}
+
 type Service struct {
 	transactionManager port.TransactionManager
 	memoRepository     port.MemoRepository
@@ -85,6 +93,7 @@ func (s *Service) ListMemos(
 }
 
 func (s *Service) CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, userID uuid.UUID) (*ent.Memo, error) {
+	tagNames = removeReservedTags(tagNames)
 	tagNames = sortDedupTags(tagNames)
 
 	var memoCreated *ent.Memo
@@ -118,17 +127,13 @@ func (s *Service) UpdateMemo(
 	tagNames []string,
 	requester *model.AppIDToken,
 ) (*ent.Memo, error) {
+	tagNames = removeReservedTags(tagNames)
 	tagNames = sortDedupTags(tagNames)
 
 	var memoUpdated *ent.Memo
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		tags, err := s.ensureTags(ctx, tagNames)
-		if err != nil {
-			return fmt.Errorf("ensuring tags: %w", err)
-		}
-
-		memoFound, err := s.memoRepository.FindByID(ctx, memo.ID)
+		memoFound, err := s.memoRepository.FindByIDWithTags(ctx, memo.ID)
 		if err != nil {
 			return fmt.Errorf("finding memo: %w", err)
 		}
@@ -140,6 +145,16 @@ func (s *Service) UpdateMemo(
 			}
 		}
 
+		tags, err := s.ensureTags(ctx, tagNames)
+		if err != nil {
+			return fmt.Errorf("ensuring tags: %w", err)
+		}
+
+		reservedTags := lo.Filter(
+			memoFound.Edges.Tags,
+			func(t *ent.Tag, _ int) bool { return lo.Contains(reservedTags, t.Name) })
+		tags = append(tags, reservedTags...)
+
 		memo.IsPublished = memoFound.IsPublished
 		memo, err := s.memoRepository.Update(ctx, memo)
 		if err != nil {
@@ -149,6 +164,11 @@ func (s *Service) UpdateMemo(
 		tagIDs := lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
 		if err := s.memoRepository.ReplaceTags(ctx, memo.ID, tagIDs); err != nil {
 			return fmt.Errorf("replacing tags: %w", err)
+		}
+
+		tags, err = s.tagRepository.FindAllByMemoID(ctx, memo.ID)
+		if err != nil {
+			return fmt.Errorf("finding tags of memo: %w", err)
 		}
 
 		memoUpdated = memo
@@ -188,14 +208,36 @@ func (s *Service) UpdateMemoPublishedState(
 			return nil
 		}
 
+		var tagIDs []int
+		if publish {
+			tags, err := s.ensureTags(ctx, []string{tagPublished})
+			if err != nil {
+				return fmt.Errorf("ensuring tags: %w", err)
+			}
+
+			tagIDs = lo.Map(append(memoFound.Edges.Tags, tags...), func(tag *ent.Tag, _ int) int { return tag.ID })
+		} else {
+			tags := lo.DropWhile(memoFound.Edges.Tags, func(t *ent.Tag) bool { return t.Name == tagPublished })
+			tagIDs = lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
+		}
+
+		if err := s.memoRepository.ReplaceTags(ctx, memoFound.ID, tagIDs); err != nil {
+			return fmt.Errorf("replacing tags: %w", err)
+		}
+
 		memoFound.IsPublished = publish
 		memo, err := s.memoRepository.Update(ctx, memoFound)
 		if err != nil {
 			return fmt.Errorf("updating memo published state: %w", err)
 		}
 
+		tags, err := s.tagRepository.FindAllByMemoID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding tags of memo: %w", err)
+		}
+
 		memoUpdated = memo
-		memoUpdated.Edges.Tags = memoFound.Edges.Tags
+		memoUpdated.Edges.Tags = tags
 		return nil
 	})
 	if err != nil {
@@ -278,12 +320,13 @@ func (s *Service) ReplaceTags(
 	tagNames []string,
 	requester *model.AppIDToken,
 ) ([]*ent.Tag, error) {
+	tagNames = removeReservedTags(tagNames)
 	tagNames = sortDedupTags(tagNames)
 
 	var tagsReplaced []*ent.Tag
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		memo, err := s.memoRepository.FindByIDWithTags(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding memo: %w", err)
 		}
@@ -300,9 +343,19 @@ func (s *Service) ReplaceTags(
 			return fmt.Errorf("ensuring tags: %w", err)
 		}
 
+		reservedTags := lo.Filter(
+			memo.Edges.Tags,
+			func(t *ent.Tag, _ int) bool { return lo.Contains(reservedTags, t.Name) })
+		tags = append(tags, reservedTags...)
+
 		tagIDs := lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
 		if err := s.memoRepository.ReplaceTags(ctx, memoID, tagIDs); err != nil {
 			return fmt.Errorf("replacing tags: %w", err)
+		}
+
+		tags, err = s.tagRepository.FindAllByMemoID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding tags of memo: %w", err)
 		}
 
 		tagsReplaced = tags
@@ -316,7 +369,7 @@ func (s *Service) ReplaceTags(
 }
 
 func (s *Service) DeleteOrphanTags(ctx context.Context) (count int, err error) {
-	count, err = s.tagRepository.DeleteAllWithoutMemo(ctx)
+	count, err = s.tagRepository.DeleteAllWithoutMemo(ctx, reservedTags)
 	if err != nil {
 		return 0, fmt.Errorf("deleting all tags without memo: %w", err)
 	}
@@ -366,4 +419,9 @@ func sortDedupTags(tags []string) []string {
 	tags = lo.Uniq(tags)
 	slices.Sort(tags)
 	return tags
+}
+
+func removeReservedTags(tags []string) []string {
+	removed, _ := lo.Difference(tags, reservedTags)
+	return removed
 }

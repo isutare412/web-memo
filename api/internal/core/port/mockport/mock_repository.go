@@ -335,18 +335,18 @@ func (mr *MockTagRepositoryMockRecorder) CreateIfNotExist(ctx, tagName any) *gom
 }
 
 // DeleteAllWithoutMemo mocks base method.
-func (m *MockTagRepository) DeleteAllWithoutMemo(arg0 context.Context) (int, error) {
+func (m *MockTagRepository) DeleteAllWithoutMemo(ctx context.Context, excludes []string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAllWithoutMemo", arg0)
+	ret := m.ctrl.Call(m, "DeleteAllWithoutMemo", ctx, excludes)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteAllWithoutMemo indicates an expected call of DeleteAllWithoutMemo.
-func (mr *MockTagRepositoryMockRecorder) DeleteAllWithoutMemo(arg0 any) *gomock.Call {
+func (mr *MockTagRepositoryMockRecorder) DeleteAllWithoutMemo(ctx, excludes any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllWithoutMemo", reflect.TypeOf((*MockTagRepository)(nil).DeleteAllWithoutMemo), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllWithoutMemo", reflect.TypeOf((*MockTagRepository)(nil).DeleteAllWithoutMemo), ctx, excludes)
 }
 
 // FindAllByMemoID mocks base method.

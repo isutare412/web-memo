@@ -78,7 +78,7 @@ var _ = Describe("TagRepository", func() {
 		// Delete fake data
 		AfterEach(func(ctx SpecContext) {
 			_ = memoRepository.Delete(ctx, fakeMemo.ID)
-			_, err := tagRepository.DeleteAllWithoutMemo(ctx)
+			_, err := tagRepository.DeleteAllWithoutMemo(ctx, nil)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -134,9 +134,9 @@ var _ = Describe("TagRepository", func() {
 				err := memoRepository.Delete(ctx, fakeMemo.ID)
 				Expect(err).NotTo(HaveOccurred())
 
-				deleteCount, err := tagRepository.DeleteAllWithoutMemo(ctx)
+				deleteCount, err := tagRepository.DeleteAllWithoutMemo(ctx, []string{fakeTags[0].Name})
 				Expect(err).NotTo(HaveOccurred())
-				Expect(deleteCount).To(Equal(len(fakeTags)))
+				Expect(deleteCount).To(Equal(len(fakeTags) - 1))
 			})
 		})
 	})

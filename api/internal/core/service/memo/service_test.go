@@ -66,4 +66,14 @@ var _ = Describe("Service", func() {
 			Expect(tags).Should(Equal(wantTags))
 		})
 	})
+
+	DescribeTable("removeReservedTags",
+		func(given, expect []string) {
+			Expect(removeReservedTags(given)).To(Equal(expect))
+		},
+		Entry("nil slice", nil, []string{}),
+		Entry("empty slice", []string{}, []string{}),
+		Entry("contain reserved tags", []string{"foo", tagPublished, "bar"}, []string{"foo", "bar"}),
+		Entry("no reserved tags", []string{"foo", "bar"}, []string{"foo", "bar"}),
+	)
 })
