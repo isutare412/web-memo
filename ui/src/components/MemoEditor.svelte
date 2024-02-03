@@ -1,5 +1,6 @@
 <script lang="ts">
   import Tag from '$components/Tag.svelte'
+  import { reservedTags } from '$lib/memo'
   import { createEventDispatcher } from 'svelte'
 
   export let tags: string[] = []
@@ -104,7 +105,11 @@
     {#if tags.length > 0}
       <div class="mt-2 flex flex-wrap gap-1">
         {#each tags as tag (tag)}
-          <Tag value={tag} outline={true} isClose={true} on:click={onTagClick} />
+          {#if reservedTags.includes(tag)}
+            <Tag value={tag} isButton={false} outline={true} />
+          {:else}
+            <Tag value={tag} outline={true} isClose={true} on:click={onTagClick} />
+          {/if}
         {/each}
       </div>
     {/if}

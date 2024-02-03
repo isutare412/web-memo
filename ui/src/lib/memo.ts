@@ -4,6 +4,8 @@ export const defaultPageSize = 10
 
 const pageSizeKey = 'preferredPageSize'
 
+export const reservedTags = ['published']
+
 export interface Memo {
   id: string
   ownerId: string
