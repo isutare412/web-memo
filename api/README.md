@@ -5,7 +5,7 @@
 | googleSignIn       | GET    | /api/v1/google/sign-in         |         N          |
 | googleSignInFinish | GET    | /api/v1/google/sign-in/finish  |         N          |
 | getSelfUser        | GET    | /api/v1/users/me               |         Y          |
-| signOutUser        | GET    | /api/v1/users/sign-out         |         Y          |
+| signOutUser        | GET    | /api/v1/users/sign-out         |         N          |
 | getMemo            | GET    | /api/v1/memos/{memoID}         | Y (N if published) |
 | listMemos          | GET    | /api/v1/memos                  |         Y          |
 | createMemo         | POST   | /api/v1/memos                  |         Y          |
