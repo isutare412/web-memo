@@ -13,6 +13,7 @@ import (
 
 type memo struct {
 	ID          uuid.UUID `json:"id"`
+	OwnerID     uuid.UUID `json:"ownerId"`
 	CreateTime  time.Time `json:"createTime"`
 	UpdateTime  time.Time `json:"updateTime"`
 	Title       string    `json:"title"`
@@ -23,6 +24,7 @@ type memo struct {
 
 func (m *memo) fromMemo(memo *ent.Memo) {
 	m.ID = memo.ID
+	m.OwnerID = memo.OwnerID
 	m.CreateTime = memo.CreateTime
 	m.UpdateTime = memo.UpdateTime
 	m.Title = memo.Title
