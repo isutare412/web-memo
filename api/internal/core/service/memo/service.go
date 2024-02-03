@@ -140,6 +140,7 @@ func (s *Service) UpdateMemo(
 			}
 		}
 
+		memo.IsPublished = memoFound.IsPublished
 		memo, err := s.memoRepository.Update(ctx, memo)
 		if err != nil {
 			return fmt.Errorf("creating memo: %w", err)
