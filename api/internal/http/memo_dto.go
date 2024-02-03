@@ -88,5 +88,5 @@ func (r *replaceMemoRequest) toMemo() *ent.Memo {
 }
 
 type publishMemoRequest struct {
-	Publish bool `json:"publish" validate:"required"`
+	Publish *bool `json:"publish" validate:"required"`
 }

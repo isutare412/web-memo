@@ -88,7 +88,7 @@ func recoverPanic(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if r := recover(); r != nil {
-				slog.Error("HTTP handler panicked", "recover", r, "stack", debug.Stack())
+				slog.Error("HTTP handler panicked", "recover", r, "stack", string(debug.Stack()))
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()

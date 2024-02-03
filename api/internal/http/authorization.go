@@ -40,20 +40,13 @@ func (imi *immigration) issuePassport(next http.Handler) http.Handler {
 
 		if !found {
 			passport, found, err = imi.issuePassportFromCookie(w, r)
-			switch {
-			case err != nil:
+			if err != nil {
 				responseError(w, r, fmt.Errorf("injecting passport from cookie: %w", err))
-				return
-			case !found:
-				responseError(w, r, pkgerr.Known{
-					Code:      pkgerr.CodeUnauthenticated,
-					ClientMsg: "need token",
-				})
 				return
 			}
 		}
 
-		if bag, ok := getContextBag(r.Context()); ok {
+		if bag, ok := getContextBag(r.Context()); ok && found {
 			bag.passport = passport
 		}
 		next.ServeHTTP(w, r)

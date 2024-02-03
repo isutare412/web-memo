@@ -52,13 +52,12 @@ func (h *memoHandler) getMemo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passport, ok := extractPassport(ctx)
-	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
-		return
+	var token *model.AppIDToken
+	if passport, ok := extractPassport(ctx); ok {
+		token = passport.token
 	}
 
-	memoFound, err := h.memoService.GetMemo(ctx, memoID, passport.token)
+	memoFound, err := h.memoService.GetMemo(ctx, memoID, token)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("getting memo: %w", err))
 		return
@@ -74,7 +73,7 @@ func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
+		responsePassportError(w, r)
 		return
 	}
 
@@ -128,7 +127,7 @@ func (h *memoHandler) createMemo(w http.ResponseWriter, r *http.Request) {
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
+		responsePassportError(w, r)
 		return
 	}
 
@@ -172,7 +171,7 @@ func (h *memoHandler) replaceMemo(w http.ResponseWriter, r *http.Request) {
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
+		responsePassportError(w, r)
 		return
 	}
 
@@ -219,7 +218,7 @@ func (h *memoHandler) publishMemo(w http.ResponseWriter, r *http.Request) {
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
+		responsePassportError(w, r)
 		return
 	}
 
@@ -237,7 +236,7 @@ func (h *memoHandler) publishMemo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memoUpdated, err := h.memoService.UpdateMemoPublishedState(ctx, memoID, req.Publish, passport.token)
+	memoUpdated, err := h.memoService.UpdateMemoPublishedState(ctx, memoID, *req.Publish, passport.token)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("updating memo published state: %w", err))
 		return
@@ -259,7 +258,7 @@ func (h *memoHandler) deleteMemo(w http.ResponseWriter, r *http.Request) {
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
+		responsePassportError(w, r)
 		return
 	}
 
@@ -282,7 +281,7 @@ func (h *memoHandler) replaceMemoTags(w http.ResponseWriter, r *http.Request) {
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
+		responsePassportError(w, r)
 		return
 	}
 
@@ -315,13 +314,12 @@ func (h *memoHandler) listMemoTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passport, ok := extractPassport(ctx)
-	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
-		return
+	var token *model.AppIDToken
+	if passport, ok := extractPassport(ctx); ok {
+		token = passport.token
 	}
 
-	tagsFound, err := h.memoService.ListTags(ctx, memoID, passport.token)
+	tagsFound, err := h.memoService.ListTags(ctx, memoID, token)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("listing tags: %w", err))
 		return

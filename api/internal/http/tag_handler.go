@@ -33,7 +33,7 @@ func (h *tagHandler) listTags(w http.ResponseWriter, r *http.Request) {
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
-		responseError(w, r, fmt.Errorf("passport not found"))
+		responsePassportError(w, r)
 		return
 	}
 

@@ -53,6 +53,13 @@ func responseError(w http.ResponseWriter, r *http.Request, err error) {
 	}
 }
 
+func responsePassportError(w http.ResponseWriter, r *http.Request) {
+	responseError(w, r, pkgerr.Known{
+		Code:      pkgerr.CodeUnauthenticated,
+		ClientMsg: "need token",
+	})
+}
+
 func responseJSON(w http.ResponseWriter, obj any) {
 	bytes, err := json.Marshal(obj)
 	if err != nil {
