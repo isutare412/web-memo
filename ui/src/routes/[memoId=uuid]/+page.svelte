@@ -154,8 +154,8 @@
         <p>
           {#if memo.isPublished}
             <p>
-              Will you <span class="text-primary font-bold">un-publish</span> the memo?<br />Nobody
-              will not be able to access the memo through a link.
+              Will you <span class="text-primary font-bold">un-publish</span> the memo?<br />Only
+              you will be able to access the memo through a link.
             </p>
           {:else}
             <p>
