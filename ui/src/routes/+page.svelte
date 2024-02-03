@@ -102,6 +102,10 @@
   }
 </script>
 
+<svelte:head>
+  <meta property="og:title" content="Web Memo" />
+</svelte:head>
+
 {#if !user}
   <SignInStack />
 {:else if listData === undefined}

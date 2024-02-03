@@ -27,15 +27,6 @@
   }
 </script>
 
-<svelte:head>
-  <title>Web Memo</title>
-  <meta property="og:title" content="Web Memo" />
-  <meta
-    property="og:image"
-    content="https://raw.githubusercontent.com/isutare412/web-memo/2fcfcb1360609d3a5a9ed5aa460421338784ca4e/ui/static/android-chrome-512x512.png"
-  />
-</svelte:head>
-
 <div class="flex min-h-screen flex-col">
   <nav class="border-base-300 border-b shadow md:mb-4">
     <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">

@@ -113,6 +113,12 @@
   }
 </script>
 
+<svelte:head>
+  {#if memo !== undefined}
+    <meta property="og:title" content={memo.title} />
+  {/if}
+</svelte:head>
+
 {#if memo === undefined}
   <LoadingSpinner />
 {:else}
