@@ -10,7 +10,8 @@
   const dispatch = createEventDispatcher()
 
   let tagInputValue = ''
-  let warnTitle = false
+  let titleWarning = false
+  let tagWarning: string | undefined = undefined
   let isSubmitting = false
 
   function onTagInputKeyUp(
@@ -18,18 +19,28 @@
   ) {
     switch (event.key) {
       case 'Enter':
+        if (!validateTag(tagInputValue)) return
+
         addTag(tagInputValue)
         break
     }
   }
 
   function onTagInputButtonClick() {
+    if (!validateTag(tagInputValue)) return
+
     addTag(tagInputValue)
   }
 
   function onTitleInput() {
     if (title.trim() !== '') {
-      warnTitle = false
+      titleWarning = false
+    }
+  }
+
+  function onTagInput() {
+    if (tagInputValue.trim() !== '') {
+      tagWarning = undefined
     }
   }
 
@@ -39,11 +50,13 @@
 
   async function onSubmit() {
     if (title.trim() === '') {
-      warnTitle = true
+      titleWarning = true
       return
     }
 
     if (tagInputValue !== '') {
+      if (!validateTag(tagInputValue)) return
+
       addTag(tagInputValue)
     }
 
@@ -57,6 +70,14 @@
 
   function onCancel() {
     dispatch('cancel')
+  }
+
+  function validateTag(value: string): boolean {
+    value = value.trim()
+    if (!reservedTags.includes(value)) return true
+
+    tagWarning = `"${value}" is a reserved tag`
+    return false
   }
 
   function addTag(value: string) {
@@ -75,7 +96,7 @@
 
 <div class="flex flex-col gap-y-3">
   <div>
-    {#if warnTitle}
+    {#if titleWarning}
       <label for="title" class="text-error text-xs">Need title</label>
     {/if}
     <input
@@ -85,21 +106,31 @@
       bind:value={title}
       on:input={onTitleInput}
       class="input input-bordered focus:border-primary w-full focus:outline-none"
-      class:border-error={warnTitle}
+      class:border-error={titleWarning}
+      class:focus:border-error={titleWarning}
     />
   </div>
   <div>
+    {#if tagWarning !== undefined}
+      <label for="tag-input" class="text-error text-xs">{tagWarning}</label>
+    {/if}
     <div class="flex">
       <input
         type="text"
         placeholder="Tag"
+        id="tag-input"
         maxlength="20"
         bind:value={tagInputValue}
+        on:input={onTagInput}
         on:keyup={onTagInputKeyUp}
         class="input input-bordered focus:border-primary w-full max-w-xs rounded-r-none border-r-0 focus:outline-none"
+        class:border-error={tagWarning !== undefined}
+        class:focus:border-error={tagWarning !== undefined}
       />
-      <button on:click={onTagInputButtonClick} class="btn btn-primary btn-outline rounded-l-none"
-        >Add</button
+      <button
+        on:click={onTagInputButtonClick}
+        class="btn btn-primary btn-outline rounded-l-none"
+        class:btn-error={tagWarning !== undefined}>Add</button
       >
     </div>
     {#if tags.length > 0}
