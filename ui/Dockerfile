@@ -16,7 +16,18 @@ FROM base AS builder
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY .svelte-kit .svelte-kit
+COPY src src
+COPY static static
+COPY package.json \
+    package-lock.json \
+    postcss.config.js \
+    tailwind.config.js \
+    svelte.config.js \
+    tsconfig.json \
+    vite.config.ts \
+    .npmrc \
+    ./
 RUN npm run build
 
 # Production image, copy all the files and run
