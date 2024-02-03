@@ -61,27 +61,51 @@
     goto('/', { replaceState: true })
   }
 
-  async function onPublishConfirm() {
+  function onPublishConfirm() {
     if (memo === undefined) {
       return
     }
 
-    try {
-      isPublishing = true
+    const memoUrl = $page.url.toString()
+    isPublishing = true
 
-      memo = mapToMemo(
-        await publishMemo({
-          id: memoId,
-          publish: !memo.isPublished,
+    // https://forums.developer.apple.com/forums/thread/691873
+    // Apple WebKit does not allow async, so we build promise and pass it.
+    const publishMemoPromise = publishMemo({
+      id: memoId,
+      publish: !memo.isPublished,
+    })
+      .then((rawMemo) => {
+        memo = mapToMemo(rawMemo)
+
+        isPublishing = false
+        publishConfirmModal.close()
+      })
+      .catch((error) => {
+        addToast(getErrorMessage(error), 'error')
+        goto('/')
+      })
+
+    console.log(`userAgent: ${navigator.userAgent}`)
+
+    if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+      navigator.clipboard
+        .write([
+          new ClipboardItem({
+            'text/plain': publishMemoPromise.then(() => memoUrl),
+          }),
+        ])
+        .then(() => {
+          if (memo !== undefined && memo.isPublished)
+            addToast('Copied your memo URL to clipboard!', 'info')
         })
-      )
-    } catch (error) {
-      addToast(getErrorMessage(error), 'error')
-      goto('/')
-      return
-    } finally {
-      isPublishing = false
-      publishConfirmModal.close()
+    } else {
+      publishMemoPromise.then(() => {
+        navigator.clipboard.writeText(memoUrl).then(() => {
+          if (memo !== undefined && memo.isPublished)
+            addToast('Copied your memo URL to clipboard!', 'info')
+        })
+      })
     }
   }
 </script>
