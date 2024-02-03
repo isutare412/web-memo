@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { authStore, signOut } from '$lib/auth'
+  import { authStore, signInGoogle, signOut } from '$lib/auth'
   import userImage from '$media/user.png'
 
   $: user = $authStore.user
@@ -18,8 +18,11 @@
   <ul
     tabindex="0"
     class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-4 w-36 p-2 shadow"
-    class:hidden={!user}
   >
-    <li><button on:click={signOut}>Sign Out</button></li>
+    {#if user}
+      <li><button on:click={signOut}>Sign Out</button></li>
+    {:else}
+      <li><button on:click={signInGoogle}>Sign In</button></li>
+    {/if}
   </ul>
 </div>

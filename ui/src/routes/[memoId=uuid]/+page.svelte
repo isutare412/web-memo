@@ -5,6 +5,7 @@
   import Markdown from '$components/Markdown.svelte'
   import Tag from '$components/Tag.svelte'
   import { deleteMemo, getMemo } from '$lib/apis/backend/memo'
+  import { authStore } from '$lib/auth'
   import { mapToMemo, type Memo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
   import { addToast } from '$lib/toast'
@@ -12,6 +13,7 @@
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
 
+  $: user = $authStore.user
   $: memoId = $page.params.memoId
   let memo: Memo | undefined
 
@@ -74,33 +76,36 @@
       <span class="text-xs opacity-70">Update {formatDate(memo.updateTime)}</span>
     </div>
   </div>
-  <div class="mt-4 flex justify-end gap-x-1">
-    <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button>
-    <button on:click={onDeleteClick} class="btn btn-outline btn-primary outline-none">Delete</button
-    >
-  </div>
-  <dialog bind:this={deleteConfirmModal} class="modal">
-    <div class="modal-box">
-      <p>Are you sure?</p>
-      <div class="modal-action flex justify-end">
-        <form method="dialog">
-          <button class="btn btn-outline btn-primary outline-none">Cancel</button>
-        </form>
-        <button
-          on:click={onDeleteConfirm}
-          disabled={isDeleting}
-          class="btn btn-primary outline-none"
-        >
-          {#if isDeleting}
-            <span class="loading loading-spinner" />
-          {:else}
-            Delete
-          {/if}
-        </button>
-      </div>
+  {#if user && (!memo.isPublished || user.id === memo.ownerId)}
+    <div class="mt-4 flex justify-end gap-x-1">
+      <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button>
+      <button on:click={onDeleteClick} class="btn btn-outline btn-primary outline-none"
+        >Delete</button
+      >
     </div>
-    <form method="dialog" class="modal-backdrop">
-      <button>close</button>
-    </form>
-  </dialog>
+    <dialog bind:this={deleteConfirmModal} class="modal">
+      <div class="modal-box">
+        <p>Are you sure?</p>
+        <div class="modal-action flex justify-end">
+          <form method="dialog">
+            <button class="btn btn-outline btn-primary outline-none">Cancel</button>
+          </form>
+          <button
+            on:click={onDeleteConfirm}
+            disabled={isDeleting}
+            class="btn btn-primary outline-none"
+          >
+            {#if isDeleting}
+              <span class="loading loading-spinner" />
+            {:else}
+              Delete
+            {/if}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  {/if}
 {/if}

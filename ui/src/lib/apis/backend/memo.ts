@@ -2,10 +2,12 @@ import { buildErrorMessage, getErrorResponse } from '$lib/apis/backend/error'
 
 export interface RawMemo {
   id: string
+  ownerId: string
   createTime: string
   updateTime: string
   title: string
   content: string
+  isPublished: boolean
   tags: string[]
 }
 

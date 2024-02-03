@@ -4,9 +4,12 @@ import { redirect } from '@sveltejs/kit'
 import type { PageLoad } from './$types'
 
 export const load = (async (event) => {
+  const { parent, url } = event
+  await parent()
+
   const preferredPageSize = getPreferredPageSize()
 
-  const searchParams = event.url.searchParams
+  const searchParams = url.searchParams
   if (
     searchParams.get('ps') === null &&
     preferredPageSize !== null &&
