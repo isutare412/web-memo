@@ -41,7 +41,10 @@ func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *mode
 	}
 
 	if !requester.CanReadMemo(memo) {
-		return nil, pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+		return nil, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "not allowed to access memo",
+		}
 	}
 
 	return memo, nil
@@ -131,7 +134,10 @@ func (s *Service) UpdateMemo(
 		}
 
 		if !requester.CanWriteMemo(memoFound) {
-			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
 		}
 
 		memo, err := s.memoRepository.Update(ctx, memo)
@@ -170,7 +176,10 @@ func (s *Service) UpdateMemoPublishedState(
 		}
 
 		if !requester.CanWriteMemo(memoFound) {
-			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
 		}
 
 		if memoFound.IsPublished == publish {
@@ -203,7 +212,10 @@ func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *m
 		}
 
 		if !requester.CanWriteMemo(memo) {
-			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
 		}
 
 		if err := s.memoRepository.Delete(ctx, memoID); err != nil {
@@ -229,7 +241,10 @@ func (s *Service) ListTags(ctx context.Context, memoID uuid.UUID, requester *mod
 		}
 
 		if !requester.CanReadMemo(memo) {
-			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
 		}
 
 		tags, err := s.tagRepository.FindAllByMemoID(ctx, memoID)
@@ -273,7 +288,10 @@ func (s *Service) ReplaceTags(
 		}
 
 		if !requester.CanWriteMemo(memo) {
-			return pkgerr.Known{Code: pkgerr.CodePermissionDenied}
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
 		}
 
 		tags, err := s.ensureTags(ctx, tagNames)
