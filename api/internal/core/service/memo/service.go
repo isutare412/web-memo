@@ -50,7 +50,9 @@ func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *mode
 func (s *Service) ListMemos(
 	ctx context.Context,
 	userID uuid.UUID,
-	tags []string, option *model.QueryOption,
+	tags []string,
+	sortParams model.MemoSortParams,
+	pageParams model.PaginationParams,
 ) (memos []*ent.Memo, totalCount int, err error) {
 	var (
 		memosFound []*ent.Memo
@@ -58,7 +60,7 @@ func (s *Service) ListMemos(
 	)
 
 	err = s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		memos, err := s.memoRepository.FindAllByUserIDAndTagNamesWithTags(ctx, userID, tags, option)
+		memos, err := s.memoRepository.FindAllByUserIDAndTagNamesWithTags(ctx, userID, tags, sortParams, pageParams)
 		if err != nil {
 			return fmt.Errorf("finding memos of user(%s): %w", userID.String(), err)
 		}

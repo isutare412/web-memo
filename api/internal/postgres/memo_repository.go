@@ -16,6 +16,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
@@ -90,25 +91,20 @@ func (r *MemoRepository) FindByIDWithTags(ctx context.Context, memoID uuid.UUID)
 func (r *MemoRepository) FindAllByUserIDWithTags(
 	ctx context.Context,
 	userID uuid.UUID,
-	opt *model.QueryOption,
+	sortParams model.MemoSortParams,
+	pageParams model.PaginationParams,
 ) ([]*ent.Memo, error) {
 	client := transactionClient(ctx, r.client)
-
-	createTimeOrder := memo.ByCreateTime(sql.OrderDesc())
-	if opt.Direction == model.SortDirectionAsc {
-		createTimeOrder = memo.ByCreateTime(sql.OrderAsc())
-	}
 
 	query := client.Memo.
 		Query().
 		Where(memo.HasOwnerWith(user.ID(userID))).
 		WithTags().
-		Order(createTimeOrder)
+		Order(buildMemoOrderOption(sortParams, pageParams))
 
-	if opt.PageOffset > 0 && opt.PageSize > 0 {
-		offset := (opt.PageOffset - 1) * opt.PageSize
-		query = query.Offset(offset).Limit(opt.PageSize)
-	}
+	page, pageSize := pageParams.GetOrDefault()
+	offset := (page - 1) * pageSize
+	query = query.Offset(offset).Limit(pageParams.PageSize)
 
 	memos, err := query.All(ctx)
 	if err != nil {
@@ -132,25 +128,20 @@ func (r *MemoRepository) FindAllByUserIDAndTagNamesWithTags(
 	ctx context.Context,
 	userID uuid.UUID,
 	tags []string,
-	opt *model.QueryOption,
+	sortParams model.MemoSortParams,
+	pageParams model.PaginationParams,
 ) ([]*ent.Memo, error) {
 	client := transactionClient(ctx, r.client)
-
-	createTimeOrder := memo.ByCreateTime(sql.OrderDesc())
-	if opt.Direction == model.SortDirectionAsc {
-		createTimeOrder = memo.ByCreateTime(sql.OrderAsc())
-	}
 
 	query := client.Memo.
 		Query().
 		Where(memo.HasOwnerWith(user.ID(userID))).
 		WithTags().
-		Order(createTimeOrder)
+		Order(buildMemoOrderOption(sortParams, pageParams))
 
-	if opt.PageOffset > 0 && opt.PageSize > 0 {
-		offset := (opt.PageOffset - 1) * opt.PageSize
-		query = query.Offset(offset).Limit(opt.PageSize)
-	}
+	page, pageSize := pageParams.GetOrDefault()
+	offset := (page - 1) * pageSize
+	query = query.Offset(offset).Limit(pageParams.PageSize)
 
 	if len(tags) > 0 {
 		tagsMatch := lo.Map(
@@ -301,4 +292,24 @@ func base64Decode(s string) (string, error) {
 		return "", fmt.Errorf("base64 decoding string: %w", err)
 	}
 	return string(decodedBytes), nil
+}
+
+func buildMemoOrderOption(sortParams model.MemoSortParams, pageParams model.PaginationParams) memo.OrderOption {
+	var direction sql.OrderTermOption
+	switch sortParams.Order.GetOrDefault() {
+	case enum.SortOrderAsc:
+		direction = sql.OrderAsc()
+	default:
+		direction = sql.OrderDesc()
+	}
+
+	var order memo.OrderOption
+	switch sortParams.Key.GetOrDefault() {
+	case enum.MemoSortKeyUpdateTime:
+		order = memo.ByUpdateTime(direction)
+	default:
+		order = memo.ByCreateTime(direction)
+	}
+
+	return order
 }

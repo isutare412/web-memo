@@ -12,6 +12,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
@@ -83,14 +84,19 @@ func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tags := getTagsQuery(r.URL.Query())
+	sortKey := getMemoSortQuery(r.URL.Query())
 
-	queryOption := model.QueryOption{
-		PageOffset: page,
-		PageSize:   pageSize,
-		Direction:  model.SortDirectionDesc,
+	sortParams := model.MemoSortParams{
+		Key:   sortKey,
+		Order: enum.SortOrderDesc,
 	}
 
-	memos, totalCount, err := h.memoService.ListMemos(ctx, passport.token.UserID, tags, &queryOption)
+	pageParams := model.PaginationParams{
+		PageOffset: page,
+		PageSize:   pageSize,
+	}
+
+	memos, totalCount, err := h.memoService.ListMemos(ctx, passport.token.UserID, tags, sortParams, pageParams)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("listing memos: %w", err))
 		return
@@ -334,4 +340,8 @@ func getPageQuery(q url.Values) (page, pageSize int, err error) {
 
 func getTagsQuery(q url.Values) []string {
 	return q["tag"]
+}
+
+func getMemoSortQuery(q url.Values) enum.MemoSortKey {
+	return enum.MemoSortKey(q.Get("sort")).GetOrDefault()
 }

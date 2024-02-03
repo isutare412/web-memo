@@ -24,8 +24,12 @@ type UserRepository interface {
 type MemoRepository interface {
 	FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
 	FindByIDWithTags(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
-	FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID, option *model.QueryOption) ([]*ent.Memo, error)
-	FindAllByUserIDAndTagNamesWithTags(ctx context.Context, userID uuid.UUID, tags []string, option *model.QueryOption) ([]*ent.Memo, error)
+	FindAllByUserIDWithTags(
+		ctx context.Context, userID uuid.UUID,
+		sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error)
+	FindAllByUserIDAndTagNamesWithTags(
+		ctx context.Context, userID uuid.UUID, tags []string,
+		sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error)
 	CountByUserIDAndTagNames(ctx context.Context, userID uuid.UUID, tags []string) (int, error)
 	Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error)
 	Update(context.Context, *ent.Memo) (*ent.Memo, error)

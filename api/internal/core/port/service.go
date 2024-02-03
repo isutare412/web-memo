@@ -18,7 +18,9 @@ type AuthService interface {
 
 type MemoService interface {
 	GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error)
-	ListMemos(ctx context.Context, userID uuid.UUID, tags []string, option *model.QueryOption) (memos []*ent.Memo, totalCount int, err error)
+	ListMemos(
+		ctx context.Context, userID uuid.UUID, tags []string,
+		sortParams model.MemoSortParams, pageParams model.PaginationParams) (memos []*ent.Memo, totalCount int, err error)
 	CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, userID uuid.UUID) (*ent.Memo, error)
 	UpdateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, requester *model.AppIDToken) (*ent.Memo, error)
 	DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error

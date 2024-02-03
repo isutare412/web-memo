@@ -84,7 +84,8 @@ var _ = Describe("MemoRepository", func() {
 
 		// Delete fake data
 		AfterEach(func(ctx SpecContext) {
-			memos, err := memoRepository.FindAllByUserIDWithTags(ctx, fakeUser.ID, &model.QueryOption{})
+			memos, err := memoRepository.FindAllByUserIDWithTags(
+				ctx, fakeUser.ID, model.MemoSortParams{}, model.PaginationParams{})
 			Expect(err).NotTo(HaveOccurred())
 			for _, memo := range memos {
 				_ = memoRepository.Delete(ctx, memo.ID)
@@ -125,7 +126,8 @@ var _ = Describe("MemoRepository", func() {
 
 		Context("FindAllByUserIDWithTags", func() {
 			It("finds memos of user", func(ctx SpecContext) {
-				memos, err := memoRepository.FindAllByUserIDWithTags(ctx, fakeUser.ID, &model.QueryOption{})
+				memos, err := memoRepository.FindAllByUserIDWithTags(
+					ctx, fakeUser.ID, model.MemoSortParams{}, model.PaginationParams{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(len(fakeMemos)))
 				Expect(memos[0].Edges.Tags).NotTo(HaveLen(0))
@@ -133,22 +135,30 @@ var _ = Describe("MemoRepository", func() {
 
 			It("finds memos with pagination", func(ctx SpecContext) {
 				var (
-					givenQueryOption = &model.QueryOption{
+					givenPageParams = model.PaginationParams{
 						PageOffset: 1,
 						PageSize:   1,
-						Direction:  model.SortDirectionAsc,
+					}
+					givenSortParams = model.MemoSortParams{
+						Order: enum.SortOrderAsc,
 					}
 				)
 
-				memos, err := memoRepository.FindAllByUserIDWithTags(ctx, fakeUser.ID, givenQueryOption)
+				memos, err := memoRepository.FindAllByUserIDWithTags(ctx, fakeUser.ID, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(1))
 				Expect(memos[0].ID).To(Equal(fakeMemos[0].ID))
 				Expect(memos[0].OwnerID).To(Equal(fakeUser.ID))
 			})
 
-			It("finds nothing if unknwon ID", func(ctx SpecContext) {
-				memos, err := memoRepository.FindAllByUserIDWithTags(ctx, uuid.Must(uuid.NewRandom()), &model.QueryOption{})
+			It("finds nothing if unknown ID", func(ctx SpecContext) {
+				var (
+					givenPageParams = model.PaginationParams{}
+					givenSortParams = model.MemoSortParams{}
+				)
+
+				memos, err := memoRepository.FindAllByUserIDWithTags(
+					ctx, uuid.Must(uuid.NewRandom()), givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(0))
 			})
@@ -157,11 +167,13 @@ var _ = Describe("MemoRepository", func() {
 		Context("FindAllByUserIDAndTagNamesWithTags", func() {
 			It("finds memos of user with tag name", func(ctx SpecContext) {
 				var (
-					givenTagNames    = []string{fakeTags[0].Name}
-					givenQueryOption = &model.QueryOption{}
+					givenTagNames   = []string{fakeTags[0].Name}
+					givenPageParams = model.PaginationParams{}
+					givenSortParams = model.MemoSortParams{}
 				)
 
-				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithTags(ctx, fakeUser.ID, givenTagNames, givenQueryOption)
+				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithTags(
+					ctx, fakeUser.ID, givenTagNames, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(1))
 				Expect(memos[0].ID).To(Equal(fakeMemos[0].ID))
@@ -170,11 +182,13 @@ var _ = Describe("MemoRepository", func() {
 
 			It("finds nothing if tag name does not match", func(ctx SpecContext) {
 				var (
-					givenTagNames    = []string{"some-complex-tag"}
-					givenQueryOption = &model.QueryOption{}
+					givenTagNames   = []string{"some-complex-tag"}
+					givenPageParams = model.PaginationParams{}
+					givenSortParams = model.MemoSortParams{}
 				)
 
-				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithTags(ctx, fakeUser.ID, givenTagNames, givenQueryOption)
+				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithTags(
+					ctx, fakeUser.ID, givenTagNames, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(0))
 			})

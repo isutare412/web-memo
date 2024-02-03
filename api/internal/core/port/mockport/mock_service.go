@@ -171,9 +171,9 @@ func (mr *MockMemoServiceMockRecorder) GetMemo(ctx, memoID, requester any) *gomo
 }
 
 // ListMemos mocks base method.
-func (m *MockMemoService) ListMemos(ctx context.Context, userID uuid.UUID, tags []string, option *model.QueryOption) ([]*ent.Memo, int, error) {
+func (m *MockMemoService) ListMemos(ctx context.Context, userID uuid.UUID, tags []string, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMemos", ctx, userID, tags, option)
+	ret := m.ctrl.Call(m, "ListMemos", ctx, userID, tags, sortParams, pageParams)
 	ret0, _ := ret[0].([]*ent.Memo)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
@@ -181,9 +181,9 @@ func (m *MockMemoService) ListMemos(ctx context.Context, userID uuid.UUID, tags 
 }
 
 // ListMemos indicates an expected call of ListMemos.
-func (mr *MockMemoServiceMockRecorder) ListMemos(ctx, userID, tags, option any) *gomock.Call {
+func (mr *MockMemoServiceMockRecorder) ListMemos(ctx, userID, tags, sortParams, pageParams any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMemos", reflect.TypeOf((*MockMemoService)(nil).ListMemos), ctx, userID, tags, option)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMemos", reflect.TypeOf((*MockMemoService)(nil).ListMemos), ctx, userID, tags, sortParams, pageParams)
 }
 
 // ListTags mocks base method.
