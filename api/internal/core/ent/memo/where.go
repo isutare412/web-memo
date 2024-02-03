@@ -81,6 +81,11 @@ func Content(v string) predicate.Memo {
 	return predicate.Memo(sql.FieldEQ(FieldContent, v))
 }
 
+// IsPublished applies equality check predicate on the "is_published" field. It's identical to IsPublishedEQ.
+func IsPublished(v bool) predicate.Memo {
+	return predicate.Memo(sql.FieldEQ(FieldIsPublished, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Memo {
 	return predicate.Memo(sql.FieldEQ(FieldCreateTime, v))
@@ -309,6 +314,16 @@ func ContentEqualFold(v string) predicate.Memo {
 // ContentContainsFold applies the ContainsFold predicate on the "content" field.
 func ContentContainsFold(v string) predicate.Memo {
 	return predicate.Memo(sql.FieldContainsFold(FieldContent, v))
+}
+
+// IsPublishedEQ applies the EQ predicate on the "is_published" field.
+func IsPublishedEQ(v bool) predicate.Memo {
+	return predicate.Memo(sql.FieldEQ(FieldIsPublished, v))
+}
+
+// IsPublishedNEQ applies the NEQ predicate on the "is_published" field.
+func IsPublishedNEQ(v bool) predicate.Memo {
+	return predicate.Memo(sql.FieldNEQ(FieldIsPublished, v))
 }
 
 // HasOwner applies the HasEdge predicate on the "owner" edge.

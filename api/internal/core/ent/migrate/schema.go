@@ -15,6 +15,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString, Size: 512},
 		{Name: "content", Type: field.TypeString, Size: 20000},
+		{Name: "is_published", Type: field.TypeBool, Default: false},
 		{Name: "owner_id", Type: field.TypeUUID},
 	}
 	// MemosTable holds the schema information for the "memos" table.
@@ -25,7 +26,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "memos_users_memos",
-				Columns:    []*schema.Column{MemosColumns[5]},
+				Columns:    []*schema.Column{MemosColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

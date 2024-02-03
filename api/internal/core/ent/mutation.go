@@ -43,6 +43,7 @@ type MemoMutation struct {
 	update_time   *time.Time
 	title         *string
 	content       *string
+	is_published  *bool
 	clearedFields map[string]struct{}
 	owner         *uuid.UUID
 	clearedowner  bool
@@ -338,6 +339,42 @@ func (m *MemoMutation) ResetContent() {
 	m.content = nil
 }
 
+// SetIsPublished sets the "is_published" field.
+func (m *MemoMutation) SetIsPublished(b bool) {
+	m.is_published = &b
+}
+
+// IsPublished returns the value of the "is_published" field in the mutation.
+func (m *MemoMutation) IsPublished() (r bool, exists bool) {
+	v := m.is_published
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPublished returns the old "is_published" field's value of the Memo entity.
+// If the Memo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoMutation) OldIsPublished(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPublished is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPublished requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPublished: %w", err)
+	}
+	return oldValue.IsPublished, nil
+}
+
+// ResetIsPublished resets all changes to the "is_published" field.
+func (m *MemoMutation) ResetIsPublished() {
+	m.is_published = nil
+}
+
 // ClearOwner clears the "owner" edge to the User entity.
 func (m *MemoMutation) ClearOwner() {
 	m.clearedowner = true
@@ -453,7 +490,7 @@ func (m *MemoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemoMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.create_time != nil {
 		fields = append(fields, memo.FieldCreateTime)
 	}
@@ -468,6 +505,9 @@ func (m *MemoMutation) Fields() []string {
 	}
 	if m.content != nil {
 		fields = append(fields, memo.FieldContent)
+	}
+	if m.is_published != nil {
+		fields = append(fields, memo.FieldIsPublished)
 	}
 	return fields
 }
@@ -487,6 +527,8 @@ func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case memo.FieldContent:
 		return m.Content()
+	case memo.FieldIsPublished:
+		return m.IsPublished()
 	}
 	return nil, false
 }
@@ -506,6 +548,8 @@ func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTitle(ctx)
 	case memo.FieldContent:
 		return m.OldContent(ctx)
+	case memo.FieldIsPublished:
+		return m.OldIsPublished(ctx)
 	}
 	return nil, fmt.Errorf("unknown Memo field %s", name)
 }
@@ -549,6 +593,13 @@ func (m *MemoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContent(v)
+		return nil
+	case memo.FieldIsPublished:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPublished(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Memo field %s", name)
@@ -613,6 +664,9 @@ func (m *MemoMutation) ResetField(name string) error {
 		return nil
 	case memo.FieldContent:
 		m.ResetContent()
+		return nil
+	case memo.FieldIsPublished:
+		m.ResetIsPublished()
 		return nil
 	}
 	return fmt.Errorf("unknown Memo field %s", name)

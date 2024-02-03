@@ -29,6 +29,8 @@ type Memo struct {
 	Title string `json:"title,omitempty"`
 	// Content holds the value of the "content" field.
 	Content string `json:"content,omitempty"`
+	// IsPublished holds the value of the "is_published" field.
+	IsPublished bool `json:"is_published,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MemoQuery when eager-loading is set.
 	Edges        MemoEdges `json:"edges"`
@@ -73,6 +75,8 @@ func (*Memo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case memo.FieldIsPublished:
+			values[i] = new(sql.NullBool)
 		case memo.FieldTitle, memo.FieldContent:
 			values[i] = new(sql.NullString)
 		case memo.FieldCreateTime, memo.FieldUpdateTime:
@@ -129,6 +133,12 @@ func (m *Memo) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
 			} else if value.Valid {
 				m.Content = value.String
+			}
+		case memo.FieldIsPublished:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_published", values[i])
+			} else if value.Valid {
+				m.IsPublished = value.Bool
 			}
 		default:
 			m.selectValues.Set(columns[i], values[i])
@@ -190,6 +200,9 @@ func (m *Memo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("content=")
 	builder.WriteString(m.Content)
+	builder.WriteString(", ")
+	builder.WriteString("is_published=")
+	builder.WriteString(fmt.Sprintf("%v", m.IsPublished))
 	builder.WriteByte(')')
 	return builder.String()
 }

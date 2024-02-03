@@ -53,6 +53,10 @@ func init() {
 	memoDescContent := memoFields[3].Descriptor()
 	// memo.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	memo.ContentValidator = memoDescContent.Validators[0].(func(string) error)
+	// memoDescIsPublished is the schema descriptor for is_published field.
+	memoDescIsPublished := memoFields[4].Descriptor()
+	// memo.DefaultIsPublished holds the default value on creation for the is_published field.
+	memo.DefaultIsPublished = memoDescIsPublished.Default.(bool)
 	// memoDescID is the schema descriptor for id field.
 	memoDescID := memoFields[0].Descriptor()
 	// memo.DefaultID holds the default value on creation for the id field.

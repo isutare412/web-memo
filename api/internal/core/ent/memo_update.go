@@ -79,6 +79,20 @@ func (mu *MemoUpdate) SetNillableContent(s *string) *MemoUpdate {
 	return mu
 }
 
+// SetIsPublished sets the "is_published" field.
+func (mu *MemoUpdate) SetIsPublished(b bool) *MemoUpdate {
+	mu.mutation.SetIsPublished(b)
+	return mu
+}
+
+// SetNillableIsPublished sets the "is_published" field if the given value is not nil.
+func (mu *MemoUpdate) SetNillableIsPublished(b *bool) *MemoUpdate {
+	if b != nil {
+		mu.SetIsPublished(*b)
+	}
+	return mu
+}
+
 // SetOwner sets the "owner" edge to the User entity.
 func (mu *MemoUpdate) SetOwner(u *User) *MemoUpdate {
 	return mu.SetOwnerID(u.ID)
@@ -205,6 +219,9 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)
+	}
+	if value, ok := mu.mutation.IsPublished(); ok {
+		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
 	}
 	if mu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -344,6 +361,20 @@ func (muo *MemoUpdateOne) SetContent(s string) *MemoUpdateOne {
 func (muo *MemoUpdateOne) SetNillableContent(s *string) *MemoUpdateOne {
 	if s != nil {
 		muo.SetContent(*s)
+	}
+	return muo
+}
+
+// SetIsPublished sets the "is_published" field.
+func (muo *MemoUpdateOne) SetIsPublished(b bool) *MemoUpdateOne {
+	muo.mutation.SetIsPublished(b)
+	return muo
+}
+
+// SetNillableIsPublished sets the "is_published" field if the given value is not nil.
+func (muo *MemoUpdateOne) SetNillableIsPublished(b *bool) *MemoUpdateOne {
+	if b != nil {
+		muo.SetIsPublished(*b)
 	}
 	return muo
 }
@@ -504,6 +535,9 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 	}
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)
+	}
+	if value, ok := muo.mutation.IsPublished(); ok {
+		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
 	}
 	if muo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

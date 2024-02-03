@@ -72,6 +72,20 @@ func (mc *MemoCreate) SetContent(s string) *MemoCreate {
 	return mc
 }
 
+// SetIsPublished sets the "is_published" field.
+func (mc *MemoCreate) SetIsPublished(b bool) *MemoCreate {
+	mc.mutation.SetIsPublished(b)
+	return mc
+}
+
+// SetNillableIsPublished sets the "is_published" field if the given value is not nil.
+func (mc *MemoCreate) SetNillableIsPublished(b *bool) *MemoCreate {
+	if b != nil {
+		mc.SetIsPublished(*b)
+	}
+	return mc
+}
+
 // SetID sets the "id" field.
 func (mc *MemoCreate) SetID(u uuid.UUID) *MemoCreate {
 	mc.mutation.SetID(u)
@@ -149,6 +163,10 @@ func (mc *MemoCreate) defaults() {
 		v := memo.DefaultUpdateTime()
 		mc.mutation.SetUpdateTime(v)
 	}
+	if _, ok := mc.mutation.IsPublished(); !ok {
+		v := memo.DefaultIsPublished
+		mc.mutation.SetIsPublished(v)
+	}
 	if _, ok := mc.mutation.ID(); !ok {
 		v := memo.DefaultID()
 		mc.mutation.SetID(v)
@@ -181,6 +199,9 @@ func (mc *MemoCreate) check() error {
 		if err := memo.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Memo.content": %w`, err)}
 		}
+	}
+	if _, ok := mc.mutation.IsPublished(); !ok {
+		return &ValidationError{Name: "is_published", err: errors.New(`ent: missing required field "Memo.is_published"`)}
 	}
 	if _, ok := mc.mutation.OwnerID(); !ok {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Memo.owner"`)}
@@ -236,6 +257,10 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.Content(); ok {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)
 		_node.Content = value
+	}
+	if value, ok := mc.mutation.IsPublished(); ok {
+		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
+		_node.IsPublished = value
 	}
 	if nodes := mc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -370,6 +395,18 @@ func (u *MemoUpsert) UpdateContent() *MemoUpsert {
 	return u
 }
 
+// SetIsPublished sets the "is_published" field.
+func (u *MemoUpsert) SetIsPublished(v bool) *MemoUpsert {
+	u.Set(memo.FieldIsPublished, v)
+	return u
+}
+
+// UpdateIsPublished sets the "is_published" field to the value that was provided on create.
+func (u *MemoUpsert) UpdateIsPublished() *MemoUpsert {
+	u.SetExcluded(memo.FieldIsPublished)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -474,6 +511,20 @@ func (u *MemoUpsertOne) SetContent(v string) *MemoUpsertOne {
 func (u *MemoUpsertOne) UpdateContent() *MemoUpsertOne {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// SetIsPublished sets the "is_published" field.
+func (u *MemoUpsertOne) SetIsPublished(v bool) *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetIsPublished(v)
+	})
+}
+
+// UpdateIsPublished sets the "is_published" field to the value that was provided on create.
+func (u *MemoUpsertOne) UpdateIsPublished() *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateIsPublished()
 	})
 }
 
@@ -748,6 +799,20 @@ func (u *MemoUpsertBulk) SetContent(v string) *MemoUpsertBulk {
 func (u *MemoUpsertBulk) UpdateContent() *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// SetIsPublished sets the "is_published" field.
+func (u *MemoUpsertBulk) SetIsPublished(v bool) *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetIsPublished(v)
+	})
+}
+
+// UpdateIsPublished sets the "is_published" field to the value that was provided on create.
+func (u *MemoUpsertBulk) UpdateIsPublished() *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateIsPublished()
 	})
 }
 
