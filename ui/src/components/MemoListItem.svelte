@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import Tag from '$components/Tag.svelte'
+  import Share from '$components/icons/Share.svelte'
   import type { Memo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
   import { formatDate } from '$lib/utils/date'
@@ -45,7 +46,16 @@
       {/each}
     </div>
   {/if}
-  <div class="flex justify-end">
-    <span class="text-xs font-light opacity-75">{formatDate(memo.createTime)}</span>
+  <div class="flex items-center justify-end gap-x-1">
+    <div
+      class="w-[16px]"
+      class:text-primary={memo.isPublished}
+      class:opacity-20={!memo.isPublished}
+    >
+      <Share />
+    </div>
+    <div>
+      <span class="text-xs font-light opacity-75">{formatDate(memo.createTime)}</span>
+    </div>
   </div>
 </li>

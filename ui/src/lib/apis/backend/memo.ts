@@ -32,6 +32,11 @@ interface ReplaceMemoRequest {
   tags: string[]
 }
 
+interface PublishMemoRequest {
+  id: string
+  publish: boolean
+}
+
 export async function getMemo(id: string): Promise<RawMemo> {
   const response = await fetch(`/api/v1/memos/${id}`)
   if (!response.ok) {
@@ -83,6 +88,21 @@ export async function replaceMemo(request: ReplaceMemoRequest): Promise<RawMemo>
       title: request.title,
       content: request.content,
       tags: request.tags,
+    }),
+  })
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw new Error(buildErrorMessage(response.status, errorResponse))
+  }
+
+  return response.json()
+}
+
+export async function publishMemo(request: PublishMemoRequest): Promise<RawMemo> {
+  const response = await fetch(`/api/v1/memos/${request.id}/publish`, {
+    method: 'POST',
+    body: JSON.stringify({
+      publish: request.publish,
     }),
   })
   if (!response.ok) {

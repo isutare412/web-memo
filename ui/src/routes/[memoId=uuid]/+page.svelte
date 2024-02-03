@@ -4,7 +4,8 @@
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import Markdown from '$components/Markdown.svelte'
   import Tag from '$components/Tag.svelte'
-  import { deleteMemo, getMemo } from '$lib/apis/backend/memo'
+  import Share from '$components/icons/Share.svelte'
+  import { deleteMemo, getMemo, publishMemo } from '$lib/apis/backend/memo'
   import { authStore } from '$lib/auth'
   import { mapToMemo, type Memo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
@@ -16,6 +17,9 @@
   $: user = $authStore.user
   $: memoId = $page.params.memoId
   let memo: Memo | undefined
+
+  let publishConfirmModal: HTMLDialogElement
+  let isPublishing = false
 
   let deleteConfirmModal: HTMLDialogElement
   let isDeleting = false
@@ -38,6 +42,10 @@
     deleteConfirmModal.showModal()
   }
 
+  async function onPublishClick() {
+    publishConfirmModal.showModal()
+  }
+
   function onTagClick(event: CustomEvent<{ name: string }>) {
     const params = new URLSearchParams()
     setPageOfSearchParams(params, 1)
@@ -51,6 +59,30 @@
     isDeleting = false
 
     goto('/', { replaceState: true })
+  }
+
+  async function onPublishConfirm() {
+    if (memo === undefined) {
+      return
+    }
+
+    try {
+      isPublishing = true
+
+      memo = mapToMemo(
+        await publishMemo({
+          id: memoId,
+          publish: !memo.isPublished,
+        })
+      )
+    } catch (error) {
+      addToast(getErrorMessage(error), 'error')
+      goto('/')
+      return
+    } finally {
+      isPublishing = false
+      publishConfirmModal.close()
+    }
   }
 </script>
 
@@ -78,11 +110,58 @@
   </div>
   {#if user && (!memo.isPublished || user.id === memo.ownerId)}
     <div class="mt-4 flex justify-end gap-x-1">
+      <button
+        on:click={onPublishClick}
+        class="btn btn-primary btn-square outline-none"
+        class:btn-outline={!memo.isPublished}
+      >
+        <div class="w-[24px]">
+          <Share />
+        </div>
+      </button>
       <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button>
       <button on:click={onDeleteClick} class="btn btn-outline btn-primary outline-none"
         >Delete</button
       >
     </div>
+
+    <dialog bind:this={publishConfirmModal} class="modal">
+      <div class="modal-box">
+        <p>
+          {#if memo.isPublished}
+            <p>
+              Will you <span class="text-primary font-bold">un-publish</span> the memo?<br />Nobody
+              will not be able to access the memo through a link.
+            </p>
+          {:else}
+            <p>
+              Will you <span class="text-primary font-bold">publish</span> the memo?<br />Anyone
+              will be able to access the memo through a link.
+            </p>
+          {/if}
+        </p>
+        <div class="modal-action flex justify-end">
+          <form method="dialog">
+            <button class="btn btn-outline btn-primary outline-none">Cancel</button>
+          </form>
+          <button
+            on:click={onPublishConfirm}
+            disabled={isPublishing}
+            class="btn btn-primary outline-none"
+          >
+            {#if isPublishing}
+              <span class="loading loading-spinner" />
+            {:else}
+              OK
+            {/if}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+
     <dialog bind:this={deleteConfirmModal} class="modal">
       <div class="modal-box">
         <p>Are you sure?</p>
