@@ -13,9 +13,9 @@
   import { formatDate } from '$lib/utils/date'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
-  import type { PageServerData } from './$types'
+  import type { PageData } from './$types'
 
-  export let data: PageServerData
+  export let data: PageData
 
   $: user = $authStore.user
   $: memoId = $page.params.memoId
@@ -31,7 +31,9 @@
     try {
       await syncUserData()
 
-      if (memo === undefined) memo = mapToMemo(await getMemo(memoId))
+      if (memo === undefined) {
+        memo = mapToMemo(await getMemo(memoId))
+      }
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')

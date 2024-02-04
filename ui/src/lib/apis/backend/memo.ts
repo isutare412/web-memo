@@ -37,13 +37,10 @@ interface PublishMemoRequest {
   publish: boolean
 }
 
-export async function getMemo(id: string, option?: { base?: string }): Promise<RawMemo> {
-  let url = `/api/v1/memos/${id}`
-  if (option?.base) {
-    url = option.base + url
-  }
+export async function getMemo(id: string, option?: { fetch?: typeof fetch }): Promise<RawMemo> {
+  const customFetch = option?.fetch ?? fetch
 
-  const response = await fetch(url)
+  const response = await customFetch(`/api/v1/memos/${id}`)
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
     throw new Error(buildErrorMessage(response.status, errorResponse))
