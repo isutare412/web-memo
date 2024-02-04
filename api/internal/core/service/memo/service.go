@@ -217,7 +217,7 @@ func (s *Service) UpdateMemoPublishedState(
 
 			tagIDs = lo.Map(append(memoFound.Edges.Tags, tags...), func(tag *ent.Tag, _ int) int { return tag.ID })
 		} else {
-			tags := lo.DropWhile(memoFound.Edges.Tags, func(t *ent.Tag) bool { return t.Name == tagPublished })
+			tags := lo.Filter(memoFound.Edges.Tags, func(t *ent.Tag, _ int) bool { return t.Name != tagPublished })
 			tagIDs = lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
 		}
 
