@@ -35,7 +35,6 @@
     const rawPage = Number(rawPageStr)
     if (isNaN(rawPage)) {
       addToast(`page '${rawPageStr}' is invalid`, 'error')
-      goto('/')
     } else {
       currentPage = rawPage
     }
@@ -44,7 +43,6 @@
     const rawPageSize = Number(rawPageSizeStr)
     if (isNaN(rawPageSize)) {
       addToast(`page size '${rawPageSizeStr}' is invalid`, 'error')
-      goto('/')
     } else {
       pageSize = rawPageSize
     }
@@ -97,7 +95,6 @@
       }
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
-      goto('/')
     }
   }
 </script>
