@@ -51,5 +51,11 @@
 {#if memo === undefined}
   <LoadingSpinner />
 {:else}
-  <MemoEditor {...memo} on:submit={onMemoSubmit} on:cancel={onMemoCancel} />
+  <MemoEditor
+    title={memo.title}
+    content={memo.content}
+    tags={memo.tags}
+    on:submit={onMemoSubmit}
+    on:cancel={onMemoCancel}
+  />
 {/if}

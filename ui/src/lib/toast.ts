@@ -6,6 +6,7 @@ interface Toast {
   id: number
   message: string
   level: ToastLevel
+  timeout?: number
 }
 
 interface ToastState {
@@ -15,12 +16,13 @@ interface ToastState {
 
 export const toastStore = writable<ToastState>({ nextId: 0, toasts: [] })
 
-export function addToast(message: string, level: ToastLevel) {
+export function addToast(message: string, level: ToastLevel, option?: { timeout?: number }) {
   toastStore.update((state) => {
     state.toasts.push({
       id: state.nextId++,
       message,
       level,
+      timeout: option?.timeout,
     })
     return state
   })

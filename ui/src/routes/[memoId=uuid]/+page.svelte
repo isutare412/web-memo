@@ -1,10 +1,11 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
+  import LinkCopyButton from '$components/LinkCopyButton.svelte'
+  import LinkShareButton from '$components/LinkShareButton.svelte'
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import Markdown from '$components/Markdown.svelte'
   import Tag from '$components/Tag.svelte'
-  import Share from '$components/icons/Share.svelte'
   import { deleteMemo, getMemo, publishMemo } from '$lib/apis/backend/memo'
   import { authStore, syncUserData } from '$lib/auth'
   import { mapToMemo } from '$lib/memo'
@@ -19,7 +20,9 @@
 
   $: user = $authStore.user
   $: memoId = $page.params.memoId
+  $: pageUrl = $page.url
   $: ({ memo } = data)
+  $: hasWritePermission = (user && memo && user.id === memo.ownerId) ?? false
 
   let publishConfirmModal: HTMLDialogElement
   let isPublishing = false
@@ -49,10 +52,6 @@
     deleteConfirmModal.showModal()
   }
 
-  async function onPublishClick() {
-    publishConfirmModal.showModal()
-  }
-
   function onTagClick(event: CustomEvent<{ name: string }>) {
     const params = new URLSearchParams()
     setPageOfSearchParams(params, 1)
@@ -68,12 +67,16 @@
     goto('/', { replaceState: true })
   }
 
+  function onShareEvent() {
+    publishConfirmModal.showModal()
+  }
+
   function onPublishConfirm() {
     if (memo === undefined) {
       return
     }
 
-    const memoUrl = $page.url.toString()
+    const memoUrl = pageUrl.toString()
     isPublishing = true
 
     // https://forums.developer.apple.com/forums/thread/691873
@@ -102,13 +105,13 @@
         ])
         .then(() => {
           if (memo !== undefined && memo.isPublished)
-            addToast('Copied your memo URL to clipboard!', 'info')
+            addToast('Copied memo URL!', 'info', { timeout: 1500 })
         })
     } else {
       publishMemoPromise.then(() => {
         navigator.clipboard.writeText(memoUrl).then(() => {
           if (memo !== undefined && memo.isPublished)
-            addToast('Copied your memo URL to clipboard!', 'info')
+            addToast('Copied memo URL!', 'info', { timeout: 1500 })
         })
       })
     }
@@ -143,17 +146,18 @@
       <span class="text-xs opacity-70">Update {formatDate(memo.updateTime)}</span>
     </div>
   </div>
-  {#if user && (!memo.isPublished || user.id === memo.ownerId)}
+  <div class="mt-2 flex justify-end gap-x-1">
+    <LinkCopyButton link={pageUrl.toString()} />
+    {#if hasWritePermission}
+      <LinkShareButton
+        link={pageUrl.toString()}
+        isShared={memo.isPublished}
+        on:share={onShareEvent}
+      />
+    {/if}
+  </div>
+  {#if hasWritePermission}
     <div class="mt-4 flex justify-end gap-x-1">
-      <button
-        on:click={onPublishClick}
-        class="btn btn-primary btn-square outline-none"
-        class:btn-outline={!memo.isPublished}
-      >
-        <div class="w-[24px]">
-          <Share />
-        </div>
-      </button>
       <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button>
       <button on:click={onDeleteClick} class="btn btn-outline btn-primary outline-none"
         >Delete</button

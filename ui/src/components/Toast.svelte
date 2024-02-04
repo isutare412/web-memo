@@ -8,8 +8,7 @@
   export let id: number
   export let message: string
   export let level: ToastLevel
-
-  const timeout = 10_000
+  export let timeout = 10_000
 
   const progress = tweened(0, { duration: timeout })
   let timer: PausableTimer
