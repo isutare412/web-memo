@@ -6,18 +6,26 @@
   import PageNavigator from '$components/PageNavigator.svelte'
   import PageSizeSelector from '$components/PageSizeSelector.svelte'
   import SignInStack from '$components/SignInStack.svelte'
+  import SortKeySelector from '$components/SortKeySelector.svelte'
   import TagFilter from '$components/TagFilter.svelte'
   import Plus from '$components/icons/Plus.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
   import { listMemos } from '$lib/apis/backend/memo'
   import { authStore, syncUserData } from '$lib/auth'
   import {
+      SortOrder,
       defaultPageSize,
+      defaultSortOrder,
       mapToMemo,
       setPreferredPageSize,
+      setPreferredSortOrder,
       type MemoListPageData,
   } from '$lib/memo'
-  import { setPageOfSearchParams, setPageSizeOfSearchParams } from '$lib/searchParams'
+  import {
+      setPageOfSearchParams,
+      setPageSizeOfSearchParams,
+      setSortOrderOfSearchParams,
+  } from '$lib/searchParams'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
@@ -28,6 +36,7 @@
 
   let currentPage = 1
   let pageSize = defaultPageSize
+  let sortOrder = defaultSortOrder
   let listData: MemoListPageData | undefined
 
   $: {
@@ -46,6 +55,10 @@
     } else {
       pageSize = rawPageSize
     }
+
+    const sortOrderStr = searchParams.get('sort') ?? defaultSortOrder.valueOf()
+    sortOrder =
+      Object.values(SortOrder).find((v) => v.valueOf() === sortOrderStr) ?? defaultSortOrder
   }
 
   onMount(async () => {
@@ -77,6 +90,14 @@
     goto(`/?${searchParams.toString()}`)
   }
 
+  function onSortOrderChange(event: CustomEvent<{ sortKey: SortOrder }>) {
+    if (!setSortOrderOfSearchParams(searchParams, event.detail.sortKey)) return
+
+    setPreferredSortOrder(event.detail.sortKey)
+
+    goto(`/?${searchParams.toString()}`)
+  }
+
   async function fetchMemos() {
     if (user === undefined) {
       return
@@ -85,7 +106,7 @@
     listData = undefined
 
     try {
-      const response = await listMemos(currentPage, pageSize, tags)
+      const response = await listMemos(currentPage, pageSize, sortOrder, tags)
       listData = {
         page: response.page,
         pageSize: response.pageSize,
@@ -123,6 +144,9 @@
         </div>
       </div>
     </TagFilter>
+    <div class="flex justify-end">
+      <SortKeySelector sortKey={sortOrder} on:change={onSortOrderChange} />
+    </div>
     <MemoList memos={listData.memos} />
     <div class="flex justify-center">
       <PageNavigator

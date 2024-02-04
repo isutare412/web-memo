@@ -1,4 +1,4 @@
-import { defaultPageSize } from '$lib/memo'
+import { SortOrder, defaultPageSize, defaultSortOrder } from '$lib/memo'
 import { sortedUniq } from 'lodash-es'
 
 export function setPageOfSearchParams(params: URLSearchParams, page: number): boolean {
@@ -27,6 +27,21 @@ export function setPageSizeOfSearchParams(params: URLSearchParams, size: number)
     params.delete('ps')
   } else {
     params.set('ps', size.toString())
+  }
+
+  params.sort()
+  return true
+}
+
+export function setSortOrderOfSearchParams(params: URLSearchParams, order: SortOrder): boolean {
+  const currentSortOrder = params.get('sort')
+  if (currentSortOrder === null && order === defaultSortOrder) return false
+  if (currentSortOrder !== null && order.toString() === currentSortOrder) return false
+
+  if (order === defaultSortOrder) {
+    params.delete('sort')
+  } else {
+    params.set('sort', order.toString())
   }
 
   params.sort()

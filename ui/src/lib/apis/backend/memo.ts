@@ -1,4 +1,5 @@
 import { buildErrorMessage, getErrorResponse } from '$lib/apis/backend/error'
+import { SortOrder } from '$lib/memo'
 
 export interface RawMemo {
   id: string
@@ -52,11 +53,23 @@ export async function getMemo(id: string, option?: { fetch?: typeof fetch }): Pr
 export async function listMemos(
   page: number,
   pageSize: number,
+  sortOrder: SortOrder,
   tags: string[]
 ): Promise<ListMemosResponse> {
+  let sort: string
+  switch (sortOrder) {
+    case SortOrder.CREATE_TIME:
+      sort = 'createTime'
+      break
+    case SortOrder.UPDATE_TIME:
+      sort = 'updateTime'
+      break
+  }
+
   const searchParams = new URLSearchParams()
   searchParams.append('page', page.toString())
   searchParams.append('pageSize', pageSize.toString())
+  searchParams.append('sort', sort)
   tags.forEach((tag) => {
     searchParams.append('tag', tag)
   })

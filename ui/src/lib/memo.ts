@@ -1,8 +1,15 @@
 import type { RawMemo } from '$lib/apis/backend/memo'
 
-export const defaultPageSize = 10
+const storageKeyPageSize = 'preferredPageSize'
+const storageKeySortOrder = 'preferredSortOrder'
 
-const pageSizeKey = 'preferredPageSize'
+export enum SortOrder {
+  CREATE_TIME = 'create',
+  UPDATE_TIME = 'update',
+}
+
+export const defaultPageSize = 10
+export const defaultSortOrder = SortOrder.CREATE_TIME
 
 export const reservedTags = ['published']
 
@@ -39,7 +46,7 @@ export function mapToMemo(memo: RawMemo): Memo {
 }
 
 export function getPreferredPageSize(): number | null {
-  const pageSizeStr = localStorage.getItem(pageSizeKey)
+  const pageSizeStr = localStorage.getItem(storageKeyPageSize)
   if (pageSizeStr === null) return null
 
   const pageSize = Number(pageSizeStr)
@@ -49,5 +56,16 @@ export function getPreferredPageSize(): number | null {
 }
 
 export function setPreferredPageSize(size: number) {
-  localStorage.setItem(pageSizeKey, size.toString())
+  localStorage.setItem(storageKeyPageSize, size.toString())
+}
+
+export function getPreferredSortOrder(): SortOrder | null {
+  const order = localStorage.getItem(storageKeySortOrder)
+  if (order === null) return null
+
+  return Object.values(SortOrder).find((v) => v.valueOf() === order) ?? null
+}
+
+export function setPreferredSortOrder(order: SortOrder) {
+  localStorage.setItem(storageKeySortOrder, order.toString())
 }
