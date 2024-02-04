@@ -2,7 +2,7 @@
 TAG_API ?= latest
 TAG_UI ?= latest
 IMAGE_API = redshoore/webmemo-api:$(TAG_API)
-IMAGE_UI = redshoore/webmemo-ui:$(TAG_API)
+IMAGE_UI = redshoore/webmemo-ui:$(TAG_UI)
 
 # docker hub
 DOCKER_USER ?= <docker_hub_username>
