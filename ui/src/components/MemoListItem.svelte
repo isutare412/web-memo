@@ -10,6 +10,7 @@
   import { get } from 'svelte/store'
 
   export let memo: Memo
+  export let showUpdateTime = false
 
   $: tags = map(memo.tags, (tag) => ({
     name: tag,
@@ -55,7 +56,9 @@
       <PeopleIcon />
     </div>
     <div>
-      <span class="text-xs font-light opacity-75">{formatDate(memo.createTime)}</span>
+      <span class="text-xs font-light opacity-75"
+        >{formatDate(showUpdateTime ? memo.updateTime : memo.createTime)}</span
+      >
     </div>
   </div>
 </li>

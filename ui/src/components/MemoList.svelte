@@ -3,12 +3,13 @@
   import type { Memo } from '$lib/memo'
 
   export let memos: Memo[]
+  export let showUpdateTime = false
 </script>
 
 <div>
   <ul class="flex flex-col gap-y-4">
     {#each memos as memo (memo.id)}
-      <MemoListItem {memo} />
+      <MemoListItem {memo} {showUpdateTime} />
     {/each}
   </ul>
 </div>
