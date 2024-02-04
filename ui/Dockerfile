@@ -16,7 +16,6 @@ FROM base AS builder
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY .svelte-kit .svelte-kit
 COPY src src
 COPY static static
 COPY package.json \
