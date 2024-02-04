@@ -3,6 +3,7 @@
   import MemoEditor from '$components/MemoEditor.svelte'
   import { createMemo } from '$lib/apis/backend/memo'
   import { syncUserData } from '$lib/auth'
+  import { mapToMemo } from '$lib/memo'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
 
@@ -12,13 +13,12 @@
     try {
       await syncUserData()
 
-      await createMemo(event.detail)
+      const memo = mapToMemo(await createMemo(event.detail))
+      goto(`/${memo.id}`)
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       return
     }
-
-    goto('/')
   }
 
   function onMemoCancel() {
