@@ -146,17 +146,15 @@
       <span class="text-xs opacity-70">Update {formatDate(memo.updateTime)}</span>
     </div>
   </div>
-  <div class="mt-2 flex justify-end gap-x-1">
-    <LinkCopyButton link={pageUrl.toString()} />
-    {#if hasWritePermission}
+  {#if hasWritePermission}
+    <div class="mt-2 flex justify-end gap-x-1">
+      <LinkCopyButton link={pageUrl.toString()} />
       <LinkShareButton
         link={pageUrl.toString()}
         isShared={memo.isPublished}
         on:share={onShareEvent}
       />
-    {/if}
-  </div>
-  {#if hasWritePermission}
+    </div>
     <div class="mt-4 flex justify-end gap-x-1">
       <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button>
       <button on:click={onDeleteClick} class="btn btn-outline btn-primary outline-none"
