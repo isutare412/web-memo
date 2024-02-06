@@ -9,7 +9,7 @@ export enum SortOrder {
 }
 
 export const defaultPageSize = 10
-export const defaultSortOrder = SortOrder.CREATE_TIME
+export const defaultSortOrder = SortOrder.UPDATE_TIME
 
 export const reservedTags = ['published']
 
