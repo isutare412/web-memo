@@ -10,6 +10,7 @@
   const dispatch = createEventDispatcher()
 
   let tagInputValue = ''
+  let textareaElement: HTMLTextAreaElement
   let titleWarning = false
   let tagWarning: string | undefined = undefined
   let isSubmitting = false
@@ -46,6 +47,37 @@
 
   function onTagClick(event: CustomEvent<{ name: string }>) {
     tags = tags.filter((tag) => tag !== event.detail.name)
+  }
+
+  function onTextareaKeydown(
+    event: KeyboardEvent & {
+      currentTarget: EventTarget & HTMLTextAreaElement
+    }
+  ) {
+    if (event.key === 'Enter' && !event.isComposing) {
+      insertListSymbolTextarea(event)
+      return
+    }
+
+    if (event.key === '~') {
+      strikeThroughTextarea(event)
+      return
+    }
+
+    if (event.key === '`') {
+      codeBlockTextarea(event)
+      return
+    }
+
+    if (event.key === '(' || event.key === ')') {
+      parenthesisTextarea(event)
+      return
+    }
+
+    if (event.key === '[' || event.key === ']') {
+      squareBraketTextarea(event)
+      return
+    }
   }
 
   async function onSubmit() {
@@ -91,6 +123,185 @@
     tags.push(value)
     tags = tags.toSorted()
     tagInputValue = ''
+  }
+
+  function insertListSymbolTextarea(
+    event: KeyboardEvent & {
+      currentTarget: EventTarget & HTMLTextAreaElement
+    }
+  ) {
+    const cursorPos = textareaElement.selectionStart
+    const textBeforeCursor = textareaElement.value.substring(0, cursorPos)
+    const textAfterCursor = textareaElement.value.substring(cursorPos)
+    const linesBeforeCursor = textBeforeCursor.split('\n')
+    const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1]
+
+    const match = lastLine.match(/^(\s*)([-*+]|[0-9]+[.)])\s(.*)/)
+    if (!match) return
+
+    event.preventDefault()
+
+    const indent = match[1]
+    const listSymbol = match[2]
+    const listContents = match[3]
+
+    if (listContents === '') {
+      textareaElement.value = textBeforeCursor.slice(0, -lastLine.length) + textAfterCursor
+      textareaElement.selectionStart = cursorPos - lastLine.length
+      textareaElement.selectionEnd = textareaElement.selectionStart
+      return
+    }
+
+    let newLineText = ''
+    let newListSymbol = ''
+    if (listSymbol.match(/[0-9]+[.)]/)) {
+      const currentNumber = parseInt(listSymbol, 10)
+      newLineText = '\n' + indent + (currentNumber + 1) + '. '
+      newListSymbol = (currentNumber + 1).toString() + '.'
+    } else {
+      newLineText = '\n' + indent + listSymbol + ' '
+      newListSymbol = listSymbol
+    }
+
+    textareaElement.value = textBeforeCursor + newLineText + textAfterCursor
+    textareaElement.selectionStart = cursorPos + indent.length + newListSymbol.length + 2
+    textareaElement.selectionEnd = textareaElement.selectionStart
+  }
+
+  function strikeThroughTextarea(
+    event: KeyboardEvent & {
+      currentTarget: EventTarget & HTMLTextAreaElement
+    }
+  ) {
+    const selectionStart = textareaElement.selectionStart
+    const selectionEnd = textareaElement.selectionEnd
+    if (selectionStart >= selectionEnd) return
+
+    event.preventDefault()
+
+    const textBeforeSelection = textareaElement.value.substring(0, selectionStart)
+    const textInsideSelection = textareaElement.value.substring(selectionStart, selectionEnd)
+    const textAfterSelection = textareaElement.value.substring(selectionEnd)
+
+    if (
+      textInsideSelection.length > 4 &&
+      textInsideSelection.startsWith('~~') &&
+      textInsideSelection.endsWith('~~')
+    ) {
+      textareaElement.value =
+        textBeforeSelection +
+        textInsideSelection.slice(2, textInsideSelection.length - 2) +
+        textAfterSelection
+      textareaElement.selectionStart = selectionStart
+      textareaElement.selectionEnd = selectionEnd - 4
+    } else {
+      textareaElement.value =
+        textBeforeSelection + '~~' + textInsideSelection + `~~` + textAfterSelection
+      textareaElement.selectionStart = selectionStart
+      textareaElement.selectionEnd = selectionEnd + 4
+    }
+  }
+
+  function codeBlockTextarea(
+    event: KeyboardEvent & {
+      currentTarget: EventTarget & HTMLTextAreaElement
+    }
+  ) {
+    const selectionStart = textareaElement.selectionStart
+    const selectionEnd = textareaElement.selectionEnd
+    if (selectionStart >= selectionEnd) return
+
+    event.preventDefault()
+
+    const textBeforeSelection = textareaElement.value.substring(0, selectionStart)
+    const textInsideSelection = textareaElement.value.substring(selectionStart, selectionEnd)
+    const textAfterSelection = textareaElement.value.substring(selectionEnd)
+
+    if (
+      textInsideSelection.length > 2 &&
+      textInsideSelection.startsWith('`') &&
+      textInsideSelection.endsWith('`')
+    ) {
+      textareaElement.value =
+        textBeforeSelection +
+        textInsideSelection.slice(1, textInsideSelection.length - 1) +
+        textAfterSelection
+      textareaElement.selectionStart = selectionStart
+      textareaElement.selectionEnd = selectionEnd - 2
+    } else {
+      textareaElement.value =
+        textBeforeSelection + '`' + textInsideSelection + '`' + textAfterSelection
+      textareaElement.selectionStart = selectionStart
+      textareaElement.selectionEnd = selectionEnd + 2
+    }
+  }
+
+  function parenthesisTextarea(
+    event: KeyboardEvent & {
+      currentTarget: EventTarget & HTMLTextAreaElement
+    }
+  ) {
+    const selectionStart = textareaElement.selectionStart
+    const selectionEnd = textareaElement.selectionEnd
+    if (selectionStart >= selectionEnd) return
+
+    event.preventDefault()
+
+    const textBeforeSelection = textareaElement.value.substring(0, selectionStart)
+    const textInsideSelection = textareaElement.value.substring(selectionStart, selectionEnd)
+    const textAfterSelection = textareaElement.value.substring(selectionEnd)
+
+    if (
+      textInsideSelection.length > 2 &&
+      textInsideSelection.startsWith('(') &&
+      textInsideSelection.endsWith(')')
+    ) {
+      textareaElement.value =
+        textBeforeSelection +
+        textInsideSelection.slice(1, textInsideSelection.length - 1) +
+        textAfterSelection
+      textareaElement.selectionStart = selectionStart
+      textareaElement.selectionEnd = selectionEnd - 2
+    } else {
+      textareaElement.value =
+        textBeforeSelection + '(' + textInsideSelection + ')' + textAfterSelection
+      textareaElement.selectionStart = selectionStart
+      textareaElement.selectionEnd = selectionEnd + 2
+    }
+  }
+
+  function squareBraketTextarea(
+    event: KeyboardEvent & {
+      currentTarget: EventTarget & HTMLTextAreaElement
+    }
+  ) {
+    const selectionStart = textareaElement.selectionStart
+    const selectionEnd = textareaElement.selectionEnd
+    if (selectionStart >= selectionEnd) return
+
+    event.preventDefault()
+
+    const textBeforeSelection = textareaElement.value.substring(0, selectionStart)
+    const textInsideSelection = textareaElement.value.substring(selectionStart, selectionEnd)
+    const textAfterSelection = textareaElement.value.substring(selectionEnd)
+
+    if (
+      textInsideSelection.length > 2 &&
+      textInsideSelection.startsWith('[') &&
+      textInsideSelection.endsWith(']')
+    ) {
+      textareaElement.value =
+        textBeforeSelection +
+        textInsideSelection.slice(1, textInsideSelection.length - 1) +
+        textAfterSelection
+      textareaElement.selectionStart = selectionStart
+      textareaElement.selectionEnd = selectionEnd - 2
+    } else {
+      textareaElement.value =
+        textBeforeSelection + '[' + textInsideSelection + ']' + textAfterSelection
+      textareaElement.selectionStart = selectionStart
+      textareaElement.selectionEnd = selectionEnd + 2
+    }
   }
 </script>
 
@@ -147,7 +358,9 @@
   </div>
   <textarea
     placeholder="Content"
+    bind:this={textareaElement}
     bind:value={content}
+    on:keydown={onTextareaKeydown}
     class="textarea textarea-bordered focus:border-primary h-[360px] text-base focus:outline-none"
   />
 </div>
