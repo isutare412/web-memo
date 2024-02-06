@@ -30,18 +30,14 @@ COPY package.json \
 RUN npm run build
 
 # Production image, copy all the files and run
-FROM --platform=linux/amd64 gcr.io/distroless/nodejs20-debian12:debug AS runner
-
-# distroless does not have /bin/sh.
-# https://github.com/GoogleContainerTools/distroless/issues/419#issuecomment-542708073
-SHELL ["/busybox/sh", "-c"]
+FROM base AS runner
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/build ./server
+RUN npm ci --omit dev
 
 ENV HOST=0.0.0.0
 ENV PORT=80
 
-CMD ["server"]
+CMD ["node", "server"]
