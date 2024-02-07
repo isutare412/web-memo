@@ -139,13 +139,12 @@
     const match = lastLine.match(/^(\s*)([-*+]|[0-9]+[.)])\s(.*)/)
     if (!match) return
 
-    event.preventDefault()
-
     const indent = match[1]
     const listSymbol = match[2]
     const listContents = match[3]
 
     if (listContents === '') {
+      event.preventDefault()
       textareaElement.value = textBeforeCursor.slice(0, -lastLine.length) + textAfterCursor
       textareaElement.selectionStart = cursorPos - lastLine.length
       textareaElement.selectionEnd = textareaElement.selectionStart
@@ -163,9 +162,15 @@
       newListSymbol = listSymbol
     }
 
-    textareaElement.value = textBeforeCursor + newLineText + textAfterCursor
-    textareaElement.selectionStart = cursorPos + indent.length + newListSymbol.length + 2
-    textareaElement.selectionEnd = textareaElement.selectionStart
+    // Korean in iOS Safari does not fire composition event. As we cannot check
+    // event.isComposing, we just delay the modification after composition
+    // terminates by iOS.
+    // https://discussionskorea.apple.com/thread/251376323?sortBy=best
+    setTimeout(() => {
+      textareaElement.value = textBeforeCursor + newLineText + textAfterCursor
+      textareaElement.selectionStart = cursorPos + indent.length + newListSymbol.length + 2
+      textareaElement.selectionEnd = textareaElement.selectionStart
+    }, 50)
   }
 
   function strikeThroughTextarea(
