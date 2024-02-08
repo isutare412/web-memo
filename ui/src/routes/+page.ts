@@ -10,14 +10,10 @@ export const load = (async (event) => {
   let paramUpdated = false
 
   const pageSize = getPreferredPageSize()
-  if (pageSize !== null && setPageSizeOfSearchParams(searchParams, pageSize)) {
-    paramUpdated = true
-  }
+  paramUpdated ||= pageSize !== null && setPageSizeOfSearchParams(searchParams, pageSize)
 
   const sortOrder = getPreferredSortOrder()
-  if (sortOrder !== null && setSortOrderOfSearchParams(searchParams, sortOrder)) {
-    paramUpdated = true
-  }
+  paramUpdated ||= sortOrder !== null && setSortOrderOfSearchParams(searchParams, sortOrder)
 
   if (paramUpdated) {
     redirect(302, `/?${searchParams.toString()}`)
