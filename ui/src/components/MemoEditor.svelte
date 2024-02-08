@@ -1,7 +1,7 @@
 <script lang="ts">
   import Tag from '$components/Tag.svelte'
   import { reservedTags } from '$lib/memo'
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, tick } from 'svelte'
 
   export let tags: string[] = []
   export let title: string = ''
@@ -125,7 +125,7 @@
     tagInputValue = ''
   }
 
-  function insertListSymbolTextarea(
+  async function insertListSymbolTextarea(
     event: KeyboardEvent & {
       currentTarget: EventTarget & HTMLTextAreaElement
     }
@@ -145,7 +145,8 @@
 
     if (listContents === '') {
       event.preventDefault()
-      textareaElement.value = textBeforeCursor.slice(0, -lastLine.length) + textAfterCursor
+      content = textBeforeCursor.slice(0, -lastLine.length) + textAfterCursor
+      await tick()
       textareaElement.selectionStart = cursorPos - lastLine.length
       textareaElement.selectionEnd = textareaElement.selectionStart
       return
@@ -166,14 +167,15 @@
     // event.isComposing, we just delay the modification after composition
     // terminates by iOS.
     // https://discussionskorea.apple.com/thread/251376323?sortBy=best
-    setTimeout(() => {
-      textareaElement.value = textBeforeCursor + newLineText + textAfterCursor
+    setTimeout(async () => {
+      content = textBeforeCursor + newLineText + textAfterCursor
+      await tick()
       textareaElement.selectionStart = cursorPos + indent.length + newListSymbol.length + 2
       textareaElement.selectionEnd = textareaElement.selectionStart
     }, 50)
   }
 
-  function strikeThroughTextarea(
+  async function strikeThroughTextarea(
     event: KeyboardEvent & {
       currentTarget: EventTarget & HTMLTextAreaElement
     }
@@ -193,21 +195,22 @@
       textInsideSelection.startsWith('~~') &&
       textInsideSelection.endsWith('~~')
     ) {
-      textareaElement.value =
+      content =
         textBeforeSelection +
         textInsideSelection.slice(2, textInsideSelection.length - 2) +
         textAfterSelection
+      await tick()
       textareaElement.selectionStart = selectionStart
       textareaElement.selectionEnd = selectionEnd - 4
     } else {
-      textareaElement.value =
-        textBeforeSelection + '~~' + textInsideSelection + `~~` + textAfterSelection
+      content = textBeforeSelection + '~~' + textInsideSelection + `~~` + textAfterSelection
+      await tick()
       textareaElement.selectionStart = selectionStart
       textareaElement.selectionEnd = selectionEnd + 4
     }
   }
 
-  function codeBlockTextarea(
+  async function codeBlockTextarea(
     event: KeyboardEvent & {
       currentTarget: EventTarget & HTMLTextAreaElement
     }
@@ -227,21 +230,22 @@
       textInsideSelection.startsWith('`') &&
       textInsideSelection.endsWith('`')
     ) {
-      textareaElement.value =
+      content =
         textBeforeSelection +
         textInsideSelection.slice(1, textInsideSelection.length - 1) +
         textAfterSelection
+      await tick()
       textareaElement.selectionStart = selectionStart
       textareaElement.selectionEnd = selectionEnd - 2
     } else {
-      textareaElement.value =
-        textBeforeSelection + '`' + textInsideSelection + '`' + textAfterSelection
+      content = textBeforeSelection + '`' + textInsideSelection + '`' + textAfterSelection
+      await tick()
       textareaElement.selectionStart = selectionStart
       textareaElement.selectionEnd = selectionEnd + 2
     }
   }
 
-  function parenthesisTextarea(
+  async function parenthesisTextarea(
     event: KeyboardEvent & {
       currentTarget: EventTarget & HTMLTextAreaElement
     }
@@ -261,21 +265,22 @@
       textInsideSelection.startsWith('(') &&
       textInsideSelection.endsWith(')')
     ) {
-      textareaElement.value =
+      content =
         textBeforeSelection +
         textInsideSelection.slice(1, textInsideSelection.length - 1) +
         textAfterSelection
+      await tick()
       textareaElement.selectionStart = selectionStart
       textareaElement.selectionEnd = selectionEnd - 2
     } else {
-      textareaElement.value =
-        textBeforeSelection + '(' + textInsideSelection + ')' + textAfterSelection
+      content = textBeforeSelection + '(' + textInsideSelection + ')' + textAfterSelection
+      await tick()
       textareaElement.selectionStart = selectionStart
       textareaElement.selectionEnd = selectionEnd + 2
     }
   }
 
-  function squareBraketTextarea(
+  async function squareBraketTextarea(
     event: KeyboardEvent & {
       currentTarget: EventTarget & HTMLTextAreaElement
     }
@@ -295,15 +300,16 @@
       textInsideSelection.startsWith('[') &&
       textInsideSelection.endsWith(']')
     ) {
-      textareaElement.value =
+      content =
         textBeforeSelection +
         textInsideSelection.slice(1, textInsideSelection.length - 1) +
         textAfterSelection
+      await tick()
       textareaElement.selectionStart = selectionStart
       textareaElement.selectionEnd = selectionEnd - 2
     } else {
-      textareaElement.value =
-        textBeforeSelection + '[' + textInsideSelection + ']' + textAfterSelection
+      content = textBeforeSelection + '[' + textInsideSelection + ']' + textAfterSelection
+      await tick()
       textareaElement.selectionStart = selectionStart
       textareaElement.selectionEnd = selectionEnd + 2
     }
