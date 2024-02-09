@@ -15,11 +15,11 @@ export default {
     themes: [
       {
         light: {
-          ...require('daisyui/src/theming/themes')['[data-theme=light]'],
+          ...require('daisyui/src/theming/themes')['light'],
           '--btn-text-case': 'none',
         },
         dracula: {
-          ...require('daisyui/src/theming/themes')['[data-theme=dracula]'],
+          ...require('daisyui/src/theming/themes')['dracula'],
           '--btn-text-case': 'none',
         },
       },
