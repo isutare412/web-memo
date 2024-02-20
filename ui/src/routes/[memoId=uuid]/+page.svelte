@@ -121,6 +121,10 @@
 <svelte:head>
   {#if memo !== undefined}
     <meta property="og:title" content={memo.title} />
+    <meta
+      property="og:description"
+      content={memo.content.length > 200 ? `${memo.content.slice(0, 197)}...` : memo.content}
+    />
   {/if}
 </svelte:head>
 
