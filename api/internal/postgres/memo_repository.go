@@ -14,8 +14,8 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
-	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
@@ -98,7 +98,11 @@ func (r *MemoRepository) FindAllByUserIDWithTags(
 
 	query := client.Memo.
 		Query().
-		Where(memo.HasOwnerWith(user.ID(userID))).
+		Where(
+			memo.Or(
+				memo.OwnerID(userID),
+				memo.HasSubscriptionsWith(subscription.UserID(userID)),
+			)).
 		WithTags().
 		Order(buildMemoOrderOption(sortParams, pageParams))
 
@@ -135,7 +139,11 @@ func (r *MemoRepository) FindAllByUserIDAndTagNamesWithTags(
 
 	query := client.Memo.
 		Query().
-		Where(memo.HasOwnerWith(user.ID(userID))).
+		Where(
+			memo.Or(
+				memo.OwnerID(userID),
+				memo.HasSubscriptionsWith(subscription.UserID(userID)),
+			)).
 		WithTags().
 		Order(buildMemoOrderOption(sortParams, pageParams))
 
@@ -173,7 +181,11 @@ func (r *MemoRepository) CountByUserIDAndTagNames(ctx context.Context, userID uu
 
 	query := client.Memo.
 		Query().
-		Where(memo.OwnerID(userID))
+		Where(
+			memo.Or(
+				memo.OwnerID(userID),
+				memo.HasSubscriptionsWith(subscription.UserID(userID)),
+			))
 
 	if len(tags) > 0 {
 		tagsMatch := lo.Map(
@@ -209,6 +221,12 @@ func (r *MemoRepository) Create(
 	if err != nil {
 		return nil, err
 	}
+
+	contentDecoded, err := base64Decode(memoCreated.Content)
+	if err != nil {
+		return nil, err
+	}
+	memoCreated.Content = contentDecoded
 
 	return memoCreated, nil
 }
@@ -269,6 +287,55 @@ func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagI
 		UpdateOneID(memoID).
 		ClearTags().
 		AddTagIDs(tagIDs...).
+		Exec(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memoID.String()),
+		}
+	case err != nil:
+		return err
+	}
+
+	return nil
+}
+
+func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
+	client := transactionClient(ctx, r.client)
+
+	err := client.Memo.
+		UpdateOneID(memoID).
+		AddSubscriberIDs(userID).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *MemoRepository) UnregisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
+	client := transactionClient(ctx, r.client)
+
+	err := client.Memo.
+		UpdateOneID(memoID).
+		RemoveSubscriberIDs(userID).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *MemoRepository) ClearSubscribers(ctx context.Context, memoID uuid.UUID) error {
+	client := transactionClient(ctx, r.client)
+
+	err := client.Memo.
+		UpdateOneID(memoID).
+		ClearSubscribers().
 		Exec(ctx)
 	switch {
 	case ent.IsNotFound(err):

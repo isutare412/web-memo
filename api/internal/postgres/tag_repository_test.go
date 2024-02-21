@@ -35,13 +35,23 @@ var _ = Describe("TagRepository", func() {
 
 	Context("with fake data", func() {
 		var (
-			fakeUser = &ent.User{
-				Email:      "faker-user@gmail.com",
-				UserName:   "Alice Bob",
-				GivenName:  "Alice",
-				FamilyName: "Bob",
-				PhotoURL:   "google.com/picture",
-				Type:       enum.UserTypeClient,
+			fakeUsers = [...]*ent.User{
+				{
+					Email:      "faker-user@gmail.com",
+					UserName:   "Alice Bob",
+					GivenName:  "Alice",
+					FamilyName: "Bob",
+					PhotoURL:   "google.com/picture",
+					Type:       enum.UserTypeClient,
+				},
+				{
+					Email:      "another-user@gmail.com",
+					UserName:   "Charlie Decart",
+					GivenName:  "Charlie",
+					FamilyName: "Decart",
+					PhotoURL:   "google.com/picture2",
+					Type:       enum.UserTypeClient,
+				},
 			}
 			fakeMemo = &ent.Memo{
 				Title:   "memo-one",
@@ -59,9 +69,11 @@ var _ = Describe("TagRepository", func() {
 
 		// Insert fake data
 		BeforeEach(func(ctx SpecContext) {
-			userCreated, err := userRepository.Upsert(ctx, fakeUser)
-			Expect(err).NotTo(HaveOccurred())
-			fakeUser = userCreated
+			for i, u := range fakeUsers {
+				userCreated, err := userRepository.Upsert(ctx, u)
+				Expect(err).NotTo(HaveOccurred())
+				fakeUsers[i] = userCreated
+			}
 
 			for i, tag := range fakeTags {
 				tagCreated, err := tagRepository.CreateIfNotExist(ctx, tag.Name)
@@ -70,9 +82,13 @@ var _ = Describe("TagRepository", func() {
 			}
 
 			tagIDs := lo.Map(fakeTags[:], func(t *ent.Tag, _ int) int { return t.ID })
-			memoCreated, err := memoRepository.Create(ctx, fakeMemo, fakeUser.ID, tagIDs)
+			memoCreated, err := memoRepository.Create(ctx, fakeMemo, fakeUsers[0].ID, tagIDs)
 			Expect(err).NotTo(HaveOccurred())
 			fakeMemo = memoCreated
+
+			if err := memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID); err != nil {
+				Expect(err).NotTo(HaveOccurred())
+			}
 		})
 
 		// Delete fake data
@@ -99,17 +115,23 @@ var _ = Describe("TagRepository", func() {
 
 		Context("FindAllByUserIDAndNameContains", func() {
 			It("returns all if name is zero-value", func(ctx SpecContext) {
-				tags, err := tagRepository.FindAllByUserIDAndNameContains(ctx, fakeUser.ID, "")
+				tags, err := tagRepository.FindAllByUserIDAndNameContains(ctx, fakeUsers[0].ID, "")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(tags)).To(Equal(2))
 				Expect(slices.IsSortedFunc(tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })).To(BeTrue())
 			})
 
 			It("returns tags by name", func(ctx SpecContext) {
-				tags, err := tagRepository.FindAllByUserIDAndNameContains(ctx, fakeUser.ID, "one")
+				tags, err := tagRepository.FindAllByUserIDAndNameContains(ctx, fakeUsers[0].ID, "one")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(tags)).To(Equal(1))
 				Expect(tags[0].Name).To(Equal(fakeTags[0].Name))
+			})
+
+			It("returns by subscriber", func(ctx SpecContext) {
+				tags, err := tagRepository.FindAllByUserIDAndNameContains(ctx, fakeUsers[1].ID, "")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(tags) > 0).To(BeTrue())
 			})
 		})
 

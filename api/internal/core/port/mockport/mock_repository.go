@@ -95,6 +95,21 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// FindAllBySubscribingMemoID mocks base method.
+func (m *MockUserRepository) FindAllBySubscribingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAllBySubscribingMemoID", ctx, memoID)
+	ret0, _ := ret[0].([]*ent.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAllBySubscribingMemoID indicates an expected call of FindAllBySubscribingMemoID.
+func (mr *MockUserRepositoryMockRecorder) FindAllBySubscribingMemoID(ctx, memoID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllBySubscribingMemoID", reflect.TypeOf((*MockUserRepository)(nil).FindAllBySubscribingMemoID), ctx, memoID)
+}
+
 // FindByEmail mocks base method.
 func (m *MockUserRepository) FindByEmail(ctx context.Context, email string) (*ent.User, error) {
 	m.ctrl.T.Helper()
@@ -161,6 +176,20 @@ func NewMockMemoRepository(ctrl *gomock.Controller) *MockMemoRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockMemoRepository) EXPECT() *MockMemoRepositoryMockRecorder {
 	return m.recorder
+}
+
+// ClearSubscribers mocks base method.
+func (m *MockMemoRepository) ClearSubscribers(ctx context.Context, memoID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ClearSubscribers", ctx, memoID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ClearSubscribers indicates an expected call of ClearSubscribers.
+func (mr *MockMemoRepositoryMockRecorder) ClearSubscribers(ctx, memoID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearSubscribers", reflect.TypeOf((*MockMemoRepository)(nil).ClearSubscribers), ctx, memoID)
 }
 
 // CountByUserIDAndTagNames mocks base method.
@@ -267,6 +296,20 @@ func (mr *MockMemoRepositoryMockRecorder) FindByIDWithTags(ctx, memoID any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindByIDWithTags), ctx, memoID)
 }
 
+// RegisterSubscriber mocks base method.
+func (m *MockMemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterSubscriber", ctx, memoID, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegisterSubscriber indicates an expected call of RegisterSubscriber.
+func (mr *MockMemoRepositoryMockRecorder) RegisterSubscriber(ctx, memoID, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterSubscriber", reflect.TypeOf((*MockMemoRepository)(nil).RegisterSubscriber), ctx, memoID, userID)
+}
+
 // ReplaceTags mocks base method.
 func (m *MockMemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error {
 	m.ctrl.T.Helper()
@@ -279,6 +322,20 @@ func (m *MockMemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, 
 func (mr *MockMemoRepositoryMockRecorder) ReplaceTags(ctx, memoID, tagIDs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoRepository)(nil).ReplaceTags), ctx, memoID, tagIDs)
+}
+
+// UnregisterSubscriber mocks base method.
+func (m *MockMemoRepository) UnregisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnregisterSubscriber", ctx, memoID, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnregisterSubscriber indicates an expected call of UnregisterSubscriber.
+func (mr *MockMemoRepositoryMockRecorder) UnregisterSubscriber(ctx, memoID, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnregisterSubscriber", reflect.TypeOf((*MockMemoRepository)(nil).UnregisterSubscriber), ctx, memoID, userID)
 }
 
 // Update mocks base method.

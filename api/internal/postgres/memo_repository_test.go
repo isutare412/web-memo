@@ -34,13 +34,23 @@ var _ = Describe("MemoRepository", func() {
 
 	Context("with fake data", func() {
 		var (
-			fakeUser = &ent.User{
-				Email:      "faker-user@gmail.com",
-				UserName:   "Alice Bob",
-				GivenName:  "Alice",
-				FamilyName: "Bob",
-				PhotoURL:   "google.com/picture",
-				Type:       enum.UserTypeClient,
+			fakeUsers = [...]*ent.User{
+				{
+					Email:      "faker-user@gmail.com",
+					UserName:   "Alice Bob",
+					GivenName:  "Alice",
+					FamilyName: "Bob",
+					PhotoURL:   "google.com/picture",
+					Type:       enum.UserTypeClient,
+				},
+				{
+					Email:      "another-user@gmail.com",
+					UserName:   "Charlie Decart",
+					GivenName:  "Charlie",
+					FamilyName: "Decart",
+					PhotoURL:   "google.com/picture2",
+					Type:       enum.UserTypeClient,
+				},
 			}
 			fakeMemos = [...]*ent.Memo{
 				{
@@ -64,9 +74,11 @@ var _ = Describe("MemoRepository", func() {
 
 		// Insert fake data
 		BeforeEach(func(ctx SpecContext) {
-			userCreated, err := userRepository.Upsert(ctx, fakeUser)
-			Expect(err).NotTo(HaveOccurred())
-			fakeUser = userCreated
+			for i, u := range fakeUsers {
+				userCreated, err := userRepository.Upsert(ctx, u)
+				Expect(err).NotTo(HaveOccurred())
+				fakeUsers[i] = userCreated
+			}
 
 			for i, tag := range fakeTags {
 				tagCreated, err := tagRepository.CreateIfNotExist(ctx, tag.Name)
@@ -76,16 +88,20 @@ var _ = Describe("MemoRepository", func() {
 
 			Expect(fakeMemos).To(HaveLen(len(fakeTags)))
 			for i, memo := range fakeMemos {
-				memoCreated, err := memoRepository.Create(ctx, memo, fakeUser.ID, []int{fakeTags[i].ID})
+				memoCreated, err := memoRepository.Create(ctx, memo, fakeUsers[0].ID, []int{fakeTags[i].ID})
 				Expect(err).NotTo(HaveOccurred())
 				fakeMemos[i] = memoCreated
+
+				if err := memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID); err != nil {
+					Expect(err).NotTo(HaveOccurred())
+				}
 			}
 		})
 
 		// Delete fake data
 		AfterEach(func(ctx SpecContext) {
 			memos, err := memoRepository.FindAllByUserIDWithTags(
-				ctx, fakeUser.ID, model.MemoSortParams{}, model.PaginationParams{})
+				ctx, fakeUsers[0].ID, model.MemoSortParams{}, model.PaginationParams{})
 			Expect(err).NotTo(HaveOccurred())
 			for _, memo := range memos {
 				_ = memoRepository.Delete(ctx, memo.ID)
@@ -127,10 +143,17 @@ var _ = Describe("MemoRepository", func() {
 		Context("FindAllByUserIDWithTags", func() {
 			It("finds memos of user", func(ctx SpecContext) {
 				memos, err := memoRepository.FindAllByUserIDWithTags(
-					ctx, fakeUser.ID, model.MemoSortParams{}, model.PaginationParams{})
+					ctx, fakeUsers[0].ID, model.MemoSortParams{}, model.PaginationParams{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(len(fakeMemos)))
 				Expect(memos[0].Edges.Tags).NotTo(HaveLen(0))
+			})
+
+			It("finds memos by subscriber", func(ctx SpecContext) {
+				memos, err := memoRepository.FindAllByUserIDWithTags(
+					ctx, fakeUsers[1].ID, model.MemoSortParams{}, model.PaginationParams{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(memos).To(HaveLen(len(fakeMemos)))
 			})
 
 			It("finds memos with pagination", func(ctx SpecContext) {
@@ -144,11 +167,11 @@ var _ = Describe("MemoRepository", func() {
 					}
 				)
 
-				memos, err := memoRepository.FindAllByUserIDWithTags(ctx, fakeUser.ID, givenSortParams, givenPageParams)
+				memos, err := memoRepository.FindAllByUserIDWithTags(ctx, fakeUsers[0].ID, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(1))
 				Expect(memos[0].ID).To(Equal(fakeMemos[0].ID))
-				Expect(memos[0].OwnerID).To(Equal(fakeUser.ID))
+				Expect(memos[0].OwnerID).To(Equal(fakeUsers[0].ID))
 			})
 
 			It("finds nothing if unknown ID", func(ctx SpecContext) {
@@ -173,11 +196,11 @@ var _ = Describe("MemoRepository", func() {
 				)
 
 				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithTags(
-					ctx, fakeUser.ID, givenTagNames, givenSortParams, givenPageParams)
+					ctx, fakeUsers[0].ID, givenTagNames, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(1))
 				Expect(memos[0].ID).To(Equal(fakeMemos[0].ID))
-				Expect(memos[0].OwnerID).To(Equal(fakeUser.ID))
+				Expect(memos[0].OwnerID).To(Equal(fakeUsers[0].ID))
 			})
 
 			It("finds nothing if tag name does not match", func(ctx SpecContext) {
@@ -188,7 +211,7 @@ var _ = Describe("MemoRepository", func() {
 				)
 
 				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithTags(
-					ctx, fakeUser.ID, givenTagNames, givenSortParams, givenPageParams)
+					ctx, fakeUsers[0].ID, givenTagNames, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(0))
 			})
@@ -196,7 +219,7 @@ var _ = Describe("MemoRepository", func() {
 
 		Context("CountByUserIDAndTagNames", func() {
 			It("counts memos of user", func(ctx SpecContext) {
-				count, err := memoRepository.CountByUserIDAndTagNames(ctx, fakeUser.ID, nil)
+				count, err := memoRepository.CountByUserIDAndTagNames(ctx, fakeUsers[0].ID, nil)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(count).To(Equal(len(fakeMemos)))
 			})
@@ -206,7 +229,7 @@ var _ = Describe("MemoRepository", func() {
 					givenTagNames = []string{fakeTags[0].Name}
 				)
 
-				count, err := memoRepository.CountByUserIDAndTagNames(ctx, fakeUser.ID, givenTagNames)
+				count, err := memoRepository.CountByUserIDAndTagNames(ctx, fakeUsers[0].ID, givenTagNames)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(count).To(Equal(1))
 			})
@@ -224,10 +247,11 @@ var _ = Describe("MemoRepository", func() {
 
 				fakeMemoIDs := lo.Map(fakeMemos[:], func(m *ent.Memo, _ int) uuid.UUID { return m.ID })
 
-				memo, err := memoRepository.Create(ctx, givenMemo, fakeUser.ID, givenTagIDs)
+				memo, err := memoRepository.Create(ctx, givenMemo, fakeUsers[0].ID, givenTagIDs)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memo).NotTo(BeNil())
 				Expect(memo.ID).NotTo(BeElementOf(fakeMemoIDs))
+				Expect(memo.Content).To(Equal(givenMemo.Content))
 			})
 
 			It("returns error if title is empty", func(ctx SpecContext) {
@@ -235,7 +259,7 @@ var _ = Describe("MemoRepository", func() {
 					givenMemo = &ent.Memo{}
 				)
 
-				_, err := memoRepository.Create(ctx, givenMemo, fakeUser.ID, nil)
+				_, err := memoRepository.Create(ctx, givenMemo, fakeUsers[0].ID, nil)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -312,6 +336,38 @@ var _ = Describe("MemoRepository", func() {
 				err := memoRepository.ReplaceTags(ctx, uuid.Must(uuid.NewRandom()), nil)
 				Expect(pkgerr.IsErrNotFound(err)).To(BeTrue())
 			})
+		})
+
+		Context("RegisterSubscriber", func() {
+			It("registers subscriber", func(ctx SpecContext) {
+				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("emits error if memo does not exist", func(ctx SpecContext) {
+				err := memoRepository.RegisterSubscriber(ctx, uuid.Must(uuid.NewRandom()), fakeUsers[0].ID)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("emits error if user does not exist", func(ctx SpecContext) {
+				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, uuid.Must(uuid.NewRandom()))
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("emits error if user already subscribed", func(ctx SpecContext) {
+				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[1].ID)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("UnregisterSubscriber", func() {
+			It("unregisters subscriber", func(ctx SpecContext) {
+				err := memoRepository.UnregisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[1].ID)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("ClearSubscribers", func() {
 		})
 	})
 })

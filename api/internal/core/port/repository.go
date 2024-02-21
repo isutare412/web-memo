@@ -18,6 +18,7 @@ type TransactionManager interface {
 type UserRepository interface {
 	FindByID(ctx context.Context, userID uuid.UUID) (*ent.User, error)
 	FindByEmail(ctx context.Context, email string) (*ent.User, error)
+	FindAllBySubscribingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error)
 	Upsert(context.Context, *ent.User) (*ent.User, error)
 }
 
@@ -36,6 +37,10 @@ type MemoRepository interface {
 	Delete(ctx context.Context, memoID uuid.UUID) error
 
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error
+
+	RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error
+	UnregisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error
+	ClearSubscribers(ctx context.Context, memoID uuid.UUID) error
 }
 
 type TagRepository interface {

@@ -14,6 +14,7 @@ import (
 var _ = Describe("UserRepository", func() {
 	var (
 		userRepository *UserRepository
+		memoRepository *MemoRepository
 	)
 
 	BeforeEach(func(ctx SpecContext) {
@@ -25,6 +26,7 @@ var _ = Describe("UserRepository", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		userRepository = NewUserRepository(client)
+		memoRepository = NewMemoRepository(client)
 	})
 
 	Context("with fake data", func() {
@@ -47,6 +49,11 @@ var _ = Describe("UserRepository", func() {
 					Type:       enum.UserTypeClient,
 				},
 			}
+			fakeMemos = [...]*ent.Memo{
+				{
+					Title: "memo-one",
+				},
+			}
 		)
 
 		// Insert fake data
@@ -56,6 +63,15 @@ var _ = Describe("UserRepository", func() {
 				Expect(err).NotTo(HaveOccurred())
 				fakeUsers[i] = userCreated
 			}
+
+			for i, memo := range fakeMemos {
+				memoCreated, err := memoRepository.Create(ctx, memo, fakeUsers[0].ID, nil)
+				Expect(err).NotTo(HaveOccurred())
+				fakeMemos[i] = memoCreated
+			}
+
+			err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[0].ID)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("FindByID", func() {
@@ -83,6 +99,15 @@ var _ = Describe("UserRepository", func() {
 			It("returns not found error if unknown email", func(ctx SpecContext) {
 				_, err := userRepository.FindByEmail(ctx, "complex-email@abc.com")
 				Expect(pkgerr.IsErrNotFound(err)).To(BeTrue())
+			})
+		})
+
+		Context("FindAllBySubscribingMemoID", func() {
+			It("finds only subscribers", func(ctx SpecContext) {
+				subscribers, err := userRepository.FindAllBySubscribingMemoID(ctx, fakeMemos[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(subscribers).To(HaveLen(1))
+				Expect(subscribers[0].ID).To(Equal(fakeUsers[0].ID))
 			})
 		})
 

@@ -9,8 +9,8 @@ import (
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
-	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
 
 type TagRepository struct {
@@ -49,7 +49,11 @@ func (r *TagRepository) FindAllByUserIDAndNameContains(
 	tags, err := client.Tag.
 		Query().
 		Where(
-			tag.HasMemosWith(memo.HasOwnerWith(user.ID(userID))),
+			tag.HasMemosWith(
+				memo.Or(
+					memo.OwnerID(userID),
+					memo.HasSubscriptionsWith(subscription.UserID(userID)),
+				)),
 			tag.NameContainsFold(name),
 		).
 		All(ctx)

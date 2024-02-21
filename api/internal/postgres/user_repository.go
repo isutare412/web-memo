@@ -9,6 +9,8 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
@@ -60,6 +62,21 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*ent.Us
 	}
 
 	return userFound, nil
+}
+
+func (r *UserRepository) FindAllBySubscribingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
+	client := transactionClient(ctx, r.client)
+
+	users, err := client.User.
+		Query().
+		Where(user.HasSubscribingMemosWith(memo.ID(memoID))).
+		Order(user.BySubscriptions(sql.OrderByField(subscription.FieldCreateTime, sql.OrderDesc()))).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (r *UserRepository) Upsert(ctx context.Context, usr *ent.User) (*ent.User, error) {
