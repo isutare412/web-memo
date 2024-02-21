@@ -28,17 +28,20 @@ type Service struct {
 	transactionManager port.TransactionManager
 	memoRepository     port.MemoRepository
 	tagRepository      port.TagRepository
+	userRepository     port.UserRepository
 }
 
 func NewService(
 	transactionManager port.TransactionManager,
 	memoRepository port.MemoRepository,
 	tagRepository port.TagRepository,
+	userReposiotry port.UserRepository,
 ) *Service {
 	return &Service{
 		transactionManager: transactionManager,
 		memoRepository:     memoRepository,
 		tagRepository:      tagRepository,
+		userRepository:     userReposiotry,
 	}
 }
 
@@ -231,6 +234,12 @@ func (s *Service) UpdateMemoPublishedState(
 			return fmt.Errorf("updating memo published state: %w", err)
 		}
 
+		if !publish {
+			if err := s.memoRepository.ClearSubscribers(ctx, memoFound.ID); err != nil {
+				return fmt.Errorf("clearing subscribers: %w", err)
+			}
+		}
+
 		tags, err := s.tagRepository.FindAllByMemoID(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding tags of memo: %w", err)
@@ -377,6 +386,126 @@ func (s *Service) DeleteOrphanTags(ctx context.Context) (count int, err error) {
 	return count, nil
 }
 
+func (s *Service) ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.User, error) {
+	var subscribers []*ent.User
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanWriteMemo(memo) {
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
+		}
+
+		users, err := s.userRepository.FindAllBySubscribingMemoID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding subscribers: %w", err)
+		}
+
+		subscribers = users
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("during transaction: %w", err)
+	}
+
+	return subscribers, nil
+}
+
+func (s *Service) SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
+	if requester == nil {
+		return pkgerr.Known{
+			Code:      pkgerr.CodeUnauthenticated,
+			ClientMsg: "must be signed-in for subscription",
+		}
+	}
+
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+		if memo.OwnerID == requester.UserID {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: "cannot subscribe memo of your own",
+			}
+		}
+
+		subscribers, err := s.userRepository.FindAllBySubscribingMemoID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding existing subscribers: %w", err)
+		}
+
+		if _, ok := lo.Find(subscribers, func(u *ent.User) bool { return u.ID == requester.UserID }); ok {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: "already subscribed memo",
+			}
+		}
+
+		if err := s.memoRepository.RegisterSubscriber(ctx, memoID, requester.UserID); err != nil {
+			return fmt.Errorf("registering subscriber: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("during transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Service) UnsubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
+	if requester == nil {
+		return pkgerr.Known{
+			Code:      pkgerr.CodeUnauthenticated,
+			ClientMsg: "must be signed-in for subscription",
+		}
+	}
+
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+		if memo.OwnerID == requester.UserID {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: "cannot unsubscribe memo of your own",
+			}
+		}
+
+		subscribers, err := s.userRepository.FindAllBySubscribingMemoID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding existing subscribers: %w", err)
+		}
+
+		if _, ok := lo.Find(subscribers, func(u *ent.User) bool { return u.ID == requester.UserID }); !ok {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: "memo is not subscribed",
+			}
+		}
+
+		if err := s.memoRepository.UnregisterSubscriber(ctx, memoID, requester.UserID); err != nil {
+			return fmt.Errorf("unregistering subscriber: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("during transaction: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Service) ensureTags(ctx context.Context, tagNames []string) ([]*ent.Tag, error) {
 	if err := validateTags(tagNames); err != nil {
 		return nil, fmt.Errorf("validating tags: %w", err)
@@ -400,14 +529,14 @@ func validateTags(tags []string) error {
 		if utf8.RuneCountInString(tag) > 20 {
 			return pkgerr.Known{
 				Code:      pkgerr.CodeBadRequest,
-				ClientMsg: fmt.Sprintf("length of tag should be less or equal to 20"),
+				ClientMsg: "length of tag should be less or equal to 20",
 			}
 		}
 
 		if strings.TrimSpace(tag) == "" {
 			return pkgerr.Known{
 				Code:      pkgerr.CodeBadRequest,
-				ClientMsg: fmt.Sprintf("tag should not be blank"),
+				ClientMsg: "tag should not be blank",
 			}
 		}
 	}

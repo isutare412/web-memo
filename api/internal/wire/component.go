@@ -52,7 +52,7 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 
 	authService := auth.NewService(
 		cfg.ToAuthServiceConfig(), postgresClient, kvRepository, userRepository, googleClient, jwtClient)
-	memoService := memo.NewService(postgresClient, memoRepository, tagRepository)
+	memoService := memo.NewService(postgresClient, memoRepository, tagRepository, userRepository)
 
 	pingers := []port.Pinger{
 		postgresClient,

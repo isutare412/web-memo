@@ -186,6 +186,21 @@ func (mr *MockMemoServiceMockRecorder) ListMemos(ctx, userID, tags, sortParams, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMemos", reflect.TypeOf((*MockMemoService)(nil).ListMemos), ctx, userID, tags, sortParams, pageParams)
 }
 
+// ListSubscribers mocks base method.
+func (m *MockMemoService) ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSubscribers", ctx, memoID, requester)
+	ret0, _ := ret[0].([]*ent.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSubscribers indicates an expected call of ListSubscribers.
+func (mr *MockMemoServiceMockRecorder) ListSubscribers(ctx, memoID, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubscribers", reflect.TypeOf((*MockMemoService)(nil).ListSubscribers), ctx, memoID, requester)
+}
+
 // ListTags mocks base method.
 func (m *MockMemoService) ListTags(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.Tag, error) {
 	m.ctrl.T.Helper()
@@ -229,6 +244,34 @@ func (m *MockMemoService) SearchTags(ctx context.Context, keyword string, reques
 func (mr *MockMemoServiceMockRecorder) SearchTags(ctx, keyword, requester any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchTags", reflect.TypeOf((*MockMemoService)(nil).SearchTags), ctx, keyword, requester)
+}
+
+// SubscribeMemo mocks base method.
+func (m *MockMemoService) SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeMemo", ctx, memoID, requester)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SubscribeMemo indicates an expected call of SubscribeMemo.
+func (mr *MockMemoServiceMockRecorder) SubscribeMemo(ctx, memoID, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeMemo", reflect.TypeOf((*MockMemoService)(nil).SubscribeMemo), ctx, memoID, requester)
+}
+
+// UnsubscribeMemo mocks base method.
+func (m *MockMemoService) UnsubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnsubscribeMemo", ctx, memoID, requester)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnsubscribeMemo indicates an expected call of UnsubscribeMemo.
+func (mr *MockMemoServiceMockRecorder) UnsubscribeMemo(ctx, memoID, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnsubscribeMemo", reflect.TypeOf((*MockMemoService)(nil).UnsubscribeMemo), ctx, memoID, requester)
 }
 
 // UpdateMemo mocks base method.
