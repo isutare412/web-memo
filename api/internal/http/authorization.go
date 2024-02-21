@@ -14,8 +14,6 @@ import (
 
 const cookieNameWebMemoToken = "wmToken"
 
-type contextKeyPassport struct{}
-
 type passport struct {
 	token *model.AppIDToken
 }

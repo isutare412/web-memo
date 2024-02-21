@@ -92,3 +92,19 @@ func (r *replaceMemoRequest) toMemo() *ent.Memo {
 type publishMemoRequest struct {
 	Publish *bool `json:"publish" validate:"required"`
 }
+
+type subscribeMemoRequest struct {
+	Subscribe *bool `json:"subscribe" validate:"required"`
+}
+
+type listSubscribersResponse struct {
+	Subscribers []*subscriber `json:"subscribers"`
+}
+
+type subscriber struct {
+	ID uuid.UUID `json:"id"`
+}
+
+func (s *subscriber) fromUser(u *ent.User) {
+	s.ID = u.ID
+}

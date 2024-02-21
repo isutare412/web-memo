@@ -36,9 +36,11 @@ func (h *memoHandler) router() *chi.Mux {
 	r.Post("/", h.createMemo)
 	r.Put("/{memoID}", h.replaceMemo)
 	r.Post("/{memoID}/publish", h.publishMemo)
+	r.Post("/{memoID}/subscribe", h.subscribeMemo)
 	r.Delete("/{memoID}", h.deleteMemo)
 	r.Get("/{memoID}/tags", h.listMemoTags)
 	r.Put("/{memoID}/tags", h.replaceMemoTags)
+	r.Get("/{memoID}/subscribers", h.listSubscribers)
 
 	return r
 }
@@ -247,6 +249,51 @@ func (h *memoHandler) publishMemo(w http.ResponseWriter, r *http.Request) {
 	responseJSON(w, &resp)
 }
 
+func (h *memoHandler) subscribeMemo(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+
+	var req subscribeMemoRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			Origin:    fmt.Errorf("decoding request body: %w", err),
+			ClientMsg: "invalid request body",
+		})
+		return
+	}
+	if err := validate.Struct(&req); err != nil {
+		responseError(w, r, fmt.Errorf("validating request body: %w", err))
+		return
+	}
+
+	switch *req.Subscribe {
+	case true:
+		if err := h.memoService.SubscribeMemo(ctx, memoID, passport.token); err != nil {
+			responseError(w, r, fmt.Errorf("subscribing memo: %w", err))
+			return
+		}
+	default:
+		if err := h.memoService.UnsubscribeMemo(ctx, memoID, passport.token); err != nil {
+			responseError(w, r, fmt.Errorf("subscribing memo: %w", err))
+			return
+		}
+	}
+
+	responseStatusCode(w, http.StatusOK)
+}
+
 func (h *memoHandler) deleteMemo(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -327,6 +374,36 @@ func (h *memoHandler) listMemoTags(w http.ResponseWriter, r *http.Request) {
 
 	resp := lo.Map(tagsFound, func(tag *ent.Tag, _ int) string { return tag.Name })
 	responseJSON(w, &resp)
+}
+
+func (h *memoHandler) listSubscribers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+
+	subscribers, err := h.memoService.ListSubscribers(ctx, memoID, passport.token)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("listing subscribers: %w", err))
+		return
+	}
+
+	responseJSON(w, &listSubscribersResponse{
+		Subscribers: lo.Map(subscribers, func(u *ent.User, _ int) *subscriber {
+			var s subscriber
+			s.fromUser(u)
+			return &s
+		}),
+	})
 }
 
 func getMemoID(r *http.Request) (uuid.UUID, error) {
