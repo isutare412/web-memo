@@ -16,6 +16,8 @@ type Tx struct {
 	config
 	// Memo is the client for interacting with the Memo builders.
 	Memo *MemoClient
+	// Subscription is the client for interacting with the Subscription builders.
+	Subscription *SubscriptionClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// User is the client for interacting with the User builders.
@@ -152,6 +154,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Memo = NewMemoClient(tx.config)
+	tx.Subscription = NewSubscriptionClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

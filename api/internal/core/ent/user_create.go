@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
@@ -149,6 +150,36 @@ func (uc *UserCreate) AddMemos(m ...*Memo) *UserCreate {
 		ids[i] = m[i].ID
 	}
 	return uc.AddMemoIDs(ids...)
+}
+
+// AddSubscribingMemoIDs adds the "subscribing_memos" edge to the Memo entity by IDs.
+func (uc *UserCreate) AddSubscribingMemoIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddSubscribingMemoIDs(ids...)
+	return uc
+}
+
+// AddSubscribingMemos adds the "subscribing_memos" edges to the Memo entity.
+func (uc *UserCreate) AddSubscribingMemos(m ...*Memo) *UserCreate {
+	ids := make([]uuid.UUID, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return uc.AddSubscribingMemoIDs(ids...)
+}
+
+// AddSubscriptionIDs adds the "subscriptions" edge to the Subscription entity by IDs.
+func (uc *UserCreate) AddSubscriptionIDs(ids ...int) *UserCreate {
+	uc.mutation.AddSubscriptionIDs(ids...)
+	return uc
+}
+
+// AddSubscriptions adds the "subscriptions" edges to the Subscription entity.
+func (uc *UserCreate) AddSubscriptions(s ...*Subscription) *UserCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return uc.AddSubscriptionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -328,6 +359,42 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.SubscribingMemosIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.SubscribingMemosTable,
+			Columns: user.SubscribingMemosPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(memo.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubscriptionCreate{config: uc.config, mutation: newSubscriptionMutation(uc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.SubscriptionsTable,
+			Columns: []string{user.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

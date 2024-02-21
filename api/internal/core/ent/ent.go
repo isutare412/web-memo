@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
@@ -75,9 +76,10 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			memo.Table: memo.ValidColumn,
-			tag.Table:  tag.ValidColumn,
-			user.Table: user.ValidColumn,
+			memo.Table:         memo.ValidColumn,
+			subscription.Table: subscription.ValidColumn,
+			tag.Table:          tag.ValidColumn,
+			user.Table:         user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

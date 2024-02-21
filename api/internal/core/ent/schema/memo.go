@@ -45,5 +45,8 @@ func (Memo) Edges() []ent.Edge {
 			Unique().
 			Field("owner_id"),
 		edge.To("tags", Tag.Type),
+		edge.From("subscribers", User.Type).
+			Ref("subscribing_memos").
+			Through("subscriptions", Subscription.Type),
 	}
 }

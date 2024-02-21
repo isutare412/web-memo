@@ -31,6 +31,10 @@ const (
 	EdgeOwner = "owner"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
+	// EdgeSubscribers holds the string denoting the subscribers edge name in mutations.
+	EdgeSubscribers = "subscribers"
+	// EdgeSubscriptions holds the string denoting the subscriptions edge name in mutations.
+	EdgeSubscriptions = "subscriptions"
 	// Table holds the table name of the memo in the database.
 	Table = "memos"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -45,6 +49,18 @@ const (
 	// TagsInverseTable is the table name for the Tag entity.
 	// It exists in this package in order to avoid circular dependency with the "tag" package.
 	TagsInverseTable = "tags"
+	// SubscribersTable is the table that holds the subscribers relation/edge. The primary key declared below.
+	SubscribersTable = "subscriptions"
+	// SubscribersInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	SubscribersInverseTable = "users"
+	// SubscriptionsTable is the table that holds the subscriptions relation/edge.
+	SubscriptionsTable = "subscriptions"
+	// SubscriptionsInverseTable is the table name for the Subscription entity.
+	// It exists in this package in order to avoid circular dependency with the "subscription" package.
+	SubscriptionsInverseTable = "subscriptions"
+	// SubscriptionsColumn is the table column denoting the subscriptions relation/edge.
+	SubscriptionsColumn = "memo_id"
 )
 
 // Columns holds all SQL columns for memo fields.
@@ -62,6 +78,9 @@ var (
 	// TagsPrimaryKey and TagsColumn2 are the table columns denoting the
 	// primary key for the tags relation (M2M).
 	TagsPrimaryKey = []string{"memo_id", "tag_id"}
+	// SubscribersPrimaryKey and SubscribersColumn2 are the table columns denoting the
+	// primary key for the subscribers relation (M2M).
+	SubscribersPrimaryKey = []string{"user_id", "memo_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -149,6 +168,34 @@ func ByTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySubscribersCount orders the results by subscribers count.
+func BySubscribersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSubscribersStep(), opts...)
+	}
+}
+
+// BySubscribers orders the results by subscribers terms.
+func BySubscribers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubscribersStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySubscriptionsCount orders the results by subscriptions count.
+func BySubscriptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSubscriptionsStep(), opts...)
+	}
+}
+
+// BySubscriptions orders the results by subscriptions terms.
+func BySubscriptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubscriptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -161,5 +208,19 @@ func newTagsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TagsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, TagsTable, TagsPrimaryKey...),
+	)
+}
+func newSubscribersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SubscribersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, SubscribersTable, SubscribersPrimaryKey...),
+	)
+}
+func newSubscriptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SubscriptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, SubscriptionsTable, SubscriptionsColumn),
 	)
 }

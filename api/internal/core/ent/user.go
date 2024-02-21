@@ -45,9 +45,13 @@ type User struct {
 type UserEdges struct {
 	// Memos holds the value of the memos edge.
 	Memos []*Memo `json:"memos,omitempty"`
+	// SubscribingMemos holds the value of the subscribing_memos edge.
+	SubscribingMemos []*Memo `json:"subscribing_memos,omitempty"`
+	// Subscriptions holds the value of the subscriptions edge.
+	Subscriptions []*Subscription `json:"subscriptions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // MemosOrErr returns the Memos value or an error if the edge
@@ -57,6 +61,24 @@ func (e UserEdges) MemosOrErr() ([]*Memo, error) {
 		return e.Memos, nil
 	}
 	return nil, &NotLoadedError{edge: "memos"}
+}
+
+// SubscribingMemosOrErr returns the SubscribingMemos value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SubscribingMemosOrErr() ([]*Memo, error) {
+	if e.loadedTypes[1] {
+		return e.SubscribingMemos, nil
+	}
+	return nil, &NotLoadedError{edge: "subscribing_memos"}
+}
+
+// SubscriptionsOrErr returns the Subscriptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SubscriptionsOrErr() ([]*Subscription, error) {
+	if e.loadedTypes[2] {
+		return e.Subscriptions, nil
+	}
+	return nil, &NotLoadedError{edge: "subscriptions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -155,6 +177,16 @@ func (u *User) Value(name string) (ent.Value, error) {
 // QueryMemos queries the "memos" edge of the User entity.
 func (u *User) QueryMemos() *MemoQuery {
 	return NewUserClient(u.config).QueryMemos(u)
+}
+
+// QuerySubscribingMemos queries the "subscribing_memos" edge of the User entity.
+func (u *User) QuerySubscribingMemos() *MemoQuery {
+	return NewUserClient(u.config).QuerySubscribingMemos(u)
+}
+
+// QuerySubscriptions queries the "subscriptions" edge of the User entity.
+func (u *User) QuerySubscriptions() *SubscriptionQuery {
+	return NewUserClient(u.config).QuerySubscriptions(u)
 }
 
 // Update returns a builder for updating this User.

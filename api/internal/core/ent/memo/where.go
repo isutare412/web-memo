@@ -372,6 +372,52 @@ func HasTagsWith(preds ...predicate.Tag) predicate.Memo {
 	})
 }
 
+// HasSubscribers applies the HasEdge predicate on the "subscribers" edge.
+func HasSubscribers() predicate.Memo {
+	return predicate.Memo(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, SubscribersTable, SubscribersPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSubscribersWith applies the HasEdge predicate on the "subscribers" edge with a given conditions (other predicates).
+func HasSubscribersWith(preds ...predicate.User) predicate.Memo {
+	return predicate.Memo(func(s *sql.Selector) {
+		step := newSubscribersStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSubscriptions applies the HasEdge predicate on the "subscriptions" edge.
+func HasSubscriptions() predicate.Memo {
+	return predicate.Memo(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, SubscriptionsTable, SubscriptionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSubscriptionsWith applies the HasEdge predicate on the "subscriptions" edge with a given conditions (other predicates).
+func HasSubscriptionsWith(preds ...predicate.Subscription) predicate.Memo {
+	return predicate.Memo(func(s *sql.Selector) {
+		step := newSubscriptionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Memo) predicate.Memo {
 	return predicate.Memo(sql.AndPredicates(predicates...))

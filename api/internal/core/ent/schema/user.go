@@ -57,5 +57,8 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("memos", Memo.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("subscribing_memos", Memo.Type).
+			Through("subscriptions", Subscription.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

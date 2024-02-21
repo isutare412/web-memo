@@ -32,6 +32,40 @@ var (
 			},
 		},
 	}
+	// SubscriptionsColumns holds the columns for the "subscriptions" table.
+	SubscriptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "memo_id", Type: field.TypeUUID},
+	}
+	// SubscriptionsTable holds the schema information for the "subscriptions" table.
+	SubscriptionsTable = &schema.Table{
+		Name:       "subscriptions",
+		Columns:    SubscriptionsColumns,
+		PrimaryKey: []*schema.Column{SubscriptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "subscriptions_users_subscriber",
+				Columns:    []*schema.Column{SubscriptionsColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "subscriptions_memos_memo",
+				Columns:    []*schema.Column{SubscriptionsColumns[3]},
+				RefColumns: []*schema.Column{MemosColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "subscription_memo_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{SubscriptionsColumns[3], SubscriptionsColumns[2]},
+			},
+		},
+	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -91,6 +125,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		MemosTable,
+		SubscriptionsTable,
 		TagsTable,
 		UsersTable,
 		MemoTagsTable,
@@ -99,6 +134,8 @@ var (
 
 func init() {
 	MemosTable.ForeignKeys[0].RefTable = UsersTable
+	SubscriptionsTable.ForeignKeys[0].RefTable = UsersTable
+	SubscriptionsTable.ForeignKeys[1].RefTable = MemosTable
 	MemoTagsTable.ForeignKeys[0].RefTable = MemosTable
 	MemoTagsTable.ForeignKeys[1].RefTable = TagsTable
 }

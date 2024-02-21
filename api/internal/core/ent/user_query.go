@@ -14,17 +14,20 @@ import (
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
 
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx        *QueryContext
-	order      []user.OrderOption
-	inters     []Interceptor
-	predicates []predicate.User
-	withMemos  *MemoQuery
+	ctx                  *QueryContext
+	order                []user.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.User
+	withMemos            *MemoQuery
+	withSubscribingMemos *MemoQuery
+	withSubscriptions    *SubscriptionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +79,50 @@ func (uq *UserQuery) QueryMemos() *MemoQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(memo.Table, memo.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.MemosTable, user.MemosColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySubscribingMemos chains the current query on the "subscribing_memos" edge.
+func (uq *UserQuery) QuerySubscribingMemos() *MemoQuery {
+	query := (&MemoClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(memo.Table, memo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.SubscribingMemosTable, user.SubscribingMemosPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySubscriptions chains the current query on the "subscriptions" edge.
+func (uq *UserQuery) QuerySubscriptions() *SubscriptionQuery {
+	query := (&SubscriptionClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.SubscriptionsTable, user.SubscriptionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -270,12 +317,14 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     uq.config,
-		ctx:        uq.ctx.Clone(),
-		order:      append([]user.OrderOption{}, uq.order...),
-		inters:     append([]Interceptor{}, uq.inters...),
-		predicates: append([]predicate.User{}, uq.predicates...),
-		withMemos:  uq.withMemos.Clone(),
+		config:               uq.config,
+		ctx:                  uq.ctx.Clone(),
+		order:                append([]user.OrderOption{}, uq.order...),
+		inters:               append([]Interceptor{}, uq.inters...),
+		predicates:           append([]predicate.User{}, uq.predicates...),
+		withMemos:            uq.withMemos.Clone(),
+		withSubscribingMemos: uq.withSubscribingMemos.Clone(),
+		withSubscriptions:    uq.withSubscriptions.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -290,6 +339,28 @@ func (uq *UserQuery) WithMemos(opts ...func(*MemoQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withMemos = query
+	return uq
+}
+
+// WithSubscribingMemos tells the query-builder to eager-load the nodes that are connected to
+// the "subscribing_memos" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithSubscribingMemos(opts ...func(*MemoQuery)) *UserQuery {
+	query := (&MemoClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withSubscribingMemos = query
+	return uq
+}
+
+// WithSubscriptions tells the query-builder to eager-load the nodes that are connected to
+// the "subscriptions" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithSubscriptions(opts ...func(*SubscriptionQuery)) *UserQuery {
+	query := (&SubscriptionClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withSubscriptions = query
 	return uq
 }
 
@@ -371,8 +442,10 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [3]bool{
 			uq.withMemos != nil,
+			uq.withSubscribingMemos != nil,
+			uq.withSubscriptions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +470,20 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadMemos(ctx, query, nodes,
 			func(n *User) { n.Edges.Memos = []*Memo{} },
 			func(n *User, e *Memo) { n.Edges.Memos = append(n.Edges.Memos, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withSubscribingMemos; query != nil {
+		if err := uq.loadSubscribingMemos(ctx, query, nodes,
+			func(n *User) { n.Edges.SubscribingMemos = []*Memo{} },
+			func(n *User, e *Memo) { n.Edges.SubscribingMemos = append(n.Edges.SubscribingMemos, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withSubscriptions; query != nil {
+		if err := uq.loadSubscriptions(ctx, query, nodes,
+			func(n *User) { n.Edges.Subscriptions = []*Subscription{} },
+			func(n *User, e *Subscription) { n.Edges.Subscriptions = append(n.Edges.Subscriptions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -428,6 +515,97 @@ func (uq *UserQuery) loadMemos(ctx context.Context, query *MemoQuery, nodes []*U
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "owner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadSubscribingMemos(ctx context.Context, query *MemoQuery, nodes []*User, init func(*User), assign func(*User, *Memo)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*User)
+	nids := make(map[uuid.UUID]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.SubscribingMemosTable)
+		s.Join(joinT).On(s.C(memo.FieldID), joinT.C(user.SubscribingMemosPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.SubscribingMemosPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.SubscribingMemosPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Memo](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "subscribing_memos" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadSubscriptions(ctx context.Context, query *SubscriptionQuery, nodes []*User, init func(*User), assign func(*User, *Subscription)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(subscription.FieldUserID)
+	}
+	query.Where(predicate.Subscription(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.SubscriptionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

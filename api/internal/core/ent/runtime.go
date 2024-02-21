@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/schema"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
@@ -61,6 +62,12 @@ func init() {
 	memoDescID := memoFields[0].Descriptor()
 	// memo.DefaultID holds the default value on creation for the id field.
 	memo.DefaultID = memoDescID.Default.(func() uuid.UUID)
+	subscriptionFields := schema.Subscription{}.Fields()
+	_ = subscriptionFields
+	// subscriptionDescCreateTime is the schema descriptor for create_time field.
+	subscriptionDescCreateTime := subscriptionFields[2].Descriptor()
+	// subscription.DefaultCreateTime holds the default value on creation for the create_time field.
+	subscription.DefaultCreateTime = subscriptionDescCreateTime.Default.(func() time.Time)
 	tagMixin := schema.Tag{}.Mixin()
 	tagMixinFields0 := tagMixin[0].Fields()
 	_ = tagMixinFields0

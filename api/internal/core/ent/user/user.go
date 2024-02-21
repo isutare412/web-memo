@@ -35,6 +35,10 @@ const (
 	FieldType = "type"
 	// EdgeMemos holds the string denoting the memos edge name in mutations.
 	EdgeMemos = "memos"
+	// EdgeSubscribingMemos holds the string denoting the subscribing_memos edge name in mutations.
+	EdgeSubscribingMemos = "subscribing_memos"
+	// EdgeSubscriptions holds the string denoting the subscriptions edge name in mutations.
+	EdgeSubscriptions = "subscriptions"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MemosTable is the table that holds the memos relation/edge.
@@ -44,6 +48,18 @@ const (
 	MemosInverseTable = "memos"
 	// MemosColumn is the table column denoting the memos relation/edge.
 	MemosColumn = "owner_id"
+	// SubscribingMemosTable is the table that holds the subscribing_memos relation/edge. The primary key declared below.
+	SubscribingMemosTable = "subscriptions"
+	// SubscribingMemosInverseTable is the table name for the Memo entity.
+	// It exists in this package in order to avoid circular dependency with the "memo" package.
+	SubscribingMemosInverseTable = "memos"
+	// SubscriptionsTable is the table that holds the subscriptions relation/edge.
+	SubscriptionsTable = "subscriptions"
+	// SubscriptionsInverseTable is the table name for the Subscription entity.
+	// It exists in this package in order to avoid circular dependency with the "subscription" package.
+	SubscriptionsInverseTable = "subscriptions"
+	// SubscriptionsColumn is the table column denoting the subscriptions relation/edge.
+	SubscriptionsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -58,6 +74,12 @@ var Columns = []string{
 	FieldPhotoURL,
 	FieldType,
 }
+
+var (
+	// SubscribingMemosPrimaryKey and SubscribingMemosColumn2 are the table columns denoting the
+	// primary key for the subscribing_memos relation (M2M).
+	SubscribingMemosPrimaryKey = []string{"user_id", "memo_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -163,10 +185,52 @@ func ByMemos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMemosStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// BySubscribingMemosCount orders the results by subscribing_memos count.
+func BySubscribingMemosCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSubscribingMemosStep(), opts...)
+	}
+}
+
+// BySubscribingMemos orders the results by subscribing_memos terms.
+func BySubscribingMemos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubscribingMemosStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySubscriptionsCount orders the results by subscriptions count.
+func BySubscriptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSubscriptionsStep(), opts...)
+	}
+}
+
+// BySubscriptions orders the results by subscriptions terms.
+func BySubscriptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubscriptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMemosStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MemosInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MemosTable, MemosColumn),
+	)
+}
+func newSubscribingMemosStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SubscribingMemosInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, SubscribingMemosTable, SubscribingMemosPrimaryKey...),
+	)
+}
+func newSubscriptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SubscriptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, SubscriptionsTable, SubscriptionsColumn),
 	)
 }

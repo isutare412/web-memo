@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
@@ -21,12 +22,14 @@ import (
 // MemoQuery is the builder for querying Memo entities.
 type MemoQuery struct {
 	config
-	ctx        *QueryContext
-	order      []memo.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Memo
-	withOwner  *UserQuery
-	withTags   *TagQuery
+	ctx               *QueryContext
+	order             []memo.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.Memo
+	withOwner         *UserQuery
+	withTags          *TagQuery
+	withSubscribers   *UserQuery
+	withSubscriptions *SubscriptionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +103,50 @@ func (mq *MemoQuery) QueryTags() *TagQuery {
 			sqlgraph.From(memo.Table, memo.FieldID, selector),
 			sqlgraph.To(tag.Table, tag.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, memo.TagsTable, memo.TagsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySubscribers chains the current query on the "subscribers" edge.
+func (mq *MemoQuery) QuerySubscribers() *UserQuery {
+	query := (&UserClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(memo.Table, memo.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, memo.SubscribersTable, memo.SubscribersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySubscriptions chains the current query on the "subscriptions" edge.
+func (mq *MemoQuery) QuerySubscriptions() *SubscriptionQuery {
+	query := (&SubscriptionClient{config: mq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(memo.Table, memo.FieldID, selector),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, memo.SubscriptionsTable, memo.SubscriptionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +341,15 @@ func (mq *MemoQuery) Clone() *MemoQuery {
 		return nil
 	}
 	return &MemoQuery{
-		config:     mq.config,
-		ctx:        mq.ctx.Clone(),
-		order:      append([]memo.OrderOption{}, mq.order...),
-		inters:     append([]Interceptor{}, mq.inters...),
-		predicates: append([]predicate.Memo{}, mq.predicates...),
-		withOwner:  mq.withOwner.Clone(),
-		withTags:   mq.withTags.Clone(),
+		config:            mq.config,
+		ctx:               mq.ctx.Clone(),
+		order:             append([]memo.OrderOption{}, mq.order...),
+		inters:            append([]Interceptor{}, mq.inters...),
+		predicates:        append([]predicate.Memo{}, mq.predicates...),
+		withOwner:         mq.withOwner.Clone(),
+		withTags:          mq.withTags.Clone(),
+		withSubscribers:   mq.withSubscribers.Clone(),
+		withSubscriptions: mq.withSubscriptions.Clone(),
 		// clone intermediate query.
 		sql:  mq.sql.Clone(),
 		path: mq.path,
@@ -326,6 +375,28 @@ func (mq *MemoQuery) WithTags(opts ...func(*TagQuery)) *MemoQuery {
 		opt(query)
 	}
 	mq.withTags = query
+	return mq
+}
+
+// WithSubscribers tells the query-builder to eager-load the nodes that are connected to
+// the "subscribers" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MemoQuery) WithSubscribers(opts ...func(*UserQuery)) *MemoQuery {
+	query := (&UserClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withSubscribers = query
+	return mq
+}
+
+// WithSubscriptions tells the query-builder to eager-load the nodes that are connected to
+// the "subscriptions" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MemoQuery) WithSubscriptions(opts ...func(*SubscriptionQuery)) *MemoQuery {
+	query := (&SubscriptionClient{config: mq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withSubscriptions = query
 	return mq
 }
 
@@ -407,9 +478,11 @@ func (mq *MemoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Memo, e
 	var (
 		nodes       = []*Memo{}
 		_spec       = mq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			mq.withOwner != nil,
 			mq.withTags != nil,
+			mq.withSubscribers != nil,
+			mq.withSubscriptions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -440,6 +513,20 @@ func (mq *MemoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Memo, e
 		if err := mq.loadTags(ctx, query, nodes,
 			func(n *Memo) { n.Edges.Tags = []*Tag{} },
 			func(n *Memo, e *Tag) { n.Edges.Tags = append(n.Edges.Tags, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mq.withSubscribers; query != nil {
+		if err := mq.loadSubscribers(ctx, query, nodes,
+			func(n *Memo) { n.Edges.Subscribers = []*User{} },
+			func(n *Memo, e *User) { n.Edges.Subscribers = append(n.Edges.Subscribers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := mq.withSubscriptions; query != nil {
+		if err := mq.loadSubscriptions(ctx, query, nodes,
+			func(n *Memo) { n.Edges.Subscriptions = []*Subscription{} },
+			func(n *Memo, e *Subscription) { n.Edges.Subscriptions = append(n.Edges.Subscriptions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -533,6 +620,97 @@ func (mq *MemoQuery) loadTags(ctx context.Context, query *TagQuery, nodes []*Mem
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (mq *MemoQuery) loadSubscribers(ctx context.Context, query *UserQuery, nodes []*Memo, init func(*Memo), assign func(*Memo, *User)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*Memo)
+	nids := make(map[uuid.UUID]map[*Memo]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(memo.SubscribersTable)
+		s.Join(joinT).On(s.C(user.FieldID), joinT.C(memo.SubscribersPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(memo.SubscribersPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(memo.SubscribersPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Memo]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "subscribers" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (mq *MemoQuery) loadSubscriptions(ctx context.Context, query *SubscriptionQuery, nodes []*Memo, init func(*Memo), assign func(*Memo, *Subscription)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Memo)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(subscription.FieldMemoID)
+	}
+	query.Where(predicate.Subscription(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(memo.SubscriptionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.MemoID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "memo_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

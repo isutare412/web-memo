@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
+	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 )
@@ -113,6 +114,36 @@ func (mu *MemoUpdate) AddTags(t ...*Tag) *MemoUpdate {
 	return mu.AddTagIDs(ids...)
 }
 
+// AddSubscriberIDs adds the "subscribers" edge to the User entity by IDs.
+func (mu *MemoUpdate) AddSubscriberIDs(ids ...uuid.UUID) *MemoUpdate {
+	mu.mutation.AddSubscriberIDs(ids...)
+	return mu
+}
+
+// AddSubscribers adds the "subscribers" edges to the User entity.
+func (mu *MemoUpdate) AddSubscribers(u ...*User) *MemoUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return mu.AddSubscriberIDs(ids...)
+}
+
+// AddSubscriptionIDs adds the "subscriptions" edge to the Subscription entity by IDs.
+func (mu *MemoUpdate) AddSubscriptionIDs(ids ...int) *MemoUpdate {
+	mu.mutation.AddSubscriptionIDs(ids...)
+	return mu
+}
+
+// AddSubscriptions adds the "subscriptions" edges to the Subscription entity.
+func (mu *MemoUpdate) AddSubscriptions(s ...*Subscription) *MemoUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return mu.AddSubscriptionIDs(ids...)
+}
+
 // Mutation returns the MemoMutation object of the builder.
 func (mu *MemoUpdate) Mutation() *MemoMutation {
 	return mu.mutation
@@ -143,6 +174,48 @@ func (mu *MemoUpdate) RemoveTags(t ...*Tag) *MemoUpdate {
 		ids[i] = t[i].ID
 	}
 	return mu.RemoveTagIDs(ids...)
+}
+
+// ClearSubscribers clears all "subscribers" edges to the User entity.
+func (mu *MemoUpdate) ClearSubscribers() *MemoUpdate {
+	mu.mutation.ClearSubscribers()
+	return mu
+}
+
+// RemoveSubscriberIDs removes the "subscribers" edge to User entities by IDs.
+func (mu *MemoUpdate) RemoveSubscriberIDs(ids ...uuid.UUID) *MemoUpdate {
+	mu.mutation.RemoveSubscriberIDs(ids...)
+	return mu
+}
+
+// RemoveSubscribers removes "subscribers" edges to User entities.
+func (mu *MemoUpdate) RemoveSubscribers(u ...*User) *MemoUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return mu.RemoveSubscriberIDs(ids...)
+}
+
+// ClearSubscriptions clears all "subscriptions" edges to the Subscription entity.
+func (mu *MemoUpdate) ClearSubscriptions() *MemoUpdate {
+	mu.mutation.ClearSubscriptions()
+	return mu
+}
+
+// RemoveSubscriptionIDs removes the "subscriptions" edge to Subscription entities by IDs.
+func (mu *MemoUpdate) RemoveSubscriptionIDs(ids ...int) *MemoUpdate {
+	mu.mutation.RemoveSubscriptionIDs(ids...)
+	return mu
+}
+
+// RemoveSubscriptions removes "subscriptions" edges to Subscription entities.
+func (mu *MemoUpdate) RemoveSubscriptions(s ...*Subscription) *MemoUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return mu.RemoveSubscriptionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -297,6 +370,108 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if mu.mutation.SubscribersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.SubscribersTable,
+			Columns: memo.SubscribersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		createE := &SubscriptionCreate{config: mu.config, mutation: newSubscriptionMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedSubscribersIDs(); len(nodes) > 0 && !mu.mutation.SubscribersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.SubscribersTable,
+			Columns: memo.SubscribersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubscriptionCreate{config: mu.config, mutation: newSubscriptionMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.SubscribersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.SubscribersTable,
+			Columns: memo.SubscribersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubscriptionCreate{config: mu.config, mutation: newSubscriptionMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.SubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.SubscriptionsTable,
+			Columns: []string{memo.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedSubscriptionsIDs(); len(nodes) > 0 && !mu.mutation.SubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.SubscriptionsTable,
+			Columns: []string{memo.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.SubscriptionsTable,
+			Columns: []string{memo.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{memo.Label}
@@ -399,6 +574,36 @@ func (muo *MemoUpdateOne) AddTags(t ...*Tag) *MemoUpdateOne {
 	return muo.AddTagIDs(ids...)
 }
 
+// AddSubscriberIDs adds the "subscribers" edge to the User entity by IDs.
+func (muo *MemoUpdateOne) AddSubscriberIDs(ids ...uuid.UUID) *MemoUpdateOne {
+	muo.mutation.AddSubscriberIDs(ids...)
+	return muo
+}
+
+// AddSubscribers adds the "subscribers" edges to the User entity.
+func (muo *MemoUpdateOne) AddSubscribers(u ...*User) *MemoUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return muo.AddSubscriberIDs(ids...)
+}
+
+// AddSubscriptionIDs adds the "subscriptions" edge to the Subscription entity by IDs.
+func (muo *MemoUpdateOne) AddSubscriptionIDs(ids ...int) *MemoUpdateOne {
+	muo.mutation.AddSubscriptionIDs(ids...)
+	return muo
+}
+
+// AddSubscriptions adds the "subscriptions" edges to the Subscription entity.
+func (muo *MemoUpdateOne) AddSubscriptions(s ...*Subscription) *MemoUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return muo.AddSubscriptionIDs(ids...)
+}
+
 // Mutation returns the MemoMutation object of the builder.
 func (muo *MemoUpdateOne) Mutation() *MemoMutation {
 	return muo.mutation
@@ -429,6 +634,48 @@ func (muo *MemoUpdateOne) RemoveTags(t ...*Tag) *MemoUpdateOne {
 		ids[i] = t[i].ID
 	}
 	return muo.RemoveTagIDs(ids...)
+}
+
+// ClearSubscribers clears all "subscribers" edges to the User entity.
+func (muo *MemoUpdateOne) ClearSubscribers() *MemoUpdateOne {
+	muo.mutation.ClearSubscribers()
+	return muo
+}
+
+// RemoveSubscriberIDs removes the "subscribers" edge to User entities by IDs.
+func (muo *MemoUpdateOne) RemoveSubscriberIDs(ids ...uuid.UUID) *MemoUpdateOne {
+	muo.mutation.RemoveSubscriberIDs(ids...)
+	return muo
+}
+
+// RemoveSubscribers removes "subscribers" edges to User entities.
+func (muo *MemoUpdateOne) RemoveSubscribers(u ...*User) *MemoUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return muo.RemoveSubscriberIDs(ids...)
+}
+
+// ClearSubscriptions clears all "subscriptions" edges to the Subscription entity.
+func (muo *MemoUpdateOne) ClearSubscriptions() *MemoUpdateOne {
+	muo.mutation.ClearSubscriptions()
+	return muo
+}
+
+// RemoveSubscriptionIDs removes the "subscriptions" edge to Subscription entities by IDs.
+func (muo *MemoUpdateOne) RemoveSubscriptionIDs(ids ...int) *MemoUpdateOne {
+	muo.mutation.RemoveSubscriptionIDs(ids...)
+	return muo
+}
+
+// RemoveSubscriptions removes "subscriptions" edges to Subscription entities.
+func (muo *MemoUpdateOne) RemoveSubscriptions(s ...*Subscription) *MemoUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return muo.RemoveSubscriptionIDs(ids...)
 }
 
 // Where appends a list predicates to the MemoUpdate builder.
@@ -606,6 +853,108 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.SubscribersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.SubscribersTable,
+			Columns: memo.SubscribersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		createE := &SubscriptionCreate{config: muo.config, mutation: newSubscriptionMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedSubscribersIDs(); len(nodes) > 0 && !muo.mutation.SubscribersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.SubscribersTable,
+			Columns: memo.SubscribersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubscriptionCreate{config: muo.config, mutation: newSubscriptionMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.SubscribersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.SubscribersTable,
+			Columns: memo.SubscribersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &SubscriptionCreate{config: muo.config, mutation: newSubscriptionMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.SubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.SubscriptionsTable,
+			Columns: []string{memo.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedSubscriptionsIDs(); len(nodes) > 0 && !muo.mutation.SubscriptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.SubscriptionsTable,
+			Columns: []string{memo.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.SubscriptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.SubscriptionsTable,
+			Columns: []string{memo.SubscriptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
