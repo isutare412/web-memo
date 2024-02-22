@@ -1,8 +1,10 @@
 package model
 
 import (
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 
+	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
@@ -20,4 +22,9 @@ func (p *PaginationParams) GetOrDefault() (page, pageSize int) {
 type MemoSortParams struct {
 	Key   enum.MemoSortKey
 	Order enum.SortOrder
+}
+
+type ListSubscribersResponse struct {
+	MemoOwnerID uuid.UUID
+	Subscribers []*ent.User
 }

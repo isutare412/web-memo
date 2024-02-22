@@ -386,15 +386,22 @@ func (s *Service) DeleteOrphanTags(ctx context.Context) (count int, err error) {
 	return count, nil
 }
 
-func (s *Service) ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.User, error) {
-	var subscribers []*ent.User
+func (s *Service) ListSubscribers(
+	ctx context.Context,
+	memoID uuid.UUID,
+	requester *model.AppIDToken,
+) (*model.ListSubscribersResponse, error) {
+	var (
+		ownerID     uuid.UUID
+		subscribers []*ent.User
+	)
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
 		memo, err := s.memoRepository.FindByID(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanWriteMemo(memo) {
+		if !requester.CanReadMemo(memo) {
 			return pkgerr.Known{
 				Code:      pkgerr.CodePermissionDenied,
 				ClientMsg: "not allowed to access memo",
@@ -406,6 +413,7 @@ func (s *Service) ListSubscribers(ctx context.Context, memoID uuid.UUID, request
 			return fmt.Errorf("finding subscribers: %w", err)
 		}
 
+		ownerID = memo.OwnerID
 		subscribers = users
 		return nil
 	})
@@ -413,7 +421,10 @@ func (s *Service) ListSubscribers(ctx context.Context, memoID uuid.UUID, request
 		return nil, fmt.Errorf("during transaction: %w", err)
 	}
 
-	return subscribers, nil
+	return &model.ListSubscribersResponse{
+		MemoOwnerID: ownerID,
+		Subscribers: subscribers,
+	}, nil
 }
 
 func (s *Service) SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
@@ -433,6 +444,13 @@ func (s *Service) SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester
 			return pkgerr.Known{
 				Code:      pkgerr.CodeBadRequest,
 				ClientMsg: "cannot subscribe memo of your own",
+			}
+		}
+
+		if !memo.IsPublished {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: "memo is not published",
 			}
 		}
 

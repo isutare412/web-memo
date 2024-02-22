@@ -32,7 +32,7 @@ type MemoService interface {
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagNames []string, requester *model.AppIDToken) ([]*ent.Tag, error)
 	DeleteOrphanTags(context.Context) (count int, err error)
 
-	ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.User, error)
+	ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListSubscribersResponse, error)
 	SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error
 	UnsubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error
 }

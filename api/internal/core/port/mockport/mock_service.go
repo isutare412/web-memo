@@ -187,10 +187,10 @@ func (mr *MockMemoServiceMockRecorder) ListMemos(ctx, userID, tags, sortParams, 
 }
 
 // ListSubscribers mocks base method.
-func (m *MockMemoService) ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.User, error) {
+func (m *MockMemoService) ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListSubscribersResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListSubscribers", ctx, memoID, requester)
-	ret0, _ := ret[0].([]*ent.User)
+	ret0, _ := ret[0].(*model.ListSubscribersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
