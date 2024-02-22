@@ -93,10 +93,6 @@ type publishMemoRequest struct {
 	Publish *bool `json:"publish" validate:"required"`
 }
 
-type subscribeMemoRequest struct {
-	Subscribe *bool `json:"subscribe" validate:"required"`
-}
-
 type listSubscribersResponse struct {
 	Subscribers []*subscriber `json:"subscribers"`
 }

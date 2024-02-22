@@ -1,4 +1,5 @@
 @memoId=<memoId>
+@userId=<userId>
 
 ###
 GET {{url}}/api/v1/google/sign-in
@@ -57,14 +58,6 @@ Authorization: Bearer {{idToken}}
 }
 
 ###
-POST {{url}}/api/v1/memos/{{memoId}}/subscribe
-Authorization: Bearer {{idToken}}
-
-{
-    "subscribe": true
-}
-
-###
 DELETE {{url}}/api/v1/memos/{{memoId}}
 Authorization: Bearer {{idToken}}
 
@@ -79,7 +72,19 @@ Authorization: Bearer {{idToken}}
 []
 
 ###
+GET {{url}}/api/v1/memos/{{memoId}}/subscribers/{{userId}}
+Authorization: Bearer {{idToken}}
+
+###
 GET {{url}}/api/v1/memos/{{memoId}}/subscribers
+Authorization: Bearer {{idToken}}
+
+###
+PUT {{url}}/api/v1/memos/{{memoId}}/subscribers/{{userId}}
+Authorization: Bearer {{idToken}}
+
+###
+DELETE {{url}}/api/v1/memos/{{memoId}}/subscribers/{{userId}}
 Authorization: Bearer {{idToken}}
 
 ###

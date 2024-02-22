@@ -36,11 +36,13 @@ func (h *memoHandler) router() *chi.Mux {
 	r.Post("/", h.createMemo)
 	r.Put("/{memoID}", h.replaceMemo)
 	r.Post("/{memoID}/publish", h.publishMemo)
-	r.Post("/{memoID}/subscribe", h.subscribeMemo)
 	r.Delete("/{memoID}", h.deleteMemo)
 	r.Get("/{memoID}/tags", h.listMemoTags)
 	r.Put("/{memoID}/tags", h.replaceMemoTags)
+	r.Get("/{memoID}/subscribers/{userID}", h.getSubscriber)
 	r.Get("/{memoID}/subscribers", h.listSubscribers)
+	r.Put("/{memoID}/subscribers/{userID}", h.subscribeMemo)
+	r.Delete("/{memoID}/subscribers/{userID}", h.unsubscribeMemo)
 
 	return r
 }
@@ -249,51 +251,6 @@ func (h *memoHandler) publishMemo(w http.ResponseWriter, r *http.Request) {
 	responseJSON(w, &resp)
 }
 
-func (h *memoHandler) subscribeMemo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	memoID, err := getMemoID(r)
-	if err != nil {
-		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
-		return
-	}
-
-	passport, ok := extractPassport(ctx)
-	if !ok {
-		responsePassportError(w, r)
-		return
-	}
-
-	var req subscribeMemoRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		responseError(w, r, pkgerr.Known{
-			Code:      pkgerr.CodeBadRequest,
-			Origin:    fmt.Errorf("decoding request body: %w", err),
-			ClientMsg: "invalid request body",
-		})
-		return
-	}
-	if err := validate.Struct(&req); err != nil {
-		responseError(w, r, fmt.Errorf("validating request body: %w", err))
-		return
-	}
-
-	switch *req.Subscribe {
-	case true:
-		if err := h.memoService.SubscribeMemo(ctx, memoID, passport.token); err != nil {
-			responseError(w, r, fmt.Errorf("subscribing memo: %w", err))
-			return
-		}
-	default:
-		if err := h.memoService.UnsubscribeMemo(ctx, memoID, passport.token); err != nil {
-			responseError(w, r, fmt.Errorf("subscribing memo: %w", err))
-			return
-		}
-	}
-
-	responseStatusCode(w, http.StatusOK)
-}
-
 func (h *memoHandler) deleteMemo(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -376,6 +333,52 @@ func (h *memoHandler) listMemoTags(w http.ResponseWriter, r *http.Request) {
 	responseJSON(w, &resp)
 }
 
+func (h *memoHandler) getSubscriber(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	userID, err := getUserID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting user ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+	if passport.token.UserID != userID {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "token and userID mismatch",
+		})
+		return
+	}
+
+	resp, err := h.memoService.ListSubscribers(ctx, memoID, passport.token)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("listing subscribers: %w", err))
+		return
+	}
+
+	userFound, ok := lo.Find(resp.Subscribers, func(u *ent.User) bool { return u.ID == userID })
+	if !ok {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			ClientMsg: "no such subscriber",
+		})
+		return
+	}
+
+	responseJSON(w, &subscriber{ID: userFound.ID})
+}
+
 func (h *memoHandler) listSubscribers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -391,19 +394,99 @@ func (h *memoHandler) listSubscribers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subscribers, err := h.memoService.ListSubscribers(ctx, memoID, passport.token)
+	resp, err := h.memoService.ListSubscribers(ctx, memoID, passport.token)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("listing subscribers: %w", err))
 		return
 	}
 
+	if resp.MemoOwnerID != passport.token.UserID {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "cannot list subscribers of other user's memo",
+		})
+		return
+	}
+
 	responseJSON(w, &listSubscribersResponse{
-		Subscribers: lo.Map(subscribers, func(u *ent.User, _ int) *subscriber {
+		Subscribers: lo.Map(resp.Subscribers, func(u *ent.User, _ int) *subscriber {
 			var s subscriber
 			s.fromUser(u)
 			return &s
 		}),
 	})
+}
+
+func (h *memoHandler) subscribeMemo(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	userID, err := getUserID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting user ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+	if passport.token.UserID != userID {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "token and userID mismatch",
+		})
+		return
+	}
+
+	if err := h.memoService.SubscribeMemo(ctx, memoID, passport.token); err != nil {
+		responseError(w, r, fmt.Errorf("subscribing memo: %w", err))
+		return
+	}
+
+	responseStatusCode(w, http.StatusOK)
+}
+
+func (h *memoHandler) unsubscribeMemo(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	userID, err := getUserID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting user ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+	if passport.token.UserID != userID {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "token and userID mismatch",
+		})
+		return
+	}
+
+	if err := h.memoService.UnsubscribeMemo(ctx, memoID, passport.token); err != nil {
+		responseError(w, r, fmt.Errorf("subscribing memo: %w", err))
+		return
+	}
+
+	responseStatusCode(w, http.StatusOK)
 }
 
 func getMemoID(r *http.Request) (uuid.UUID, error) {
@@ -424,6 +507,26 @@ func getMemoID(r *http.Request) (uuid.UUID, error) {
 	}
 
 	return memoID, nil
+}
+
+func getUserID(r *http.Request) (uuid.UUID, error) {
+	userIDString := chi.URLParam(r, "userID")
+	if userIDString == "" {
+		return uuid.UUID{}, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: "need userID",
+		}
+	}
+
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		return uuid.UUID{}, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: "format of user ID is invalid",
+		}
+	}
+
+	return userID, nil
 }
 
 func getPageQuery(q url.Values) (page, pageSize int, err error) {
