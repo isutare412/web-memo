@@ -5,8 +5,17 @@
   import LinkShareButton from '$components/LinkShareButton.svelte'
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import Markdown from '$components/Markdown.svelte'
+  import SubscribeButton from '$components/SubscribeButton.svelte'
   import Tag from '$components/Tag.svelte'
-  import { deleteMemo, getMemo, publishMemo } from '$lib/apis/backend/memo'
+  import { StatusError } from '$lib/apis/backend/error'
+  import {
+      deleteMemo,
+      getMemo,
+      getSubscriber,
+      publishMemo,
+      subscribeMemo,
+      unsubscribeMemo,
+  } from '$lib/apis/backend/memo'
   import { authStore, syncUserData } from '$lib/auth'
   import { mapToMemo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
@@ -24,6 +33,10 @@
   $: ({ memo } = data)
   $: hasWritePermission = (user && memo && user.id === memo.ownerId) ?? false
 
+  let subscribeConfirmModal: HTMLDialogElement
+  let isSubscribing = false
+  let isMemoSubscribed = false
+
   let publishConfirmModal: HTMLDialogElement
   let isPublishing = false
 
@@ -33,16 +46,36 @@
   onMount(async () => {
     try {
       await syncUserData()
-
-      if (memo === undefined) {
-        memo = mapToMemo(await getMemo(memoId))
-      }
+      Promise.all([syncMemo(), syncSubscribeStatus()])
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')
       return
     }
   })
+
+  async function syncMemo() {
+    if (memo !== undefined) return
+
+    memo = mapToMemo(await getMemo(memoId))
+  }
+
+  async function syncSubscribeStatus() {
+    if (user === undefined) return
+
+    try {
+      await getSubscriber({ memoId, userId: user.id })
+      isMemoSubscribed = true
+    } catch (error: unknown) {
+      if (!(error instanceof StatusError)) {
+        addToast(getErrorMessage(error), 'error')
+        return
+      } else if (error.status !== 404) {
+        addToast(error.message, 'error')
+        return
+      }
+    }
+  }
 
   function onEditClick() {
     goto(`/${memoId}/edit`)
@@ -65,6 +98,32 @@
     isDeleting = false
 
     goto('/', { replaceState: true })
+  }
+
+  function onSusbscribeEvent() {
+    subscribeConfirmModal.showModal()
+  }
+
+  async function onSubscribeConfirm() {
+    if (memo === undefined || user === undefined) return
+
+    try {
+      isSubscribing = true
+
+      if (isMemoSubscribed) {
+        await unsubscribeMemo({ memoId, userId: user.id })
+        isMemoSubscribed = false
+      } else {
+        await subscribeMemo({ memoId, userId: user.id })
+        isMemoSubscribed = true
+      }
+
+      isSubscribing = false
+      subscribeConfirmModal.close()
+    } catch (error: unknown) {
+      addToast(getErrorMessage(error), 'error')
+      return
+    }
   }
 
   function onShareEvent() {
@@ -219,6 +278,47 @@
               <span class="loading loading-spinner" />
             {:else}
               Delete
+            {/if}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  {:else if user !== undefined}
+    <div class="mt-2 flex justify-end gap-x-1">
+      <SubscribeButton isActivated={isMemoSubscribed} on:subscribe={onSusbscribeEvent} />
+    </div>
+
+    <dialog bind:this={subscribeConfirmModal} class="modal">
+      <div class="modal-box">
+        <p>
+          {#if isMemoSubscribed}
+            <p>
+              Will you <span class="text-primary font-bold">unsubscribe</span> the memo?<br />The
+              memo will not be exposed to your memo list.
+            </p>
+          {:else}
+            <p>
+              Will you <span class="text-primary font-bold">subcribe</span> the memo?<br />The memo
+              will be exposed to your memo list.
+            </p>
+          {/if}
+        </p>
+        <div class="modal-action flex justify-end">
+          <form method="dialog">
+            <button class="btn btn-outline btn-primary outline-none">Cancel</button>
+          </form>
+          <button
+            on:click={onSubscribeConfirm}
+            disabled={isSubscribing}
+            class="btn btn-primary outline-none"
+          >
+            {#if isSubscribing}
+              <span class="loading loading-spinner" />
+            {:else}
+              OK
             {/if}
           </button>
         </div>
