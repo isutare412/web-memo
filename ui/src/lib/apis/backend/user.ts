@@ -1,4 +1,4 @@
-import { buildErrorMessage, getErrorResponse } from '$lib/apis/backend/error'
+import { StatusError, getErrorResponse } from '$lib/apis/backend/error'
 
 interface GetSelfUserResponse {
   id: string
@@ -18,7 +18,7 @@ export async function getSelfUser(): Promise<GetSelfUserResponse | undefined> {
     }
 
     const errorResponse = await getErrorResponse(response)
-    throw new Error(buildErrorMessage(response.status, errorResponse))
+    throw new StatusError(response.status, errorResponse.msg)
   }
   return response.json()
 }
@@ -27,6 +27,6 @@ export async function signOutUser(): Promise<void> {
   const response = await fetch('/api/v1/users/sign-out')
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)
-    throw new Error(buildErrorMessage(response.status, errorResponse))
+    throw new StatusError(response.status, errorResponse.msg)
   }
 }

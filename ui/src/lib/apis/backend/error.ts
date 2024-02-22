@@ -89,11 +89,13 @@ export interface ErrorResponse {
   msg?: string
 }
 
-export async function getErrorResponse(response: Response): Promise<ErrorResponse> {
-  return response.json()
+export class StatusError extends Error {
+  constructor(public status: number, msg?: string) {
+    const message = `${status}: ${msg || httpStatusMessage(status)}`
+    super(message)
+  }
 }
 
-export function buildErrorMessage(status: number, response: ErrorResponse): string {
-  const msg = response.msg || httpStatusMessage(status)
-  return `${status}: ${msg}`
+export async function getErrorResponse(response: Response): Promise<ErrorResponse> {
+  return response.json()
 }
