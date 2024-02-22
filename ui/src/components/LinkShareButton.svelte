@@ -3,6 +3,7 @@
   import { createEventDispatcher } from 'svelte'
 
   export let link: string
+  export let shareCount: number | undefined = undefined
   export let isShared: boolean
 
   const dispatch = createEventDispatcher()
@@ -21,5 +22,8 @@
     <div class="w-[16px]">
       <PeopleIcon />
     </div>
+    {#if shareCount !== undefined && shareCount > 0}
+      {shareCount}
+    {/if}
   </button>
 </div>

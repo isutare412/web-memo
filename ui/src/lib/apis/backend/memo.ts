@@ -47,6 +47,10 @@ interface GetSubscriberRequest {
   userId: string
 }
 
+interface ListSubsribersResponse {
+  subscribers: Subscriber[]
+}
+
 interface SubscribeMemoRequest {
   memoId: string
   userId: string
@@ -157,7 +161,7 @@ export async function getSubscriber({ memoId, userId }: GetSubscriberRequest): P
   return response.json()
 }
 
-export async function listSubscribers(memoId: string): Promise<Subscriber[]> {
+export async function listSubscribers(memoId: string): Promise<ListSubsribersResponse> {
   const response = await fetch(`/api/v1/memos/${memoId}/subscribers`)
   if (!response.ok) {
     const errorResponse = await getErrorResponse(response)

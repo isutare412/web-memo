@@ -12,6 +12,7 @@
       deleteMemo,
       getMemo,
       getSubscriber,
+      listSubscribers,
       publishMemo,
       subscribeMemo,
       unsubscribeMemo,
@@ -33,6 +34,8 @@
   $: ({ memo } = data)
   $: hasWritePermission = (user && memo && user.id === memo.ownerId) ?? false
 
+  let subscriberCount: number | undefined = undefined
+
   let subscribeConfirmModal: HTMLDialogElement
   let isSubscribing = false
   let isMemoSubscribed = false
@@ -46,7 +49,8 @@
   onMount(async () => {
     try {
       await syncUserData()
-      Promise.all([syncMemo(), syncSubscribeStatus()])
+      await syncMemo()
+      await syncSubscribeStatus()
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')
@@ -61,11 +65,16 @@
   }
 
   async function syncSubscribeStatus() {
-    if (user === undefined) return
+    if (user === undefined || memo === undefined) return
 
     try {
-      await getSubscriber({ memoId, userId: user.id })
-      isMemoSubscribed = true
+      if (memo.ownerId === user.id) {
+        const response = await listSubscribers(memoId)
+        subscriberCount = response.subscribers.length
+      } else {
+        await getSubscriber({ memoId, userId: user.id })
+        isMemoSubscribed = true
+      }
     } catch (error: unknown) {
       if (!(error instanceof StatusError)) {
         addToast(getErrorMessage(error), 'error')
@@ -219,6 +228,7 @@
       <LinkCopyButton link={pageUrl.toString()} />
       <LinkShareButton
         link={pageUrl.toString()}
+        shareCount={subscriberCount}
         isShared={memo.isPublished}
         on:share={onShareEvent}
       />
