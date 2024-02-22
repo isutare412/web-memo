@@ -1,10 +1,38 @@
 apiVersion: networking.istio.io/v1beta1
 kind: ServiceEntry
 metadata:
-  name: external-address
+  name: web-memo
 spec:
   hosts:
   - memo.redshore.me
+  location: MESH_EXTERNAL
+  ports:
+  - number: 443
+    name: https
+    protocol: TLS
+  resolution: DNS
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: googleapis-www
+spec:
+  hosts:
+  - www.googleapis.com
+  location: MESH_EXTERNAL
+  ports:
+  - number: 443
+    name: https
+    protocol: TLS
+  resolution: DNS
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: googleapis-oauth
+spec:
+  hosts:
+  - oauth2.googleapis.com
   location: MESH_EXTERNAL
   ports:
   - number: 443
