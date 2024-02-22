@@ -342,6 +342,12 @@ var _ = Describe("MemoRepository", func() {
 			It("registers subscriber", func(ctx SpecContext) {
 				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[0].ID)
 				Expect(err).NotTo(HaveOccurred())
+
+				subs, err := userRepository.FindAllBySubscribingMemoID(ctx, fakeMemos[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, ok := lo.Find(subs, func(u *ent.User) bool { return u.ID == fakeUsers[0].ID })
+				Expect(ok).To(BeTrue())
 			})
 
 			It("emits error if memo does not exist", func(ctx SpecContext) {
@@ -364,10 +370,26 @@ var _ = Describe("MemoRepository", func() {
 			It("unregisters subscriber", func(ctx SpecContext) {
 				err := memoRepository.UnregisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[1].ID)
 				Expect(err).NotTo(HaveOccurred())
+
+				subs, err := userRepository.FindAllBySubscribingMemoID(ctx, fakeMemos[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, ok := lo.Find(subs, func(u *ent.User) bool { return u.ID == fakeUsers[1].ID })
+				Expect(ok).To(BeFalse())
 			})
 		})
 
 		Context("ClearSubscribers", func() {
+			It("deletes all subscribers", func(ctx SpecContext) {
+				err := memoRepository.ClearSubscribers(ctx, fakeMemos[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				subs, err := userRepository.FindAllBySubscribingMemoID(ctx, fakeMemos[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, ok := lo.Find(subs, func(u *ent.User) bool { return u.ID == fakeUsers[1].ID })
+				Expect(ok).To(BeFalse())
+			})
 		})
 	})
 })

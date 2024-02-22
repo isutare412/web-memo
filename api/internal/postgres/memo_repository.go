@@ -305,9 +305,10 @@ func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagI
 func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
 	client := transactionClient(ctx, r.client)
 
-	err := client.Memo.
-		UpdateOneID(memoID).
-		AddSubscriberIDs(userID).
+	err := client.Subscription.
+		Create().
+		SetMemoID(memoID).
+		SetUserID(userID).
 		Exec(ctx)
 	if err != nil {
 		return err
@@ -319,12 +320,22 @@ func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID 
 func (r *MemoRepository) UnregisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
 	client := transactionClient(ctx, r.client)
 
-	err := client.Memo.
-		UpdateOneID(memoID).
-		RemoveSubscriberIDs(userID).
+	count, err := client.Subscription.Delete().
+		Where(
+			subscription.And(
+				subscription.MemoID(memoID),
+				subscription.UserID(userID),
+			),
+		).
 		Exec(ctx)
-	if err != nil {
+	switch {
+	case err != nil:
 		return err
+	case count == 0:
+		return pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			ClientMsg: "subscription not found",
+		}
 	}
 
 	return nil
@@ -333,18 +344,11 @@ func (r *MemoRepository) UnregisterSubscriber(ctx context.Context, memoID, userI
 func (r *MemoRepository) ClearSubscribers(ctx context.Context, memoID uuid.UUID) error {
 	client := transactionClient(ctx, r.client)
 
-	err := client.Memo.
-		UpdateOneID(memoID).
-		ClearSubscribers().
+	_, err := client.Subscription.
+		Delete().
+		Where(subscription.MemoID(memoID)).
 		Exec(ctx)
-	switch {
-	case ent.IsNotFound(err):
-		return pkgerr.Known{
-			Code:      pkgerr.CodeNotFound,
-			Origin:    err,
-			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memoID.String()),
-		}
-	case err != nil:
+	if err != nil {
 		return err
 	}
 
