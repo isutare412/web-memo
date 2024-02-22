@@ -16,7 +16,7 @@
       subscribeMemo,
       unsubscribeMemo,
   } from '$lib/apis/backend/memo'
-  import { authStore, syncUserData } from '$lib/auth'
+  import { authStore, signInGoogle, syncUserData } from '$lib/auth'
   import { mapToMemo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
   import { addToast } from '$lib/toast'
@@ -101,6 +101,11 @@
   }
 
   function onSusbscribeEvent() {
+    if (user === undefined) {
+      signInGoogle()
+      return
+    }
+
     subscribeConfirmModal.showModal()
   }
 
@@ -286,7 +291,7 @@
         <button>close</button>
       </form>
     </dialog>
-  {:else if user !== undefined}
+  {:else}
     <div class="mt-2 flex justify-end gap-x-1">
       <SubscribeButton isActivated={isMemoSubscribed} on:subscribe={onSusbscribeEvent} />
     </div>
