@@ -4,7 +4,7 @@ import { get, writable } from 'svelte/store'
 
 export const authStore = writable<AuthState>({})
 
-interface UserData {
+export interface UserData {
   id: string
   userType: string
   email: string

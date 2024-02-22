@@ -147,7 +147,7 @@
     <div class="flex justify-end">
       <SortKeySelector sortKey={sortOrder} on:change={onSortOrderChange} />
     </div>
-    <MemoList memos={listData.memos} showUpdateTime={sortOrder === SortOrder.UPDATE_TIME} />
+    <MemoList {user} memos={listData.memos} showUpdateTime={sortOrder === SortOrder.UPDATE_TIME} />
     <div class="flex justify-center">
       <PageNavigator
         currentPage={listData.page.toString()}

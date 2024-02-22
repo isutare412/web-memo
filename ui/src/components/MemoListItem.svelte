@@ -2,13 +2,16 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import Tag from '$components/Tag.svelte'
+  import BookmarkIcon from '$components/icons/BookmarkIcon.svelte'
   import PeopleIcon from '$components/icons/PeopleIcon.svelte'
+  import type { UserData } from '$lib/auth'
   import type { Memo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
   import { formatDate } from '$lib/utils/date'
   import { map } from 'lodash-es'
   import { get } from 'svelte/store'
 
+  export let user: UserData
   export let memo: Memo
   export let showUpdateTime = false
 
@@ -48,13 +51,15 @@
     </div>
   {/if}
   <div class="flex items-center justify-end gap-x-1">
-    <div
-      class="w-[16px]"
-      class:text-primary={memo.isPublished}
-      class:opacity-20={!memo.isPublished}
-    >
-      <PeopleIcon />
-    </div>
+    {#if memo.ownerId !== user.id}
+      <div class="text-primary w-[12px]">
+        <BookmarkIcon />
+      </div>
+    {:else if memo.isPublished}
+      <div class="text-primary w-[16px]">
+        <PeopleIcon />
+      </div>
+    {/if}
     <div>
       <span class="text-xs font-light opacity-75"
         >{formatDate(showUpdateTime ? memo.updateTime : memo.createTime)}</span
