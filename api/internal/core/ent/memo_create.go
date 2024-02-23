@@ -27,34 +27,6 @@ type MemoCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetCreateTime sets the "create_time" field.
-func (mc *MemoCreate) SetCreateTime(t time.Time) *MemoCreate {
-	mc.mutation.SetCreateTime(t)
-	return mc
-}
-
-// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
-func (mc *MemoCreate) SetNillableCreateTime(t *time.Time) *MemoCreate {
-	if t != nil {
-		mc.SetCreateTime(*t)
-	}
-	return mc
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (mc *MemoCreate) SetUpdateTime(t time.Time) *MemoCreate {
-	mc.mutation.SetUpdateTime(t)
-	return mc
-}
-
-// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
-func (mc *MemoCreate) SetNillableUpdateTime(t *time.Time) *MemoCreate {
-	if t != nil {
-		mc.SetUpdateTime(*t)
-	}
-	return mc
-}
-
 // SetOwnerID sets the "owner_id" field.
 func (mc *MemoCreate) SetOwnerID(u uuid.UUID) *MemoCreate {
 	mc.mutation.SetOwnerID(u)
@@ -83,6 +55,34 @@ func (mc *MemoCreate) SetIsPublished(b bool) *MemoCreate {
 func (mc *MemoCreate) SetNillableIsPublished(b *bool) *MemoCreate {
 	if b != nil {
 		mc.SetIsPublished(*b)
+	}
+	return mc
+}
+
+// SetCreateTime sets the "create_time" field.
+func (mc *MemoCreate) SetCreateTime(t time.Time) *MemoCreate {
+	mc.mutation.SetCreateTime(t)
+	return mc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (mc *MemoCreate) SetNillableCreateTime(t *time.Time) *MemoCreate {
+	if t != nil {
+		mc.SetCreateTime(*t)
+	}
+	return mc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (mc *MemoCreate) SetUpdateTime(t time.Time) *MemoCreate {
+	mc.mutation.SetUpdateTime(t)
+	return mc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (mc *MemoCreate) SetNillableUpdateTime(t *time.Time) *MemoCreate {
+	if t != nil {
+		mc.SetUpdateTime(*t)
 	}
 	return mc
 }
@@ -186,6 +186,10 @@ func (mc *MemoCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (mc *MemoCreate) defaults() {
+	if _, ok := mc.mutation.IsPublished(); !ok {
+		v := memo.DefaultIsPublished
+		mc.mutation.SetIsPublished(v)
+	}
 	if _, ok := mc.mutation.CreateTime(); !ok {
 		v := memo.DefaultCreateTime()
 		mc.mutation.SetCreateTime(v)
@@ -193,10 +197,6 @@ func (mc *MemoCreate) defaults() {
 	if _, ok := mc.mutation.UpdateTime(); !ok {
 		v := memo.DefaultUpdateTime()
 		mc.mutation.SetUpdateTime(v)
-	}
-	if _, ok := mc.mutation.IsPublished(); !ok {
-		v := memo.DefaultIsPublished
-		mc.mutation.SetIsPublished(v)
 	}
 	if _, ok := mc.mutation.ID(); !ok {
 		v := memo.DefaultID()
@@ -206,12 +206,6 @@ func (mc *MemoCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (mc *MemoCreate) check() error {
-	if _, ok := mc.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Memo.create_time"`)}
-	}
-	if _, ok := mc.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Memo.update_time"`)}
-	}
 	if _, ok := mc.mutation.OwnerID(); !ok {
 		return &ValidationError{Name: "owner_id", err: errors.New(`ent: missing required field "Memo.owner_id"`)}
 	}
@@ -233,6 +227,12 @@ func (mc *MemoCreate) check() error {
 	}
 	if _, ok := mc.mutation.IsPublished(); !ok {
 		return &ValidationError{Name: "is_published", err: errors.New(`ent: missing required field "Memo.is_published"`)}
+	}
+	if _, ok := mc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Memo.create_time"`)}
+	}
+	if _, ok := mc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Memo.update_time"`)}
 	}
 	if _, ok := mc.mutation.OwnerID(); !ok {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Memo.owner"`)}
@@ -273,14 +273,6 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := mc.mutation.CreateTime(); ok {
-		_spec.SetField(memo.FieldCreateTime, field.TypeTime, value)
-		_node.CreateTime = value
-	}
-	if value, ok := mc.mutation.UpdateTime(); ok {
-		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
-		_node.UpdateTime = value
-	}
 	if value, ok := mc.mutation.Title(); ok {
 		_spec.SetField(memo.FieldTitle, field.TypeString, value)
 		_node.Title = value
@@ -292,6 +284,14 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.IsPublished(); ok {
 		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
 		_node.IsPublished = value
+	}
+	if value, ok := mc.mutation.CreateTime(); ok {
+		_spec.SetField(memo.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := mc.mutation.UpdateTime(); ok {
+		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
 	}
 	if nodes := mc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -369,7 +369,7 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Memo.Create().
-//		SetCreateTime(v).
+//		SetOwnerID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -378,7 +378,7 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MemoUpsert) {
-//			SetCreateTime(v+v).
+//			SetOwnerID(v+v).
 //		}).
 //		Exec(ctx)
 func (mc *MemoCreate) OnConflict(opts ...sql.ConflictOption) *MemoUpsertOne {
@@ -413,18 +413,6 @@ type (
 		*sql.UpdateSet
 	}
 )
-
-// SetUpdateTime sets the "update_time" field.
-func (u *MemoUpsert) SetUpdateTime(v time.Time) *MemoUpsert {
-	u.Set(memo.FieldUpdateTime, v)
-	return u
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *MemoUpsert) UpdateUpdateTime() *MemoUpsert {
-	u.SetExcluded(memo.FieldUpdateTime)
-	return u
-}
 
 // SetOwnerID sets the "owner_id" field.
 func (u *MemoUpsert) SetOwnerID(v uuid.UUID) *MemoUpsert {
@@ -471,6 +459,18 @@ func (u *MemoUpsert) SetIsPublished(v bool) *MemoUpsert {
 // UpdateIsPublished sets the "is_published" field to the value that was provided on create.
 func (u *MemoUpsert) UpdateIsPublished() *MemoUpsert {
 	u.SetExcluded(memo.FieldIsPublished)
+	return u
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *MemoUpsert) SetUpdateTime(v time.Time) *MemoUpsert {
+	u.Set(memo.FieldUpdateTime, v)
+	return u
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MemoUpsert) UpdateUpdateTime() *MemoUpsert {
+	u.SetExcluded(memo.FieldUpdateTime)
 	return u
 }
 
@@ -523,20 +523,6 @@ func (u *MemoUpsertOne) Update(set func(*MemoUpsert)) *MemoUpsertOne {
 		set(&MemoUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (u *MemoUpsertOne) SetUpdateTime(v time.Time) *MemoUpsertOne {
-	return u.Update(func(s *MemoUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *MemoUpsertOne) UpdateUpdateTime() *MemoUpsertOne {
-	return u.Update(func(s *MemoUpsert) {
-		s.UpdateUpdateTime()
-	})
 }
 
 // SetOwnerID sets the "owner_id" field.
@@ -592,6 +578,20 @@ func (u *MemoUpsertOne) SetIsPublished(v bool) *MemoUpsertOne {
 func (u *MemoUpsertOne) UpdateIsPublished() *MemoUpsertOne {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateIsPublished()
+	})
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *MemoUpsertOne) SetUpdateTime(v time.Time) *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MemoUpsertOne) UpdateUpdateTime() *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateUpdateTime()
 	})
 }
 
@@ -731,7 +731,7 @@ func (mcb *MemoCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.MemoUpsert) {
-//			SetCreateTime(v+v).
+//			SetOwnerID(v+v).
 //		}).
 //		Exec(ctx)
 func (mcb *MemoCreateBulk) OnConflict(opts ...sql.ConflictOption) *MemoUpsertBulk {
@@ -813,20 +813,6 @@ func (u *MemoUpsertBulk) Update(set func(*MemoUpsert)) *MemoUpsertBulk {
 	return u
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (u *MemoUpsertBulk) SetUpdateTime(v time.Time) *MemoUpsertBulk {
-	return u.Update(func(s *MemoUpsert) {
-		s.SetUpdateTime(v)
-	})
-}
-
-// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
-func (u *MemoUpsertBulk) UpdateUpdateTime() *MemoUpsertBulk {
-	return u.Update(func(s *MemoUpsert) {
-		s.UpdateUpdateTime()
-	})
-}
-
 // SetOwnerID sets the "owner_id" field.
 func (u *MemoUpsertBulk) SetOwnerID(v uuid.UUID) *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
@@ -880,6 +866,20 @@ func (u *MemoUpsertBulk) SetIsPublished(v bool) *MemoUpsertBulk {
 func (u *MemoUpsertBulk) UpdateIsPublished() *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateIsPublished()
+	})
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (u *MemoUpsertBulk) SetUpdateTime(v time.Time) *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetUpdateTime(v)
+	})
+}
+
+// UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
+func (u *MemoUpsertBulk) UpdateUpdateTime() *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateUpdateTime()
 	})
 }
 

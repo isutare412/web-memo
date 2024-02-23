@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/mixin"
 	"github.com/google/uuid"
 )
 
@@ -26,13 +27,11 @@ func (Memo) Fields() []ent.Field {
 			MaxLen(20_000),
 		field.Bool("is_published").
 			Default(false),
-	}
-}
-
-// Mixin of the Memo.
-func (Memo) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		mixin.Time{},
+		field.Time("create_time").
+			Default(time.Now).
+			Immutable(),
+		field.Time("update_time").
+			Default(time.Now),
 	}
 }
 

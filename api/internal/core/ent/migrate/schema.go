@@ -11,11 +11,11 @@ var (
 	// MemosColumns holds the columns for the "memos" table.
 	MemosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString, Size: 512},
 		{Name: "content", Type: field.TypeString, Size: 20000},
 		{Name: "is_published", Type: field.TypeBool, Default: false},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "owner_id", Type: field.TypeUUID},
 	}
 	// MemosTable holds the schema information for the "memos" table.

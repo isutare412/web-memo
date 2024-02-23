@@ -41,11 +41,11 @@ type MemoMutation struct {
 	op                   Op
 	typ                  string
 	id                   *uuid.UUID
-	create_time          *time.Time
-	update_time          *time.Time
 	title                *string
 	content              *string
 	is_published         *bool
+	create_time          *time.Time
+	update_time          *time.Time
 	clearedFields        map[string]struct{}
 	owner                *uuid.UUID
 	clearedowner         bool
@@ -165,78 +165,6 @@ func (m *MemoMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetCreateTime sets the "create_time" field.
-func (m *MemoMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the value of the "create_time" field in the mutation.
-func (m *MemoMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "create_time" field's value of the Memo entity.
-// If the Memo object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MemoMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "create_time" field.
-func (m *MemoMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (m *MemoMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the value of the "update_time" field in the mutation.
-func (m *MemoMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "update_time" field's value of the Memo entity.
-// If the Memo object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MemoMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "update_time" field.
-func (m *MemoMutation) ResetUpdateTime() {
-	m.update_time = nil
 }
 
 // SetOwnerID sets the "owner_id" field.
@@ -381,6 +309,78 @@ func (m *MemoMutation) OldIsPublished(ctx context.Context) (v bool, err error) {
 // ResetIsPublished resets all changes to the "is_published" field.
 func (m *MemoMutation) ResetIsPublished() {
 	m.is_published = nil
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *MemoMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *MemoMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Memo entity.
+// If the Memo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *MemoMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *MemoMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *MemoMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Memo entity.
+// If the Memo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *MemoMutation) ResetUpdateTime() {
+	m.update_time = nil
 }
 
 // ClearOwner clears the "owner" edge to the User entity.
@@ -607,12 +607,6 @@ func (m *MemoMutation) Type() string {
 // AddedFields().
 func (m *MemoMutation) Fields() []string {
 	fields := make([]string, 0, 6)
-	if m.create_time != nil {
-		fields = append(fields, memo.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, memo.FieldUpdateTime)
-	}
 	if m.owner != nil {
 		fields = append(fields, memo.FieldOwnerID)
 	}
@@ -625,6 +619,12 @@ func (m *MemoMutation) Fields() []string {
 	if m.is_published != nil {
 		fields = append(fields, memo.FieldIsPublished)
 	}
+	if m.create_time != nil {
+		fields = append(fields, memo.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, memo.FieldUpdateTime)
+	}
 	return fields
 }
 
@@ -633,10 +633,6 @@ func (m *MemoMutation) Fields() []string {
 // schema.
 func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case memo.FieldCreateTime:
-		return m.CreateTime()
-	case memo.FieldUpdateTime:
-		return m.UpdateTime()
 	case memo.FieldOwnerID:
 		return m.OwnerID()
 	case memo.FieldTitle:
@@ -645,6 +641,10 @@ func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case memo.FieldIsPublished:
 		return m.IsPublished()
+	case memo.FieldCreateTime:
+		return m.CreateTime()
+	case memo.FieldUpdateTime:
+		return m.UpdateTime()
 	}
 	return nil, false
 }
@@ -654,10 +654,6 @@ func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case memo.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case memo.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
 	case memo.FieldOwnerID:
 		return m.OldOwnerID(ctx)
 	case memo.FieldTitle:
@@ -666,6 +662,10 @@ func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldContent(ctx)
 	case memo.FieldIsPublished:
 		return m.OldIsPublished(ctx)
+	case memo.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case memo.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
 	}
 	return nil, fmt.Errorf("unknown Memo field %s", name)
 }
@@ -675,20 +675,6 @@ func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *MemoMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case memo.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case memo.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
-		return nil
 	case memo.FieldOwnerID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -716,6 +702,20 @@ func (m *MemoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsPublished(v)
+		return nil
+	case memo.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case memo.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Memo field %s", name)
@@ -766,12 +766,6 @@ func (m *MemoMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *MemoMutation) ResetField(name string) error {
 	switch name {
-	case memo.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case memo.FieldUpdateTime:
-		m.ResetUpdateTime()
-		return nil
 	case memo.FieldOwnerID:
 		m.ResetOwnerID()
 		return nil
@@ -783,6 +777,12 @@ func (m *MemoMutation) ResetField(name string) error {
 		return nil
 	case memo.FieldIsPublished:
 		m.ResetIsPublished()
+		return nil
+	case memo.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case memo.FieldUpdateTime:
+		m.ResetUpdateTime()
 		return nil
 	}
 	return fmt.Errorf("unknown Memo field %s", name)

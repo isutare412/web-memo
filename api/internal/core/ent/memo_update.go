@@ -32,12 +32,6 @@ func (mu *MemoUpdate) Where(ps ...predicate.Memo) *MemoUpdate {
 	return mu
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (mu *MemoUpdate) SetUpdateTime(t time.Time) *MemoUpdate {
-	mu.mutation.SetUpdateTime(t)
-	return mu
-}
-
 // SetOwnerID sets the "owner_id" field.
 func (mu *MemoUpdate) SetOwnerID(u uuid.UUID) *MemoUpdate {
 	mu.mutation.SetOwnerID(u)
@@ -90,6 +84,20 @@ func (mu *MemoUpdate) SetIsPublished(b bool) *MemoUpdate {
 func (mu *MemoUpdate) SetNillableIsPublished(b *bool) *MemoUpdate {
 	if b != nil {
 		mu.SetIsPublished(*b)
+	}
+	return mu
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (mu *MemoUpdate) SetUpdateTime(t time.Time) *MemoUpdate {
+	mu.mutation.SetUpdateTime(t)
+	return mu
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (mu *MemoUpdate) SetNillableUpdateTime(t *time.Time) *MemoUpdate {
+	if t != nil {
+		mu.SetUpdateTime(*t)
 	}
 	return mu
 }
@@ -220,7 +228,6 @@ func (mu *MemoUpdate) RemoveSubscriptions(s ...*Subscription) *MemoUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mu *MemoUpdate) Save(ctx context.Context) (int, error) {
-	mu.defaults()
 	return withHooks(ctx, mu.sqlSave, mu.mutation, mu.hooks)
 }
 
@@ -243,14 +250,6 @@ func (mu *MemoUpdate) Exec(ctx context.Context) error {
 func (mu *MemoUpdate) ExecX(ctx context.Context) {
 	if err := mu.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (mu *MemoUpdate) defaults() {
-	if _, ok := mu.mutation.UpdateTime(); !ok {
-		v := memo.UpdateDefaultUpdateTime()
-		mu.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -284,9 +283,6 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := mu.mutation.UpdateTime(); ok {
-		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
-	}
 	if value, ok := mu.mutation.Title(); ok {
 		_spec.SetField(memo.FieldTitle, field.TypeString, value)
 	}
@@ -295,6 +291,9 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.IsPublished(); ok {
 		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
+	}
+	if value, ok := mu.mutation.UpdateTime(); ok {
+		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
 	}
 	if mu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -492,12 +491,6 @@ type MemoUpdateOne struct {
 	mutation *MemoMutation
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (muo *MemoUpdateOne) SetUpdateTime(t time.Time) *MemoUpdateOne {
-	muo.mutation.SetUpdateTime(t)
-	return muo
-}
-
 // SetOwnerID sets the "owner_id" field.
 func (muo *MemoUpdateOne) SetOwnerID(u uuid.UUID) *MemoUpdateOne {
 	muo.mutation.SetOwnerID(u)
@@ -550,6 +543,20 @@ func (muo *MemoUpdateOne) SetIsPublished(b bool) *MemoUpdateOne {
 func (muo *MemoUpdateOne) SetNillableIsPublished(b *bool) *MemoUpdateOne {
 	if b != nil {
 		muo.SetIsPublished(*b)
+	}
+	return muo
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (muo *MemoUpdateOne) SetUpdateTime(t time.Time) *MemoUpdateOne {
+	muo.mutation.SetUpdateTime(t)
+	return muo
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (muo *MemoUpdateOne) SetNillableUpdateTime(t *time.Time) *MemoUpdateOne {
+	if t != nil {
+		muo.SetUpdateTime(*t)
 	}
 	return muo
 }
@@ -693,7 +700,6 @@ func (muo *MemoUpdateOne) Select(field string, fields ...string) *MemoUpdateOne 
 
 // Save executes the query and returns the updated Memo entity.
 func (muo *MemoUpdateOne) Save(ctx context.Context) (*Memo, error) {
-	muo.defaults()
 	return withHooks(ctx, muo.sqlSave, muo.mutation, muo.hooks)
 }
 
@@ -716,14 +722,6 @@ func (muo *MemoUpdateOne) Exec(ctx context.Context) error {
 func (muo *MemoUpdateOne) ExecX(ctx context.Context) {
 	if err := muo.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (muo *MemoUpdateOne) defaults() {
-	if _, ok := muo.mutation.UpdateTime(); !ok {
-		v := memo.UpdateDefaultUpdateTime()
-		muo.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -774,9 +772,6 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 			}
 		}
 	}
-	if value, ok := muo.mutation.UpdateTime(); ok {
-		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
-	}
 	if value, ok := muo.mutation.Title(); ok {
 		_spec.SetField(memo.FieldTitle, field.TypeString, value)
 	}
@@ -785,6 +780,9 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 	}
 	if value, ok := muo.mutation.IsPublished(); ok {
 		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
+	}
+	if value, ok := muo.mutation.UpdateTime(); ok {
+		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
 	}
 	if muo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

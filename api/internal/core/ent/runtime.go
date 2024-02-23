@@ -17,21 +17,8 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	memoMixin := schema.Memo{}.Mixin()
-	memoMixinFields0 := memoMixin[0].Fields()
-	_ = memoMixinFields0
 	memoFields := schema.Memo{}.Fields()
 	_ = memoFields
-	// memoDescCreateTime is the schema descriptor for create_time field.
-	memoDescCreateTime := memoMixinFields0[0].Descriptor()
-	// memo.DefaultCreateTime holds the default value on creation for the create_time field.
-	memo.DefaultCreateTime = memoDescCreateTime.Default.(func() time.Time)
-	// memoDescUpdateTime is the schema descriptor for update_time field.
-	memoDescUpdateTime := memoMixinFields0[1].Descriptor()
-	// memo.DefaultUpdateTime holds the default value on creation for the update_time field.
-	memo.DefaultUpdateTime = memoDescUpdateTime.Default.(func() time.Time)
-	// memo.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	memo.UpdateDefaultUpdateTime = memoDescUpdateTime.UpdateDefault.(func() time.Time)
 	// memoDescTitle is the schema descriptor for title field.
 	memoDescTitle := memoFields[2].Descriptor()
 	// memo.TitleValidator is a validator for the "title" field. It is called by the builders before save.
@@ -58,6 +45,14 @@ func init() {
 	memoDescIsPublished := memoFields[4].Descriptor()
 	// memo.DefaultIsPublished holds the default value on creation for the is_published field.
 	memo.DefaultIsPublished = memoDescIsPublished.Default.(bool)
+	// memoDescCreateTime is the schema descriptor for create_time field.
+	memoDescCreateTime := memoFields[5].Descriptor()
+	// memo.DefaultCreateTime holds the default value on creation for the create_time field.
+	memo.DefaultCreateTime = memoDescCreateTime.Default.(func() time.Time)
+	// memoDescUpdateTime is the schema descriptor for update_time field.
+	memoDescUpdateTime := memoFields[6].Descriptor()
+	// memo.DefaultUpdateTime holds the default value on creation for the update_time field.
+	memo.DefaultUpdateTime = memoDescUpdateTime.Default.(func() time.Time)
 	// memoDescID is the schema descriptor for id field.
 	memoDescID := memoFields[0].Descriptor()
 	// memo.DefaultID holds the default value on creation for the id field.

@@ -406,12 +406,12 @@ func (mq *MemoQuery) WithSubscriptions(opts ...func(*SubscriptionQuery)) *MemoQu
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"create_time,omitempty"`
+//		OwnerID uuid.UUID `json:"owner_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Memo.Query().
-//		GroupBy(memo.FieldCreateTime).
+//		GroupBy(memo.FieldOwnerID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (mq *MemoQuery) GroupBy(field string, fields ...string) *MemoGroupBy {
@@ -429,11 +429,11 @@ func (mq *MemoQuery) GroupBy(field string, fields ...string) *MemoGroupBy {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"create_time,omitempty"`
+//		OwnerID uuid.UUID `json:"owner_id,omitempty"`
 //	}
 //
 //	client.Memo.Query().
-//		Select(memo.FieldCreateTime).
+//		Select(memo.FieldOwnerID).
 //		Scan(ctx, &v)
 func (mq *MemoQuery) Select(fields ...string) *MemoSelect {
 	mq.ctx.Fields = append(mq.ctx.Fields, fields...)
