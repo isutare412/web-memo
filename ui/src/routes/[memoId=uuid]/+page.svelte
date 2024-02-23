@@ -161,6 +161,7 @@
       .then((rawMemo) => {
         memo = mapToMemo(rawMemo)
 
+        if (!memo.isPublished) subscriberCount = undefined
         isPublishing = false
         publishConfirmModal.close()
       })
