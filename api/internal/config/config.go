@@ -14,15 +14,15 @@ import (
 )
 
 type Config struct {
-	Wire     WireConfig      `mapstructure:"wire"`
-	Log      log.Config      `mapstructure:"log"`
-	HTTP     HTTPConfig      `mapstructure:"http"`
-	Postgres postgres.Config `mapstructure:"postgres"`
-	Redis    redis.Config    `mapstructure:"redis"`
-	Google   GoogleConfig    `mapstructure:"google"`
-	JWT      jwt.Config      `mapstructure:"jwt"`
-	OAuth    OAuthConfig     `mapstructure:"oauth"`
-	Cron     CronConfig      `mapstructure:"cron"`
+	Wire     WireConfig      `koanf:"wire"`
+	Log      log.Config      `koanf:"log"`
+	HTTP     HTTPConfig      `koanf:"http"`
+	Postgres postgres.Config `koanf:"postgres"`
+	Redis    redis.Config    `koanf:"redis"`
+	Google   GoogleConfig    `koanf:"google"`
+	JWT      jwt.Config      `koanf:"jwt"`
+	OAuth    OAuthConfig     `koanf:"oauth"`
+	Cron     CronConfig      `koanf:"cron"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
@@ -74,34 +74,34 @@ func (c *Config) ToAuthServiceConfig() auth.Config {
 }
 
 type WireConfig struct {
-	InitializeTimeout time.Duration `mapstructure:"initialize-timeout" validate:"required"`
-	ShutdownTimeout   time.Duration `mapstructure:"shutdown-timeout" validate:"required"`
+	InitializeTimeout time.Duration `koanf:"initialize-timeout" validate:"required"`
+	ShutdownTimeout   time.Duration `koanf:"shutdown-timeout" validate:"required"`
 }
 
 type HTTPConfig struct {
-	Port int `mapstructure:"port" validate:"required"`
+	Port int `koanf:"port" validate:"required"`
 }
 
 type GoogleConfig struct {
-	Endpoints GoogleEndpointsConfig `mapstructure:"endpoints"`
-	OAuth     GoogleOAuthConfig     `mapstructure:"oauth"`
+	Endpoints GoogleEndpointsConfig `koanf:"endpoints"`
+	OAuth     GoogleOAuthConfig     `koanf:"oauth"`
 }
 
 type GoogleEndpointsConfig struct {
-	Token string `mapstructure:"token" validate:"required"`
-	OAuth string `mapstructure:"oauth" validate:"required"`
+	Token string `koanf:"token" validate:"required"`
+	OAuth string `koanf:"oauth" validate:"required"`
 }
 
 type GoogleOAuthConfig struct {
-	ClientID     string `mapstructure:"client-id" validate:"required"`
-	ClientSecret string `mapstructure:"client-secret" validate:"required"`
+	ClientID     string `koanf:"client-id" validate:"required"`
+	ClientSecret string `koanf:"client-secret" validate:"required"`
 }
 
 type OAuthConfig struct {
-	StateTimeout time.Duration `mapstructure:"state-timeout" validate:"required,min=1m"`
-	CallbackPath string        `mapstructure:"callback-path" validate:"required"`
+	StateTimeout time.Duration `koanf:"state-timeout" validate:"required,min=1m"`
+	CallbackPath string        `koanf:"callback-path" validate:"required"`
 }
 
 type CronConfig struct {
-	TagCleanupInterval time.Duration `mapstructure:"tag-cleanup-interval" validate:"required,min=1m"`
+	TagCleanupInterval time.Duration `koanf:"tag-cleanup-interval" validate:"required,min=1m"`
 }
