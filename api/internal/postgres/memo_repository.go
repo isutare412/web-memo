@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -239,6 +240,7 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 		SetTitle(memo.Title).
 		SetContent(base64Encode(memo.Content)).
 		SetIsPublished(memo.IsPublished).
+		SetUpdateTime(time.Now()).
 		Save(ctx)
 	switch {
 	case ent.IsNotFound(err):
@@ -246,6 +248,34 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 			Code:      pkgerr.CodeNotFound,
 			Origin:    err,
 			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memo.ID.String()),
+		}
+	case err != nil:
+		return nil, err
+	}
+
+	contentDecoded, err := base64Decode(memoUpdated.Content)
+	if err != nil {
+		return nil, err
+	}
+	memoUpdated.Content = contentDecoded
+
+	return memoUpdated, nil
+}
+
+func (r *MemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.UUID, isPublish bool) (*ent.Memo, error) {
+	client := transactionClient(ctx, r.client)
+
+	// we do not update UpdateTime when published state changes.
+	memoUpdated, err := client.Memo.
+		UpdateOneID(memoID).
+		SetIsPublished(isPublish).
+		Save(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return nil, pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memoID.String()),
 		}
 	case err != nil:
 		return nil, err
@@ -280,14 +310,18 @@ func (r *MemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {
 	return nil
 }
 
-func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error {
+func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int, updateTime bool) error {
 	client := transactionClient(ctx, r.client)
 
-	err := client.Memo.
+	query := client.Memo.
 		UpdateOneID(memoID).
 		ClearTags().
-		AddTagIDs(tagIDs...).
-		Exec(ctx)
+		AddTagIDs(tagIDs...)
+	if updateTime {
+		query = query.SetUpdateTime(time.Now())
+	}
+
+	err := query.Exec(ctx)
 	switch {
 	case ent.IsNotFound(err):
 		return pkgerr.Known{

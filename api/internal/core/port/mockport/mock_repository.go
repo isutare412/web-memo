@@ -311,17 +311,17 @@ func (mr *MockMemoRepositoryMockRecorder) RegisterSubscriber(ctx, memoID, userID
 }
 
 // ReplaceTags mocks base method.
-func (m *MockMemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error {
+func (m *MockMemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int, updateTime bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReplaceTags", ctx, memoID, tagIDs)
+	ret := m.ctrl.Call(m, "ReplaceTags", ctx, memoID, tagIDs, updateTime)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ReplaceTags indicates an expected call of ReplaceTags.
-func (mr *MockMemoRepositoryMockRecorder) ReplaceTags(ctx, memoID, tagIDs any) *gomock.Call {
+func (mr *MockMemoRepositoryMockRecorder) ReplaceTags(ctx, memoID, tagIDs, updateTime any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoRepository)(nil).ReplaceTags), ctx, memoID, tagIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceTags", reflect.TypeOf((*MockMemoRepository)(nil).ReplaceTags), ctx, memoID, tagIDs, updateTime)
 }
 
 // UnregisterSubscriber mocks base method.
@@ -351,6 +351,21 @@ func (m *MockMemoRepository) Update(arg0 context.Context, arg1 *ent.Memo) (*ent.
 func (mr *MockMemoRepositoryMockRecorder) Update(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMemoRepository)(nil).Update), arg0, arg1)
+}
+
+// UpdateIsPublish mocks base method.
+func (m *MockMemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.UUID, isPublish bool) (*ent.Memo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateIsPublish", ctx, memoID, isPublish)
+	ret0, _ := ret[0].(*ent.Memo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateIsPublish indicates an expected call of UpdateIsPublish.
+func (mr *MockMemoRepositoryMockRecorder) UpdateIsPublish(ctx, memoID, isPublish any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIsPublish", reflect.TypeOf((*MockMemoRepository)(nil).UpdateIsPublish), ctx, memoID, isPublish)
 }
 
 // MockTagRepository is a mock of TagRepository interface.

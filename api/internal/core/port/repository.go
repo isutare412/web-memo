@@ -34,9 +34,10 @@ type MemoRepository interface {
 	CountByUserIDAndTagNames(ctx context.Context, userID uuid.UUID, tags []string) (int, error)
 	Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error)
 	Update(context.Context, *ent.Memo) (*ent.Memo, error)
+	UpdateIsPublish(ctx context.Context, memoID uuid.UUID, isPublish bool) (*ent.Memo, error)
 	Delete(ctx context.Context, memoID uuid.UUID) error
 
-	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int) error
+	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int, updateTime bool) error
 
 	RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error
 	UnregisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error

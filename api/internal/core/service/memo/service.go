@@ -165,7 +165,7 @@ func (s *Service) UpdateMemo(
 		}
 
 		tagIDs := lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
-		if err := s.memoRepository.ReplaceTags(ctx, memo.ID, tagIDs); err != nil {
+		if err := s.memoRepository.ReplaceTags(ctx, memo.ID, tagIDs, true); err != nil {
 			return fmt.Errorf("replacing tags: %w", err)
 		}
 
@@ -224,12 +224,11 @@ func (s *Service) UpdateMemoPublishedState(
 			tagIDs = lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
 		}
 
-		if err := s.memoRepository.ReplaceTags(ctx, memoFound.ID, tagIDs); err != nil {
+		if err := s.memoRepository.ReplaceTags(ctx, memoFound.ID, tagIDs, false); err != nil {
 			return fmt.Errorf("replacing tags: %w", err)
 		}
 
-		memoFound.IsPublished = publish
-		memo, err := s.memoRepository.Update(ctx, memoFound)
+		memo, err := s.memoRepository.UpdateIsPublish(ctx, memoFound.ID, publish)
 		if err != nil {
 			return fmt.Errorf("updating memo published state: %w", err)
 		}
@@ -358,7 +357,7 @@ func (s *Service) ReplaceTags(
 		tags = append(tags, reservedTags...)
 
 		tagIDs := lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
-		if err := s.memoRepository.ReplaceTags(ctx, memoID, tagIDs); err != nil {
+		if err := s.memoRepository.ReplaceTags(ctx, memoID, tagIDs, true); err != nil {
 			return fmt.Errorf("replacing tags: %w", err)
 		}
 

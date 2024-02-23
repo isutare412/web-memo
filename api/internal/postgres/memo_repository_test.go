@@ -298,6 +298,16 @@ var _ = Describe("MemoRepository", func() {
 			})
 		})
 
+		Context("UpdateIsPublish", func() {
+			It("updates IsPublish with updating UpdateTime", func(ctx SpecContext) {
+				memo, err := memoRepository.UpdateIsPublish(ctx, fakeMemos[0].ID, true)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(memo.ID).To(Equal(fakeMemos[0].ID))
+				Expect(memo.IsPublished).NotTo(Equal(fakeMemos[0].IsPublished))
+				Expect(memo.UpdateTime.Equal(fakeMemos[0].UpdateTime)).To(BeTrue())
+			})
+		})
+
 		Context("Delete", func() {
 			It("deletes memo", func(ctx SpecContext) {
 				err := memoRepository.Delete(ctx, fakeMemos[0].ID)
@@ -312,7 +322,7 @@ var _ = Describe("MemoRepository", func() {
 
 		Context("ReplaceTags", func() {
 			It("replaces tags of memo", func(ctx SpecContext) {
-				err := memoRepository.ReplaceTags(ctx, fakeMemos[0].ID, []int{fakeTags[1].ID})
+				err := memoRepository.ReplaceTags(ctx, fakeMemos[0].ID, []int{fakeTags[1].ID}, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				memo, err := memoRepository.FindByIDWithTags(ctx, fakeMemos[0].ID)
@@ -323,7 +333,7 @@ var _ = Describe("MemoRepository", func() {
 			})
 
 			It("removes tags of memo", func(ctx SpecContext) {
-				err := memoRepository.ReplaceTags(ctx, fakeMemos[0].ID, nil)
+				err := memoRepository.ReplaceTags(ctx, fakeMemos[0].ID, nil, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				memo, err := memoRepository.FindByIDWithTags(ctx, fakeMemos[0].ID)
@@ -333,8 +343,17 @@ var _ = Describe("MemoRepository", func() {
 			})
 
 			It("returns not found error if id does not exist", func(ctx SpecContext) {
-				err := memoRepository.ReplaceTags(ctx, uuid.Must(uuid.NewRandom()), nil)
+				err := memoRepository.ReplaceTags(ctx, uuid.Must(uuid.NewRandom()), nil, true)
 				Expect(pkgerr.IsErrNotFound(err)).To(BeTrue())
+			})
+
+			It("does not update UpdateTime", func(ctx SpecContext) {
+				err := memoRepository.ReplaceTags(ctx, fakeMemos[0].ID, nil, false)
+				Expect(err).NotTo(HaveOccurred())
+
+				memo, err := memoRepository.FindByIDWithTags(ctx, fakeMemos[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(memo.UpdateTime.Equal(fakeMemos[0].UpdateTime)).To(BeTrue())
 			})
 		})
 
