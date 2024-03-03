@@ -35,6 +35,7 @@ interface ReplaceMemoRequest {
   title: string
   content: string
   tags: string[]
+  isPinUpdateTime?: boolean
 }
 
 interface PublishMemoRequest {
@@ -120,7 +121,10 @@ export async function createMemo(request: CreateMemoRequest): Promise<RawMemo> {
 }
 
 export async function replaceMemo(request: ReplaceMemoRequest): Promise<RawMemo> {
-  const response = await fetch(`/api/v1/memos/${request.id}`, {
+  const searchParams = new URLSearchParams()
+  searchParams.append('pinUpdateTime', request.isPinUpdateTime ? 'true' : 'false')
+
+  const response = await fetch(`/api/v1/memos/${request.id}?${searchParams.toString()}`, {
     method: 'PUT',
     body: JSON.stringify({
       title: request.title,

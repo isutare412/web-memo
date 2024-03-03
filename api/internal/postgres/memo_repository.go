@@ -240,7 +240,7 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 		SetTitle(memo.Title).
 		SetContent(base64Encode(memo.Content)).
 		SetIsPublished(memo.IsPublished).
-		SetUpdateTime(time.Now()).
+		SetUpdateTime(lo.Ternary(memo.UpdateTime.IsZero(), time.Now(), memo.UpdateTime)).
 		Save(ctx)
 	switch {
 	case ent.IsNotFound(err):

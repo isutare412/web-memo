@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -173,6 +174,8 @@ func (h *memoHandler) replaceMemo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isPinUpdateTime := getIsPinUpdateTime(r.URL.Query())
+
 	passport, ok := extractPassport(ctx)
 	if !ok {
 		responsePassportError(w, r)
@@ -200,7 +203,7 @@ func (h *memoHandler) replaceMemo(w http.ResponseWriter, r *http.Request) {
 	memoToUpdate := req.toMemo()
 	memoToUpdate.ID = memoID
 
-	memoUpdated, err := h.memoService.UpdateMemo(ctx, memoToUpdate, req.Tags, passport.token)
+	memoUpdated, err := h.memoService.UpdateMemo(ctx, memoToUpdate, req.Tags, passport.token, isPinUpdateTime)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("updating memo: %w", err))
 		return
@@ -563,4 +566,8 @@ func getTagsQuery(q url.Values) []string {
 
 func getMemoSortQuery(q url.Values) enum.MemoSortKey {
 	return enum.MemoSortKey(q.Get("sort")).GetOrDefault()
+}
+
+func getIsPinUpdateTime(q url.Values) bool {
+	return strings.EqualFold(q.Get("pinUpdateTime"), "true")
 }

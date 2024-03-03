@@ -14,6 +14,7 @@
   let titleWarning = false
   let tagWarning: string | undefined = undefined
   let isSubmitting = false
+  let isPressingSubmit = false
 
   function onTagInputKeyUp(
     event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
@@ -81,16 +82,8 @@
   }
 
   async function onSubmit() {
-    if (title.trim() === '') {
-      titleWarning = true
-      return
-    }
-
-    if (tagInputValue !== '') {
-      if (!validateTag(tagInputValue)) return
-
-      addTag(tagInputValue)
-    }
+    if (isPressingSubmit) return
+    if (!validateBeforeSubmit()) return
 
     isSubmitting = true
     dispatch('submit', {
@@ -100,8 +93,44 @@
     })
   }
 
+  async function onSubmitMouseDown() {
+    isPressingSubmit = true
+
+    setTimeout(() => {
+      if (!isPressingSubmit) return
+      if (!validateBeforeSubmit()) return
+
+      isSubmitting = true
+      dispatch('submit', {
+        title,
+        content,
+        tags,
+        isHold: true,
+      })
+    }, 1000)
+  }
+
+  function clearIsPressingSubmit() {
+    isPressingSubmit = false
+  }
+
   function onCancel() {
     dispatch('cancel')
+  }
+
+  function validateBeforeSubmit(): boolean {
+    if (title.trim() === '') {
+      titleWarning = true
+      return false
+    }
+
+    if (tagInputValue !== '') {
+      if (!validateTag(tagInputValue)) return false
+
+      addTag(tagInputValue)
+    }
+
+    return true
   }
 
   function validateTag(value: string): boolean {
@@ -377,7 +406,14 @@
 </div>
 <div class="mt-4 flex justify-end gap-x-2">
   <button on:click={onCancel} class="btn btn-primary btn-outline">Cancel</button>
-  <button on:click={onSubmit} disabled={isSubmitting} class="btn btn-primary">
+  <button
+    on:mousedown={onSubmitMouseDown}
+    on:mouseup={clearIsPressingSubmit}
+    on:mouseleave={clearIsPressingSubmit}
+    on:click={onSubmit}
+    disabled={isSubmitting}
+    class="btn btn-primary"
+  >
     {#if isSubmitting}
       <span class="loading loading-spinner" />
     {:else}

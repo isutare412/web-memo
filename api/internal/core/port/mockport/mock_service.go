@@ -275,18 +275,18 @@ func (mr *MockMemoServiceMockRecorder) UnsubscribeMemo(ctx, memoID, requester an
 }
 
 // UpdateMemo mocks base method.
-func (m *MockMemoService) UpdateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, requester *model.AppIDToken) (*ent.Memo, error) {
+func (m *MockMemoService) UpdateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, requester *model.AppIDToken, isPinUpdateTime bool) (*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMemo", ctx, memo, tagNames, requester)
+	ret := m.ctrl.Call(m, "UpdateMemo", ctx, memo, tagNames, requester, isPinUpdateTime)
 	ret0, _ := ret[0].(*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateMemo indicates an expected call of UpdateMemo.
-func (mr *MockMemoServiceMockRecorder) UpdateMemo(ctx, memo, tagNames, requester any) *gomock.Call {
+func (mr *MockMemoServiceMockRecorder) UpdateMemo(ctx, memo, tagNames, requester, isPinUpdateTime any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMemo", reflect.TypeOf((*MockMemoService)(nil).UpdateMemo), ctx, memo, tagNames, requester)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMemo", reflect.TypeOf((*MockMemoService)(nil).UpdateMemo), ctx, memo, tagNames, requester, isPinUpdateTime)
 }
 
 // UpdateMemoPublishedState mocks base method.

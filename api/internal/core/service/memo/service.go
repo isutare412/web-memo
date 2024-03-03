@@ -129,6 +129,7 @@ func (s *Service) UpdateMemo(
 	memo *ent.Memo,
 	tagNames []string,
 	requester *model.AppIDToken,
+	isPinUpdateTime bool,
 ) (*ent.Memo, error) {
 	tagNames = removeReservedTags(tagNames)
 	tagNames = sortDedupTags(tagNames)
@@ -159,13 +160,17 @@ func (s *Service) UpdateMemo(
 		tags = append(tags, reservedTags...)
 
 		memo.IsPublished = memoFound.IsPublished
+		if isPinUpdateTime {
+			memo.UpdateTime = memoFound.UpdateTime
+		}
+
 		memo, err := s.memoRepository.Update(ctx, memo)
 		if err != nil {
 			return fmt.Errorf("creating memo: %w", err)
 		}
 
 		tagIDs := lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
-		if err := s.memoRepository.ReplaceTags(ctx, memo.ID, tagIDs, true); err != nil {
+		if err := s.memoRepository.ReplaceTags(ctx, memo.ID, tagIDs, !isPinUpdateTime); err != nil {
 			return fmt.Errorf("replacing tags: %w", err)
 		}
 

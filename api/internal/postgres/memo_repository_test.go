@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -282,6 +284,22 @@ var _ = Describe("MemoRepository", func() {
 				Expect(memo.Title).To(Equal(givenMemo.Title))
 				Expect(memo.Content).To(Equal(givenMemo.Content))
 				Expect(memo.IsPublished).To(Equal(givenMemo.IsPublished))
+			})
+
+			It("sets updateTime if requested explicitly", func(ctx SpecContext) {
+				var (
+					givenMemo = &ent.Memo{
+						ID:         fakeMemos[0].ID,
+						Title:      "new-title",
+						UpdateTime: time.Now().Add(123 * time.Second),
+					}
+				)
+
+				memo, err := memoRepository.Update(ctx, givenMemo)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(memo).NotTo(BeNil())
+				Expect(memo.ID).To(Equal(fakeMemos[0].ID))
+				Expect(memo.UpdateTime.Equal(givenMemo.UpdateTime)).To(BeTrue())
 			})
 
 			It("returns not found error if id does not exist", func(ctx SpecContext) {

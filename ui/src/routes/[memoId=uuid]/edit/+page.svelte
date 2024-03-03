@@ -26,7 +26,7 @@
   })
 
   async function onMemoSubmit(
-    event: CustomEvent<{ title: string; content: string; tags: string[] }>
+    event: CustomEvent<{ title: string; content: string; tags: string[]; isHold?: boolean }>
   ) {
     try {
       await replaceMemo({
@@ -34,7 +34,12 @@
         title: event.detail.title,
         content: event.detail.content,
         tags: event.detail.tags,
+        isPinUpdateTime: event.detail.isHold,
       })
+
+      if (event.detail.isHold) {
+        addToast('Kept update time from being updated.', 'info')
+      }
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       return
