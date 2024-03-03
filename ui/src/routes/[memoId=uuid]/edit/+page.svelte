@@ -45,7 +45,7 @@
       return
     }
 
-    goto(`/${memoId}`)
+    history.back()
   }
 
   function onMemoCancel() {

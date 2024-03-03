@@ -106,7 +106,7 @@
     await deleteMemo(memoId)
     isDeleting = false
 
-    goto('/', { replaceState: true })
+    history.back()
   }
 
   function onSusbscribeEvent() {

@@ -14,7 +14,7 @@
       await syncUserData()
 
       const memo = mapToMemo(await createMemo(event.detail))
-      goto(`/${memo.id}`)
+      goto(`/${memo.id}`, { replaceState: true })
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       return
