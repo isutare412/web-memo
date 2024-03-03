@@ -94,6 +94,14 @@
   }
 
   async function onSubmitMouseDown() {
+    await submitAfterDelay()
+  }
+
+  async function onSubmitTouchStart() {
+    await submitAfterDelay()
+  }
+
+  async function submitAfterDelay() {
     isPressingSubmit = true
 
     setTimeout(() => {
@@ -410,6 +418,8 @@
     on:mousedown={onSubmitMouseDown}
     on:mouseup={clearIsPressingSubmit}
     on:mouseleave={clearIsPressingSubmit}
+    on:touchstart={onSubmitTouchStart}
+    on:touchend={clearIsPressingSubmit}
     on:click={onSubmit}
     disabled={isSubmitting}
     class="btn btn-primary"
