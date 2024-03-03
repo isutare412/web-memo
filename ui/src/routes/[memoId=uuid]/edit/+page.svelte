@@ -38,7 +38,7 @@
       })
 
       if (event.detail.isHold) {
-        addToast('Kept update time from being updated.', 'info')
+        addToast('Updated the memo without updating time.', 'info', { timeout: 2000 })
       }
     } catch (error) {
       addToast(getErrorMessage(error), 'error')

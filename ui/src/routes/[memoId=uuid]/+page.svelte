@@ -179,13 +179,13 @@
         ])
         .then(() => {
           if (memo !== undefined && memo.isPublished)
-            addToast('Copied memo URL!', 'info', { timeout: 1500 })
+            addToast('Copied memo URL!', 'info', { timeout: 2000 })
         })
     } else {
       publishMemoPromise.then(() => {
         navigator.clipboard.writeText(memoUrl).then(() => {
           if (memo !== undefined && memo.isPublished)
-            addToast('Copied memo URL!', 'info', { timeout: 1500 })
+            addToast('Copied memo URL!', 'info', { timeout: 2000 })
         })
       })
     }
