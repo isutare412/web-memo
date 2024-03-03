@@ -105,7 +105,7 @@ func (r *MemoRepository) FindAllByUserIDWithTags(
 				memo.HasSubscriptionsWith(subscription.UserID(userID)),
 			)).
 		WithTags().
-		Order(buildMemoOrderOption(sortParams, pageParams))
+		Order(buildMemoOrderOption(sortParams))
 
 	page, pageSize := pageParams.GetOrDefault()
 	offset := (page - 1) * pageSize
@@ -146,7 +146,7 @@ func (r *MemoRepository) FindAllByUserIDAndTagNamesWithTags(
 				memo.HasSubscriptionsWith(subscription.UserID(userID)),
 			)).
 		WithTags().
-		Order(buildMemoOrderOption(sortParams, pageParams))
+		Order(buildMemoOrderOption(sortParams))
 
 	page, pageSize := pageParams.GetOrDefault()
 	offset := (page - 1) * pageSize
@@ -401,7 +401,7 @@ func base64Decode(s string) (string, error) {
 	return string(decodedBytes), nil
 }
 
-func buildMemoOrderOption(sortParams model.MemoSortParams, pageParams model.PaginationParams) memo.OrderOption {
+func buildMemoOrderOption(sortParams model.MemoSortParams) memo.OrderOption {
 	var direction sql.OrderTermOption
 	switch sortParams.Order.GetOrDefault() {
 	case enum.SortOrderAsc:

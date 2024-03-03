@@ -12,7 +12,7 @@ type errorResponse struct {
 	Msg string `json:"msg"`
 }
 
-func responseError(w http.ResponseWriter, r *http.Request, err error) {
+func responseError(w http.ResponseWriter, _ *http.Request, err error) {
 	var (
 		statusCode = http.StatusInternalServerError
 		body       errorResponse

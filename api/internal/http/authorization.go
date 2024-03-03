@@ -53,7 +53,7 @@ func (imi *immigration) issuePassport(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func (imi *immigration) issuePassportFromHeader(w http.ResponseWriter, r *http.Request) (*passport, bool, error) {
+func (imi *immigration) issuePassportFromHeader(_ http.ResponseWriter, r *http.Request) (*passport, bool, error) {
 	auth := r.Header.Get("Authorization")
 	if auth == "" {
 		return nil, false, nil
@@ -81,7 +81,7 @@ func (imi *immigration) issuePassportFromHeader(w http.ResponseWriter, r *http.R
 	}, true, nil
 }
 
-func (imi *immigration) issuePassportFromCookie(w http.ResponseWriter, r *http.Request) (*passport, bool, error) {
+func (imi *immigration) issuePassportFromCookie(_ http.ResponseWriter, r *http.Request) (*passport, bool, error) {
 	cookie, err := r.Cookie(cookieNameWebMemoToken)
 	switch {
 	case errors.Is(err, http.ErrNoCookie):
