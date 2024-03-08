@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
@@ -136,6 +137,21 @@ func (mc *MemoCreate) AddSubscribers(u ...*User) *MemoCreate {
 	return mc.AddSubscriberIDs(ids...)
 }
 
+// AddCollaboratorIDs adds the "collaborators" edge to the User entity by IDs.
+func (mc *MemoCreate) AddCollaboratorIDs(ids ...uuid.UUID) *MemoCreate {
+	mc.mutation.AddCollaboratorIDs(ids...)
+	return mc
+}
+
+// AddCollaborators adds the "collaborators" edges to the User entity.
+func (mc *MemoCreate) AddCollaborators(u ...*User) *MemoCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return mc.AddCollaboratorIDs(ids...)
+}
+
 // AddSubscriptionIDs adds the "subscriptions" edge to the Subscription entity by IDs.
 func (mc *MemoCreate) AddSubscriptionIDs(ids ...int) *MemoCreate {
 	mc.mutation.AddSubscriptionIDs(ids...)
@@ -149,6 +165,21 @@ func (mc *MemoCreate) AddSubscriptions(s ...*Subscription) *MemoCreate {
 		ids[i] = s[i].ID
 	}
 	return mc.AddSubscriptionIDs(ids...)
+}
+
+// AddCollaborationIDs adds the "collaborations" edge to the Collaboration entity by IDs.
+func (mc *MemoCreate) AddCollaborationIDs(ids ...int) *MemoCreate {
+	mc.mutation.AddCollaborationIDs(ids...)
+	return mc
+}
+
+// AddCollaborations adds the "collaborations" edges to the Collaboration entity.
+func (mc *MemoCreate) AddCollaborations(c ...*Collaboration) *MemoCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return mc.AddCollaborationIDs(ids...)
 }
 
 // Mutation returns the MemoMutation object of the builder.
@@ -346,6 +377,26 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := mc.mutation.CollaboratorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.CollaboratorsTable,
+			Columns: memo.CollaboratorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &CollaborationCreate{config: mc.config, mutation: newCollaborationMutation(mc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := mc.mutation.SubscriptionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -355,6 +406,22 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mc.mutation.CollaborationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.CollaborationsTable,
+			Columns: []string{memo.CollaborationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(collaboration.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
@@ -29,6 +30,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Collaboration is the client for interacting with the Collaboration builders.
+	Collaboration *CollaborationClient
 	// Memo is the client for interacting with the Memo builders.
 	Memo *MemoClient
 	// Subscription is the client for interacting with the Subscription builders.
@@ -48,6 +51,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Collaboration = NewCollaborationClient(c.config)
 	c.Memo = NewMemoClient(c.config)
 	c.Subscription = NewSubscriptionClient(c.config)
 	c.Tag = NewTagClient(c.config)
@@ -142,12 +146,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Memo:         NewMemoClient(cfg),
-		Subscription: NewSubscriptionClient(cfg),
-		Tag:          NewTagClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		Collaboration: NewCollaborationClient(cfg),
+		Memo:          NewMemoClient(cfg),
+		Subscription:  NewSubscriptionClient(cfg),
+		Tag:           NewTagClient(cfg),
+		User:          NewUserClient(cfg),
 	}, nil
 }
 
@@ -165,19 +170,20 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Memo:         NewMemoClient(cfg),
-		Subscription: NewSubscriptionClient(cfg),
-		Tag:          NewTagClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		Collaboration: NewCollaborationClient(cfg),
+		Memo:          NewMemoClient(cfg),
+		Subscription:  NewSubscriptionClient(cfg),
+		Tag:           NewTagClient(cfg),
+		User:          NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Memo.
+//		Collaboration.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -199,6 +205,7 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Collaboration.Use(hooks...)
 	c.Memo.Use(hooks...)
 	c.Subscription.Use(hooks...)
 	c.Tag.Use(hooks...)
@@ -208,6 +215,7 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.Collaboration.Intercept(interceptors...)
 	c.Memo.Intercept(interceptors...)
 	c.Subscription.Intercept(interceptors...)
 	c.Tag.Intercept(interceptors...)
@@ -217,6 +225,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *CollaborationMutation:
+		return c.Collaboration.mutate(ctx, m)
 	case *MemoMutation:
 		return c.Memo.mutate(ctx, m)
 	case *SubscriptionMutation:
@@ -227,6 +237,171 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// CollaborationClient is a client for the Collaboration schema.
+type CollaborationClient struct {
+	config
+}
+
+// NewCollaborationClient returns a client for the Collaboration from the given config.
+func NewCollaborationClient(c config) *CollaborationClient {
+	return &CollaborationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `collaboration.Hooks(f(g(h())))`.
+func (c *CollaborationClient) Use(hooks ...Hook) {
+	c.hooks.Collaboration = append(c.hooks.Collaboration, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `collaboration.Intercept(f(g(h())))`.
+func (c *CollaborationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Collaboration = append(c.inters.Collaboration, interceptors...)
+}
+
+// Create returns a builder for creating a Collaboration entity.
+func (c *CollaborationClient) Create() *CollaborationCreate {
+	mutation := newCollaborationMutation(c.config, OpCreate)
+	return &CollaborationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Collaboration entities.
+func (c *CollaborationClient) CreateBulk(builders ...*CollaborationCreate) *CollaborationCreateBulk {
+	return &CollaborationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CollaborationClient) MapCreateBulk(slice any, setFunc func(*CollaborationCreate, int)) *CollaborationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CollaborationCreateBulk{err: fmt.Errorf("calling to CollaborationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CollaborationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CollaborationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Collaboration.
+func (c *CollaborationClient) Update() *CollaborationUpdate {
+	mutation := newCollaborationMutation(c.config, OpUpdate)
+	return &CollaborationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CollaborationClient) UpdateOne(co *Collaboration) *CollaborationUpdateOne {
+	mutation := newCollaborationMutation(c.config, OpUpdateOne, withCollaboration(co))
+	return &CollaborationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CollaborationClient) UpdateOneID(id int) *CollaborationUpdateOne {
+	mutation := newCollaborationMutation(c.config, OpUpdateOne, withCollaborationID(id))
+	return &CollaborationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Collaboration.
+func (c *CollaborationClient) Delete() *CollaborationDelete {
+	mutation := newCollaborationMutation(c.config, OpDelete)
+	return &CollaborationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CollaborationClient) DeleteOne(co *Collaboration) *CollaborationDeleteOne {
+	return c.DeleteOneID(co.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CollaborationClient) DeleteOneID(id int) *CollaborationDeleteOne {
+	builder := c.Delete().Where(collaboration.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CollaborationDeleteOne{builder}
+}
+
+// Query returns a query builder for Collaboration.
+func (c *CollaborationClient) Query() *CollaborationQuery {
+	return &CollaborationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCollaboration},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Collaboration entity by its id.
+func (c *CollaborationClient) Get(ctx context.Context, id int) (*Collaboration, error) {
+	return c.Query().Where(collaboration.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CollaborationClient) GetX(ctx context.Context, id int) *Collaboration {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCollaborator queries the collaborator edge of a Collaboration.
+func (c *CollaborationClient) QueryCollaborator(co *Collaboration) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collaboration.Table, collaboration.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, collaboration.CollaboratorTable, collaboration.CollaboratorColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMemo queries the memo edge of a Collaboration.
+func (c *CollaborationClient) QueryMemo(co *Collaboration) *MemoQuery {
+	query := (&MemoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(collaboration.Table, collaboration.FieldID, id),
+			sqlgraph.To(memo.Table, memo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, collaboration.MemoTable, collaboration.MemoColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CollaborationClient) Hooks() []Hook {
+	return c.hooks.Collaboration
+}
+
+// Interceptors returns the client interceptors.
+func (c *CollaborationClient) Interceptors() []Interceptor {
+	return c.inters.Collaboration
+}
+
+func (c *CollaborationClient) mutate(ctx context.Context, m *CollaborationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CollaborationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CollaborationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CollaborationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CollaborationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Collaboration mutation op: %q", m.Op())
 	}
 }
 
@@ -386,6 +561,22 @@ func (c *MemoClient) QuerySubscribers(m *Memo) *UserQuery {
 	return query
 }
 
+// QueryCollaborators queries the collaborators edge of a Memo.
+func (c *MemoClient) QueryCollaborators(m *Memo) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(memo.Table, memo.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, memo.CollaboratorsTable, memo.CollaboratorsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySubscriptions queries the subscriptions edge of a Memo.
 func (c *MemoClient) QuerySubscriptions(m *Memo) *SubscriptionQuery {
 	query := (&SubscriptionClient{config: c.config}).Query()
@@ -395,6 +586,22 @@ func (c *MemoClient) QuerySubscriptions(m *Memo) *SubscriptionQuery {
 			sqlgraph.From(memo.Table, memo.FieldID, id),
 			sqlgraph.To(subscription.Table, subscription.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, memo.SubscriptionsTable, memo.SubscriptionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCollaborations queries the collaborations edge of a Memo.
+func (c *MemoClient) QueryCollaborations(m *Memo) *CollaborationQuery {
+	query := (&CollaborationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(memo.Table, memo.FieldID, id),
+			sqlgraph.To(collaboration.Table, collaboration.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, memo.CollaborationsTable, memo.CollaborationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
 		return fromV, nil
@@ -881,6 +1088,22 @@ func (c *UserClient) QuerySubscribingMemos(u *User) *MemoQuery {
 	return query
 }
 
+// QueryCollaboratingMemos queries the collaborating_memos edge of a User.
+func (c *UserClient) QueryCollaboratingMemos(u *User) *MemoQuery {
+	query := (&MemoClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(memo.Table, memo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.CollaboratingMemosTable, user.CollaboratingMemosPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySubscriptions queries the subscriptions edge of a User.
 func (c *UserClient) QuerySubscriptions(u *User) *SubscriptionQuery {
 	query := (&SubscriptionClient{config: c.config}).Query()
@@ -890,6 +1113,22 @@ func (c *UserClient) QuerySubscriptions(u *User) *SubscriptionQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(subscription.Table, subscription.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.SubscriptionsTable, user.SubscriptionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCollaborations queries the collaborations edge of a User.
+func (c *UserClient) QueryCollaborations(u *User) *CollaborationQuery {
+	query := (&CollaborationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(collaboration.Table, collaboration.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.CollaborationsTable, user.CollaborationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -925,10 +1164,10 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Memo, Subscription, Tag, User []ent.Hook
+		Collaboration, Memo, Subscription, Tag, User []ent.Hook
 	}
 	inters struct {
-		Memo, Subscription, Tag, User []ent.Interceptor
+		Collaboration, Memo, Subscription, Tag, User []ent.Interceptor
 	}
 )
 

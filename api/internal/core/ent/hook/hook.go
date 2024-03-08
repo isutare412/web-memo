@@ -9,6 +9,18 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 )
 
+// The CollaborationFunc type is an adapter to allow the use of ordinary
+// function as Collaboration mutator.
+type CollaborationFunc func(context.Context, *ent.CollaborationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CollaborationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CollaborationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CollaborationMutation", m)
+}
+
 // The MemoFunc type is an adapter to allow the use of ordinary
 // function as Memo mutator.
 type MemoFunc func(context.Context, *ent.MemoMutation) (ent.Value, error)

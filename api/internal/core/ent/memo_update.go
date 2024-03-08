@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
@@ -137,6 +138,21 @@ func (mu *MemoUpdate) AddSubscribers(u ...*User) *MemoUpdate {
 	return mu.AddSubscriberIDs(ids...)
 }
 
+// AddCollaboratorIDs adds the "collaborators" edge to the User entity by IDs.
+func (mu *MemoUpdate) AddCollaboratorIDs(ids ...uuid.UUID) *MemoUpdate {
+	mu.mutation.AddCollaboratorIDs(ids...)
+	return mu
+}
+
+// AddCollaborators adds the "collaborators" edges to the User entity.
+func (mu *MemoUpdate) AddCollaborators(u ...*User) *MemoUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return mu.AddCollaboratorIDs(ids...)
+}
+
 // AddSubscriptionIDs adds the "subscriptions" edge to the Subscription entity by IDs.
 func (mu *MemoUpdate) AddSubscriptionIDs(ids ...int) *MemoUpdate {
 	mu.mutation.AddSubscriptionIDs(ids...)
@@ -150,6 +166,21 @@ func (mu *MemoUpdate) AddSubscriptions(s ...*Subscription) *MemoUpdate {
 		ids[i] = s[i].ID
 	}
 	return mu.AddSubscriptionIDs(ids...)
+}
+
+// AddCollaborationIDs adds the "collaborations" edge to the Collaboration entity by IDs.
+func (mu *MemoUpdate) AddCollaborationIDs(ids ...int) *MemoUpdate {
+	mu.mutation.AddCollaborationIDs(ids...)
+	return mu
+}
+
+// AddCollaborations adds the "collaborations" edges to the Collaboration entity.
+func (mu *MemoUpdate) AddCollaborations(c ...*Collaboration) *MemoUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return mu.AddCollaborationIDs(ids...)
 }
 
 // Mutation returns the MemoMutation object of the builder.
@@ -205,6 +236,27 @@ func (mu *MemoUpdate) RemoveSubscribers(u ...*User) *MemoUpdate {
 	return mu.RemoveSubscriberIDs(ids...)
 }
 
+// ClearCollaborators clears all "collaborators" edges to the User entity.
+func (mu *MemoUpdate) ClearCollaborators() *MemoUpdate {
+	mu.mutation.ClearCollaborators()
+	return mu
+}
+
+// RemoveCollaboratorIDs removes the "collaborators" edge to User entities by IDs.
+func (mu *MemoUpdate) RemoveCollaboratorIDs(ids ...uuid.UUID) *MemoUpdate {
+	mu.mutation.RemoveCollaboratorIDs(ids...)
+	return mu
+}
+
+// RemoveCollaborators removes "collaborators" edges to User entities.
+func (mu *MemoUpdate) RemoveCollaborators(u ...*User) *MemoUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return mu.RemoveCollaboratorIDs(ids...)
+}
+
 // ClearSubscriptions clears all "subscriptions" edges to the Subscription entity.
 func (mu *MemoUpdate) ClearSubscriptions() *MemoUpdate {
 	mu.mutation.ClearSubscriptions()
@@ -224,6 +276,27 @@ func (mu *MemoUpdate) RemoveSubscriptions(s ...*Subscription) *MemoUpdate {
 		ids[i] = s[i].ID
 	}
 	return mu.RemoveSubscriptionIDs(ids...)
+}
+
+// ClearCollaborations clears all "collaborations" edges to the Collaboration entity.
+func (mu *MemoUpdate) ClearCollaborations() *MemoUpdate {
+	mu.mutation.ClearCollaborations()
+	return mu
+}
+
+// RemoveCollaborationIDs removes the "collaborations" edge to Collaboration entities by IDs.
+func (mu *MemoUpdate) RemoveCollaborationIDs(ids ...int) *MemoUpdate {
+	mu.mutation.RemoveCollaborationIDs(ids...)
+	return mu
+}
+
+// RemoveCollaborations removes "collaborations" edges to Collaboration entities.
+func (mu *MemoUpdate) RemoveCollaborations(c ...*Collaboration) *MemoUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return mu.RemoveCollaborationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -426,6 +499,63 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if mu.mutation.CollaboratorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.CollaboratorsTable,
+			Columns: memo.CollaboratorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		createE := &CollaborationCreate{config: mu.config, mutation: newCollaborationMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedCollaboratorsIDs(); len(nodes) > 0 && !mu.mutation.CollaboratorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.CollaboratorsTable,
+			Columns: memo.CollaboratorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &CollaborationCreate{config: mu.config, mutation: newCollaborationMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.CollaboratorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.CollaboratorsTable,
+			Columns: memo.CollaboratorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &CollaborationCreate{config: mu.config, mutation: newCollaborationMutation(mu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if mu.mutation.SubscriptionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -464,6 +594,51 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.CollaborationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.CollaborationsTable,
+			Columns: []string{memo.CollaborationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(collaboration.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedCollaborationsIDs(); len(nodes) > 0 && !mu.mutation.CollaborationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.CollaborationsTable,
+			Columns: []string{memo.CollaborationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(collaboration.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.CollaborationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.CollaborationsTable,
+			Columns: []string{memo.CollaborationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(collaboration.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -596,6 +771,21 @@ func (muo *MemoUpdateOne) AddSubscribers(u ...*User) *MemoUpdateOne {
 	return muo.AddSubscriberIDs(ids...)
 }
 
+// AddCollaboratorIDs adds the "collaborators" edge to the User entity by IDs.
+func (muo *MemoUpdateOne) AddCollaboratorIDs(ids ...uuid.UUID) *MemoUpdateOne {
+	muo.mutation.AddCollaboratorIDs(ids...)
+	return muo
+}
+
+// AddCollaborators adds the "collaborators" edges to the User entity.
+func (muo *MemoUpdateOne) AddCollaborators(u ...*User) *MemoUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return muo.AddCollaboratorIDs(ids...)
+}
+
 // AddSubscriptionIDs adds the "subscriptions" edge to the Subscription entity by IDs.
 func (muo *MemoUpdateOne) AddSubscriptionIDs(ids ...int) *MemoUpdateOne {
 	muo.mutation.AddSubscriptionIDs(ids...)
@@ -609,6 +799,21 @@ func (muo *MemoUpdateOne) AddSubscriptions(s ...*Subscription) *MemoUpdateOne {
 		ids[i] = s[i].ID
 	}
 	return muo.AddSubscriptionIDs(ids...)
+}
+
+// AddCollaborationIDs adds the "collaborations" edge to the Collaboration entity by IDs.
+func (muo *MemoUpdateOne) AddCollaborationIDs(ids ...int) *MemoUpdateOne {
+	muo.mutation.AddCollaborationIDs(ids...)
+	return muo
+}
+
+// AddCollaborations adds the "collaborations" edges to the Collaboration entity.
+func (muo *MemoUpdateOne) AddCollaborations(c ...*Collaboration) *MemoUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return muo.AddCollaborationIDs(ids...)
 }
 
 // Mutation returns the MemoMutation object of the builder.
@@ -664,6 +869,27 @@ func (muo *MemoUpdateOne) RemoveSubscribers(u ...*User) *MemoUpdateOne {
 	return muo.RemoveSubscriberIDs(ids...)
 }
 
+// ClearCollaborators clears all "collaborators" edges to the User entity.
+func (muo *MemoUpdateOne) ClearCollaborators() *MemoUpdateOne {
+	muo.mutation.ClearCollaborators()
+	return muo
+}
+
+// RemoveCollaboratorIDs removes the "collaborators" edge to User entities by IDs.
+func (muo *MemoUpdateOne) RemoveCollaboratorIDs(ids ...uuid.UUID) *MemoUpdateOne {
+	muo.mutation.RemoveCollaboratorIDs(ids...)
+	return muo
+}
+
+// RemoveCollaborators removes "collaborators" edges to User entities.
+func (muo *MemoUpdateOne) RemoveCollaborators(u ...*User) *MemoUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return muo.RemoveCollaboratorIDs(ids...)
+}
+
 // ClearSubscriptions clears all "subscriptions" edges to the Subscription entity.
 func (muo *MemoUpdateOne) ClearSubscriptions() *MemoUpdateOne {
 	muo.mutation.ClearSubscriptions()
@@ -683,6 +909,27 @@ func (muo *MemoUpdateOne) RemoveSubscriptions(s ...*Subscription) *MemoUpdateOne
 		ids[i] = s[i].ID
 	}
 	return muo.RemoveSubscriptionIDs(ids...)
+}
+
+// ClearCollaborations clears all "collaborations" edges to the Collaboration entity.
+func (muo *MemoUpdateOne) ClearCollaborations() *MemoUpdateOne {
+	muo.mutation.ClearCollaborations()
+	return muo
+}
+
+// RemoveCollaborationIDs removes the "collaborations" edge to Collaboration entities by IDs.
+func (muo *MemoUpdateOne) RemoveCollaborationIDs(ids ...int) *MemoUpdateOne {
+	muo.mutation.RemoveCollaborationIDs(ids...)
+	return muo
+}
+
+// RemoveCollaborations removes "collaborations" edges to Collaboration entities.
+func (muo *MemoUpdateOne) RemoveCollaborations(c ...*Collaboration) *MemoUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return muo.RemoveCollaborationIDs(ids...)
 }
 
 // Where appends a list predicates to the MemoUpdate builder.
@@ -915,6 +1162,63 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if muo.mutation.CollaboratorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.CollaboratorsTable,
+			Columns: memo.CollaboratorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		createE := &CollaborationCreate{config: muo.config, mutation: newCollaborationMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedCollaboratorsIDs(); len(nodes) > 0 && !muo.mutation.CollaboratorsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.CollaboratorsTable,
+			Columns: memo.CollaboratorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &CollaborationCreate{config: muo.config, mutation: newCollaborationMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.CollaboratorsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   memo.CollaboratorsTable,
+			Columns: memo.CollaboratorsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &CollaborationCreate{config: muo.config, mutation: newCollaborationMutation(muo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if muo.mutation.SubscriptionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -953,6 +1257,51 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.CollaborationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.CollaborationsTable,
+			Columns: []string{memo.CollaborationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(collaboration.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedCollaborationsIDs(); len(nodes) > 0 && !muo.mutation.CollaborationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.CollaborationsTable,
+			Columns: []string{memo.CollaborationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(collaboration.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.CollaborationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   memo.CollaborationsTable,
+			Columns: []string{memo.CollaborationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(collaboration.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

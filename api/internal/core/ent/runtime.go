@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/schema"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
@@ -17,6 +18,20 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	collaborationFields := schema.Collaboration{}.Fields()
+	_ = collaborationFields
+	// collaborationDescApproved is the schema descriptor for approved field.
+	collaborationDescApproved := collaborationFields[2].Descriptor()
+	// collaboration.DefaultApproved holds the default value on creation for the approved field.
+	collaboration.DefaultApproved = collaborationDescApproved.Default.(bool)
+	// collaborationDescCreateTime is the schema descriptor for create_time field.
+	collaborationDescCreateTime := collaborationFields[3].Descriptor()
+	// collaboration.DefaultCreateTime holds the default value on creation for the create_time field.
+	collaboration.DefaultCreateTime = collaborationDescCreateTime.Default.(func() time.Time)
+	// collaborationDescUpdateTime is the schema descriptor for update_time field.
+	collaborationDescUpdateTime := collaborationFields[4].Descriptor()
+	// collaboration.DefaultUpdateTime holds the default value on creation for the update_time field.
+	collaboration.DefaultUpdateTime = collaborationDescUpdateTime.Default.(func() time.Time)
 	memoFields := schema.Memo{}.Fields()
 	_ = memoFields
 	// memoDescTitle is the schema descriptor for title field.

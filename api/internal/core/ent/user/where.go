@@ -603,6 +603,29 @@ func HasSubscribingMemosWith(preds ...predicate.Memo) predicate.User {
 	})
 }
 
+// HasCollaboratingMemos applies the HasEdge predicate on the "collaborating_memos" edge.
+func HasCollaboratingMemos() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, CollaboratingMemosTable, CollaboratingMemosPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCollaboratingMemosWith applies the HasEdge predicate on the "collaborating_memos" edge with a given conditions (other predicates).
+func HasCollaboratingMemosWith(preds ...predicate.Memo) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCollaboratingMemosStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasSubscriptions applies the HasEdge predicate on the "subscriptions" edge.
 func HasSubscriptions() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -618,6 +641,29 @@ func HasSubscriptions() predicate.User {
 func HasSubscriptionsWith(preds ...predicate.Subscription) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newSubscriptionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCollaborations applies the HasEdge predicate on the "collaborations" edge.
+func HasCollaborations() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CollaborationsTable, CollaborationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCollaborationsWith applies the HasEdge predicate on the "collaborations" edge with a given conditions (other predicates).
+func HasCollaborationsWith(preds ...predicate.Collaboration) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCollaborationsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

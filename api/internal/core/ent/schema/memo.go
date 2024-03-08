@@ -55,5 +55,8 @@ func (Memo) Edges() []ent.Edge {
 		edge.From("subscribers", User.Type).
 			Ref("subscribing_memos").
 			Through("subscriptions", Subscription.Type),
+		edge.From("collaborators", User.Type).
+			Ref("collaborating_memos").
+			Through("collaborations", Collaboration.Type),
 	}
 }

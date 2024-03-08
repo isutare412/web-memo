@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
@@ -29,38 +30,700 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeMemo         = "Memo"
-	TypeSubscription = "Subscription"
-	TypeTag          = "Tag"
-	TypeUser         = "User"
+	TypeCollaboration = "Collaboration"
+	TypeMemo          = "Memo"
+	TypeSubscription  = "Subscription"
+	TypeTag           = "Tag"
+	TypeUser          = "User"
 )
+
+// CollaborationMutation represents an operation that mutates the Collaboration nodes in the graph.
+type CollaborationMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *int
+	approved            *bool
+	create_time         *time.Time
+	update_time         *time.Time
+	clearedFields       map[string]struct{}
+	collaborator        *uuid.UUID
+	clearedcollaborator bool
+	memo                *uuid.UUID
+	clearedmemo         bool
+	done                bool
+	oldValue            func(context.Context) (*Collaboration, error)
+	predicates          []predicate.Collaboration
+}
+
+var _ ent.Mutation = (*CollaborationMutation)(nil)
+
+// collaborationOption allows management of the mutation configuration using functional options.
+type collaborationOption func(*CollaborationMutation)
+
+// newCollaborationMutation creates new mutation for the Collaboration entity.
+func newCollaborationMutation(c config, op Op, opts ...collaborationOption) *CollaborationMutation {
+	m := &CollaborationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCollaboration,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCollaborationID sets the ID field of the mutation.
+func withCollaborationID(id int) collaborationOption {
+	return func(m *CollaborationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Collaboration
+		)
+		m.oldValue = func(ctx context.Context) (*Collaboration, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Collaboration.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCollaboration sets the old Collaboration of the mutation.
+func withCollaboration(node *Collaboration) collaborationOption {
+	return func(m *CollaborationMutation) {
+		m.oldValue = func(context.Context) (*Collaboration, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CollaborationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CollaborationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CollaborationMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CollaborationMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Collaboration.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *CollaborationMutation) SetUserID(u uuid.UUID) {
+	m.collaborator = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *CollaborationMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.collaborator
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Collaboration entity.
+// If the Collaboration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollaborationMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *CollaborationMutation) ResetUserID() {
+	m.collaborator = nil
+}
+
+// SetMemoID sets the "memo_id" field.
+func (m *CollaborationMutation) SetMemoID(u uuid.UUID) {
+	m.memo = &u
+}
+
+// MemoID returns the value of the "memo_id" field in the mutation.
+func (m *CollaborationMutation) MemoID() (r uuid.UUID, exists bool) {
+	v := m.memo
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMemoID returns the old "memo_id" field's value of the Collaboration entity.
+// If the Collaboration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollaborationMutation) OldMemoID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMemoID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMemoID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMemoID: %w", err)
+	}
+	return oldValue.MemoID, nil
+}
+
+// ResetMemoID resets all changes to the "memo_id" field.
+func (m *CollaborationMutation) ResetMemoID() {
+	m.memo = nil
+}
+
+// SetApproved sets the "approved" field.
+func (m *CollaborationMutation) SetApproved(b bool) {
+	m.approved = &b
+}
+
+// Approved returns the value of the "approved" field in the mutation.
+func (m *CollaborationMutation) Approved() (r bool, exists bool) {
+	v := m.approved
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApproved returns the old "approved" field's value of the Collaboration entity.
+// If the Collaboration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollaborationMutation) OldApproved(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApproved is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApproved requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApproved: %w", err)
+	}
+	return oldValue.Approved, nil
+}
+
+// ResetApproved resets all changes to the "approved" field.
+func (m *CollaborationMutation) ResetApproved() {
+	m.approved = nil
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *CollaborationMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *CollaborationMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the Collaboration entity.
+// If the Collaboration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollaborationMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *CollaborationMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *CollaborationMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *CollaborationMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the Collaboration entity.
+// If the Collaboration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CollaborationMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *CollaborationMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetCollaboratorID sets the "collaborator" edge to the User entity by id.
+func (m *CollaborationMutation) SetCollaboratorID(id uuid.UUID) {
+	m.collaborator = &id
+}
+
+// ClearCollaborator clears the "collaborator" edge to the User entity.
+func (m *CollaborationMutation) ClearCollaborator() {
+	m.clearedcollaborator = true
+	m.clearedFields[collaboration.FieldUserID] = struct{}{}
+}
+
+// CollaboratorCleared reports if the "collaborator" edge to the User entity was cleared.
+func (m *CollaborationMutation) CollaboratorCleared() bool {
+	return m.clearedcollaborator
+}
+
+// CollaboratorID returns the "collaborator" edge ID in the mutation.
+func (m *CollaborationMutation) CollaboratorID() (id uuid.UUID, exists bool) {
+	if m.collaborator != nil {
+		return *m.collaborator, true
+	}
+	return
+}
+
+// CollaboratorIDs returns the "collaborator" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CollaboratorID instead. It exists only for internal usage by the builders.
+func (m *CollaborationMutation) CollaboratorIDs() (ids []uuid.UUID) {
+	if id := m.collaborator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCollaborator resets all changes to the "collaborator" edge.
+func (m *CollaborationMutation) ResetCollaborator() {
+	m.collaborator = nil
+	m.clearedcollaborator = false
+}
+
+// ClearMemo clears the "memo" edge to the Memo entity.
+func (m *CollaborationMutation) ClearMemo() {
+	m.clearedmemo = true
+	m.clearedFields[collaboration.FieldMemoID] = struct{}{}
+}
+
+// MemoCleared reports if the "memo" edge to the Memo entity was cleared.
+func (m *CollaborationMutation) MemoCleared() bool {
+	return m.clearedmemo
+}
+
+// MemoIDs returns the "memo" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MemoID instead. It exists only for internal usage by the builders.
+func (m *CollaborationMutation) MemoIDs() (ids []uuid.UUID) {
+	if id := m.memo; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMemo resets all changes to the "memo" edge.
+func (m *CollaborationMutation) ResetMemo() {
+	m.memo = nil
+	m.clearedmemo = false
+}
+
+// Where appends a list predicates to the CollaborationMutation builder.
+func (m *CollaborationMutation) Where(ps ...predicate.Collaboration) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CollaborationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CollaborationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Collaboration, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CollaborationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CollaborationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Collaboration).
+func (m *CollaborationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CollaborationMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.collaborator != nil {
+		fields = append(fields, collaboration.FieldUserID)
+	}
+	if m.memo != nil {
+		fields = append(fields, collaboration.FieldMemoID)
+	}
+	if m.approved != nil {
+		fields = append(fields, collaboration.FieldApproved)
+	}
+	if m.create_time != nil {
+		fields = append(fields, collaboration.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, collaboration.FieldUpdateTime)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CollaborationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case collaboration.FieldUserID:
+		return m.UserID()
+	case collaboration.FieldMemoID:
+		return m.MemoID()
+	case collaboration.FieldApproved:
+		return m.Approved()
+	case collaboration.FieldCreateTime:
+		return m.CreateTime()
+	case collaboration.FieldUpdateTime:
+		return m.UpdateTime()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CollaborationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case collaboration.FieldUserID:
+		return m.OldUserID(ctx)
+	case collaboration.FieldMemoID:
+		return m.OldMemoID(ctx)
+	case collaboration.FieldApproved:
+		return m.OldApproved(ctx)
+	case collaboration.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case collaboration.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	}
+	return nil, fmt.Errorf("unknown Collaboration field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CollaborationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case collaboration.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case collaboration.FieldMemoID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMemoID(v)
+		return nil
+	case collaboration.FieldApproved:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApproved(v)
+		return nil
+	case collaboration.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case collaboration.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Collaboration field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CollaborationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CollaborationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CollaborationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Collaboration numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CollaborationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CollaborationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CollaborationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Collaboration nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CollaborationMutation) ResetField(name string) error {
+	switch name {
+	case collaboration.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case collaboration.FieldMemoID:
+		m.ResetMemoID()
+		return nil
+	case collaboration.FieldApproved:
+		m.ResetApproved()
+		return nil
+	case collaboration.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case collaboration.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	}
+	return fmt.Errorf("unknown Collaboration field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CollaborationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.collaborator != nil {
+		edges = append(edges, collaboration.EdgeCollaborator)
+	}
+	if m.memo != nil {
+		edges = append(edges, collaboration.EdgeMemo)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CollaborationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case collaboration.EdgeCollaborator:
+		if id := m.collaborator; id != nil {
+			return []ent.Value{*id}
+		}
+	case collaboration.EdgeMemo:
+		if id := m.memo; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CollaborationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CollaborationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CollaborationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedcollaborator {
+		edges = append(edges, collaboration.EdgeCollaborator)
+	}
+	if m.clearedmemo {
+		edges = append(edges, collaboration.EdgeMemo)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CollaborationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case collaboration.EdgeCollaborator:
+		return m.clearedcollaborator
+	case collaboration.EdgeMemo:
+		return m.clearedmemo
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CollaborationMutation) ClearEdge(name string) error {
+	switch name {
+	case collaboration.EdgeCollaborator:
+		m.ClearCollaborator()
+		return nil
+	case collaboration.EdgeMemo:
+		m.ClearMemo()
+		return nil
+	}
+	return fmt.Errorf("unknown Collaboration unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CollaborationMutation) ResetEdge(name string) error {
+	switch name {
+	case collaboration.EdgeCollaborator:
+		m.ResetCollaborator()
+		return nil
+	case collaboration.EdgeMemo:
+		m.ResetMemo()
+		return nil
+	}
+	return fmt.Errorf("unknown Collaboration edge %s", name)
+}
 
 // MemoMutation represents an operation that mutates the Memo nodes in the graph.
 type MemoMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *uuid.UUID
-	title                *string
-	content              *string
-	is_published         *bool
-	create_time          *time.Time
-	update_time          *time.Time
-	clearedFields        map[string]struct{}
-	owner                *uuid.UUID
-	clearedowner         bool
-	tags                 map[int]struct{}
-	removedtags          map[int]struct{}
-	clearedtags          bool
-	subscribers          map[uuid.UUID]struct{}
-	removedsubscribers   map[uuid.UUID]struct{}
-	clearedsubscribers   bool
-	subscriptions        map[int]struct{}
-	removedsubscriptions map[int]struct{}
-	clearedsubscriptions bool
-	done                 bool
-	oldValue             func(context.Context) (*Memo, error)
-	predicates           []predicate.Memo
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	title                 *string
+	content               *string
+	is_published          *bool
+	create_time           *time.Time
+	update_time           *time.Time
+	clearedFields         map[string]struct{}
+	owner                 *uuid.UUID
+	clearedowner          bool
+	tags                  map[int]struct{}
+	removedtags           map[int]struct{}
+	clearedtags           bool
+	subscribers           map[uuid.UUID]struct{}
+	removedsubscribers    map[uuid.UUID]struct{}
+	clearedsubscribers    bool
+	collaborators         map[uuid.UUID]struct{}
+	removedcollaborators  map[uuid.UUID]struct{}
+	clearedcollaborators  bool
+	subscriptions         map[int]struct{}
+	removedsubscriptions  map[int]struct{}
+	clearedsubscriptions  bool
+	collaborations        map[int]struct{}
+	removedcollaborations map[int]struct{}
+	clearedcollaborations bool
+	done                  bool
+	oldValue              func(context.Context) (*Memo, error)
+	predicates            []predicate.Memo
 }
 
 var _ ent.Mutation = (*MemoMutation)(nil)
@@ -518,6 +1181,60 @@ func (m *MemoMutation) ResetSubscribers() {
 	m.removedsubscribers = nil
 }
 
+// AddCollaboratorIDs adds the "collaborators" edge to the User entity by ids.
+func (m *MemoMutation) AddCollaboratorIDs(ids ...uuid.UUID) {
+	if m.collaborators == nil {
+		m.collaborators = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.collaborators[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCollaborators clears the "collaborators" edge to the User entity.
+func (m *MemoMutation) ClearCollaborators() {
+	m.clearedcollaborators = true
+}
+
+// CollaboratorsCleared reports if the "collaborators" edge to the User entity was cleared.
+func (m *MemoMutation) CollaboratorsCleared() bool {
+	return m.clearedcollaborators
+}
+
+// RemoveCollaboratorIDs removes the "collaborators" edge to the User entity by IDs.
+func (m *MemoMutation) RemoveCollaboratorIDs(ids ...uuid.UUID) {
+	if m.removedcollaborators == nil {
+		m.removedcollaborators = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.collaborators, ids[i])
+		m.removedcollaborators[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCollaborators returns the removed IDs of the "collaborators" edge to the User entity.
+func (m *MemoMutation) RemovedCollaboratorsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcollaborators {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CollaboratorsIDs returns the "collaborators" edge IDs in the mutation.
+func (m *MemoMutation) CollaboratorsIDs() (ids []uuid.UUID) {
+	for id := range m.collaborators {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCollaborators resets all changes to the "collaborators" edge.
+func (m *MemoMutation) ResetCollaborators() {
+	m.collaborators = nil
+	m.clearedcollaborators = false
+	m.removedcollaborators = nil
+}
+
 // AddSubscriptionIDs adds the "subscriptions" edge to the Subscription entity by ids.
 func (m *MemoMutation) AddSubscriptionIDs(ids ...int) {
 	if m.subscriptions == nil {
@@ -570,6 +1287,60 @@ func (m *MemoMutation) ResetSubscriptions() {
 	m.subscriptions = nil
 	m.clearedsubscriptions = false
 	m.removedsubscriptions = nil
+}
+
+// AddCollaborationIDs adds the "collaborations" edge to the Collaboration entity by ids.
+func (m *MemoMutation) AddCollaborationIDs(ids ...int) {
+	if m.collaborations == nil {
+		m.collaborations = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.collaborations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCollaborations clears the "collaborations" edge to the Collaboration entity.
+func (m *MemoMutation) ClearCollaborations() {
+	m.clearedcollaborations = true
+}
+
+// CollaborationsCleared reports if the "collaborations" edge to the Collaboration entity was cleared.
+func (m *MemoMutation) CollaborationsCleared() bool {
+	return m.clearedcollaborations
+}
+
+// RemoveCollaborationIDs removes the "collaborations" edge to the Collaboration entity by IDs.
+func (m *MemoMutation) RemoveCollaborationIDs(ids ...int) {
+	if m.removedcollaborations == nil {
+		m.removedcollaborations = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.collaborations, ids[i])
+		m.removedcollaborations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCollaborations returns the removed IDs of the "collaborations" edge to the Collaboration entity.
+func (m *MemoMutation) RemovedCollaborationsIDs() (ids []int) {
+	for id := range m.removedcollaborations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CollaborationsIDs returns the "collaborations" edge IDs in the mutation.
+func (m *MemoMutation) CollaborationsIDs() (ids []int) {
+	for id := range m.collaborations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCollaborations resets all changes to the "collaborations" edge.
+func (m *MemoMutation) ResetCollaborations() {
+	m.collaborations = nil
+	m.clearedcollaborations = false
+	m.removedcollaborations = nil
 }
 
 // Where appends a list predicates to the MemoMutation builder.
@@ -790,7 +1561,7 @@ func (m *MemoMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MemoMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 6)
 	if m.owner != nil {
 		edges = append(edges, memo.EdgeOwner)
 	}
@@ -800,8 +1571,14 @@ func (m *MemoMutation) AddedEdges() []string {
 	if m.subscribers != nil {
 		edges = append(edges, memo.EdgeSubscribers)
 	}
+	if m.collaborators != nil {
+		edges = append(edges, memo.EdgeCollaborators)
+	}
 	if m.subscriptions != nil {
 		edges = append(edges, memo.EdgeSubscriptions)
+	}
+	if m.collaborations != nil {
+		edges = append(edges, memo.EdgeCollaborations)
 	}
 	return edges
 }
@@ -826,9 +1603,21 @@ func (m *MemoMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case memo.EdgeCollaborators:
+		ids := make([]ent.Value, 0, len(m.collaborators))
+		for id := range m.collaborators {
+			ids = append(ids, id)
+		}
+		return ids
 	case memo.EdgeSubscriptions:
 		ids := make([]ent.Value, 0, len(m.subscriptions))
 		for id := range m.subscriptions {
+			ids = append(ids, id)
+		}
+		return ids
+	case memo.EdgeCollaborations:
+		ids := make([]ent.Value, 0, len(m.collaborations))
+		for id := range m.collaborations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -838,15 +1627,21 @@ func (m *MemoMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MemoMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 6)
 	if m.removedtags != nil {
 		edges = append(edges, memo.EdgeTags)
 	}
 	if m.removedsubscribers != nil {
 		edges = append(edges, memo.EdgeSubscribers)
 	}
+	if m.removedcollaborators != nil {
+		edges = append(edges, memo.EdgeCollaborators)
+	}
 	if m.removedsubscriptions != nil {
 		edges = append(edges, memo.EdgeSubscriptions)
+	}
+	if m.removedcollaborations != nil {
+		edges = append(edges, memo.EdgeCollaborations)
 	}
 	return edges
 }
@@ -867,9 +1662,21 @@ func (m *MemoMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case memo.EdgeCollaborators:
+		ids := make([]ent.Value, 0, len(m.removedcollaborators))
+		for id := range m.removedcollaborators {
+			ids = append(ids, id)
+		}
+		return ids
 	case memo.EdgeSubscriptions:
 		ids := make([]ent.Value, 0, len(m.removedsubscriptions))
 		for id := range m.removedsubscriptions {
+			ids = append(ids, id)
+		}
+		return ids
+	case memo.EdgeCollaborations:
+		ids := make([]ent.Value, 0, len(m.removedcollaborations))
+		for id := range m.removedcollaborations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -879,7 +1686,7 @@ func (m *MemoMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MemoMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 6)
 	if m.clearedowner {
 		edges = append(edges, memo.EdgeOwner)
 	}
@@ -889,8 +1696,14 @@ func (m *MemoMutation) ClearedEdges() []string {
 	if m.clearedsubscribers {
 		edges = append(edges, memo.EdgeSubscribers)
 	}
+	if m.clearedcollaborators {
+		edges = append(edges, memo.EdgeCollaborators)
+	}
 	if m.clearedsubscriptions {
 		edges = append(edges, memo.EdgeSubscriptions)
+	}
+	if m.clearedcollaborations {
+		edges = append(edges, memo.EdgeCollaborations)
 	}
 	return edges
 }
@@ -905,8 +1718,12 @@ func (m *MemoMutation) EdgeCleared(name string) bool {
 		return m.clearedtags
 	case memo.EdgeSubscribers:
 		return m.clearedsubscribers
+	case memo.EdgeCollaborators:
+		return m.clearedcollaborators
 	case memo.EdgeSubscriptions:
 		return m.clearedsubscriptions
+	case memo.EdgeCollaborations:
+		return m.clearedcollaborations
 	}
 	return false
 }
@@ -935,8 +1752,14 @@ func (m *MemoMutation) ResetEdge(name string) error {
 	case memo.EdgeSubscribers:
 		m.ResetSubscribers()
 		return nil
+	case memo.EdgeCollaborators:
+		m.ResetCollaborators()
+		return nil
 	case memo.EdgeSubscriptions:
 		m.ResetSubscriptions()
+		return nil
+	case memo.EdgeCollaborations:
+		m.ResetCollaborations()
 		return nil
 	}
 	return fmt.Errorf("unknown Memo edge %s", name)
@@ -2019,30 +2842,36 @@ func (m *TagMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	create_time              *time.Time
-	update_time              *time.Time
-	email                    *string
-	user_name                *string
-	given_name               *string
-	family_name              *string
-	photo_url                *string
-	_type                    *enum.UserType
-	clearedFields            map[string]struct{}
-	memos                    map[uuid.UUID]struct{}
-	removedmemos             map[uuid.UUID]struct{}
-	clearedmemos             bool
-	subscribing_memos        map[uuid.UUID]struct{}
-	removedsubscribing_memos map[uuid.UUID]struct{}
-	clearedsubscribing_memos bool
-	subscriptions            map[int]struct{}
-	removedsubscriptions     map[int]struct{}
-	clearedsubscriptions     bool
-	done                     bool
-	oldValue                 func(context.Context) (*User, error)
-	predicates               []predicate.User
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	create_time                *time.Time
+	update_time                *time.Time
+	email                      *string
+	user_name                  *string
+	given_name                 *string
+	family_name                *string
+	photo_url                  *string
+	_type                      *enum.UserType
+	clearedFields              map[string]struct{}
+	memos                      map[uuid.UUID]struct{}
+	removedmemos               map[uuid.UUID]struct{}
+	clearedmemos               bool
+	subscribing_memos          map[uuid.UUID]struct{}
+	removedsubscribing_memos   map[uuid.UUID]struct{}
+	clearedsubscribing_memos   bool
+	collaborating_memos        map[uuid.UUID]struct{}
+	removedcollaborating_memos map[uuid.UUID]struct{}
+	clearedcollaborating_memos bool
+	subscriptions              map[int]struct{}
+	removedsubscriptions       map[int]struct{}
+	clearedsubscriptions       bool
+	collaborations             map[int]struct{}
+	removedcollaborations      map[int]struct{}
+	clearedcollaborations      bool
+	done                       bool
+	oldValue                   func(context.Context) (*User, error)
+	predicates                 []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -2584,6 +3413,60 @@ func (m *UserMutation) ResetSubscribingMemos() {
 	m.removedsubscribing_memos = nil
 }
 
+// AddCollaboratingMemoIDs adds the "collaborating_memos" edge to the Memo entity by ids.
+func (m *UserMutation) AddCollaboratingMemoIDs(ids ...uuid.UUID) {
+	if m.collaborating_memos == nil {
+		m.collaborating_memos = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.collaborating_memos[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCollaboratingMemos clears the "collaborating_memos" edge to the Memo entity.
+func (m *UserMutation) ClearCollaboratingMemos() {
+	m.clearedcollaborating_memos = true
+}
+
+// CollaboratingMemosCleared reports if the "collaborating_memos" edge to the Memo entity was cleared.
+func (m *UserMutation) CollaboratingMemosCleared() bool {
+	return m.clearedcollaborating_memos
+}
+
+// RemoveCollaboratingMemoIDs removes the "collaborating_memos" edge to the Memo entity by IDs.
+func (m *UserMutation) RemoveCollaboratingMemoIDs(ids ...uuid.UUID) {
+	if m.removedcollaborating_memos == nil {
+		m.removedcollaborating_memos = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.collaborating_memos, ids[i])
+		m.removedcollaborating_memos[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCollaboratingMemos returns the removed IDs of the "collaborating_memos" edge to the Memo entity.
+func (m *UserMutation) RemovedCollaboratingMemosIDs() (ids []uuid.UUID) {
+	for id := range m.removedcollaborating_memos {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CollaboratingMemosIDs returns the "collaborating_memos" edge IDs in the mutation.
+func (m *UserMutation) CollaboratingMemosIDs() (ids []uuid.UUID) {
+	for id := range m.collaborating_memos {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCollaboratingMemos resets all changes to the "collaborating_memos" edge.
+func (m *UserMutation) ResetCollaboratingMemos() {
+	m.collaborating_memos = nil
+	m.clearedcollaborating_memos = false
+	m.removedcollaborating_memos = nil
+}
+
 // AddSubscriptionIDs adds the "subscriptions" edge to the Subscription entity by ids.
 func (m *UserMutation) AddSubscriptionIDs(ids ...int) {
 	if m.subscriptions == nil {
@@ -2636,6 +3519,60 @@ func (m *UserMutation) ResetSubscriptions() {
 	m.subscriptions = nil
 	m.clearedsubscriptions = false
 	m.removedsubscriptions = nil
+}
+
+// AddCollaborationIDs adds the "collaborations" edge to the Collaboration entity by ids.
+func (m *UserMutation) AddCollaborationIDs(ids ...int) {
+	if m.collaborations == nil {
+		m.collaborations = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.collaborations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCollaborations clears the "collaborations" edge to the Collaboration entity.
+func (m *UserMutation) ClearCollaborations() {
+	m.clearedcollaborations = true
+}
+
+// CollaborationsCleared reports if the "collaborations" edge to the Collaboration entity was cleared.
+func (m *UserMutation) CollaborationsCleared() bool {
+	return m.clearedcollaborations
+}
+
+// RemoveCollaborationIDs removes the "collaborations" edge to the Collaboration entity by IDs.
+func (m *UserMutation) RemoveCollaborationIDs(ids ...int) {
+	if m.removedcollaborations == nil {
+		m.removedcollaborations = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.collaborations, ids[i])
+		m.removedcollaborations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCollaborations returns the removed IDs of the "collaborations" edge to the Collaboration entity.
+func (m *UserMutation) RemovedCollaborationsIDs() (ids []int) {
+	for id := range m.removedcollaborations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CollaborationsIDs returns the "collaborations" edge IDs in the mutation.
+func (m *UserMutation) CollaborationsIDs() (ids []int) {
+	for id := range m.collaborations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCollaborations resets all changes to the "collaborations" edge.
+func (m *UserMutation) ResetCollaborations() {
+	m.collaborations = nil
+	m.clearedcollaborations = false
+	m.removedcollaborations = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -2911,15 +3848,21 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.memos != nil {
 		edges = append(edges, user.EdgeMemos)
 	}
 	if m.subscribing_memos != nil {
 		edges = append(edges, user.EdgeSubscribingMemos)
 	}
+	if m.collaborating_memos != nil {
+		edges = append(edges, user.EdgeCollaboratingMemos)
+	}
 	if m.subscriptions != nil {
 		edges = append(edges, user.EdgeSubscriptions)
+	}
+	if m.collaborations != nil {
+		edges = append(edges, user.EdgeCollaborations)
 	}
 	return edges
 }
@@ -2940,9 +3883,21 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCollaboratingMemos:
+		ids := make([]ent.Value, 0, len(m.collaborating_memos))
+		for id := range m.collaborating_memos {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeSubscriptions:
 		ids := make([]ent.Value, 0, len(m.subscriptions))
 		for id := range m.subscriptions {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCollaborations:
+		ids := make([]ent.Value, 0, len(m.collaborations))
+		for id := range m.collaborations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2952,15 +3907,21 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.removedmemos != nil {
 		edges = append(edges, user.EdgeMemos)
 	}
 	if m.removedsubscribing_memos != nil {
 		edges = append(edges, user.EdgeSubscribingMemos)
 	}
+	if m.removedcollaborating_memos != nil {
+		edges = append(edges, user.EdgeCollaboratingMemos)
+	}
 	if m.removedsubscriptions != nil {
 		edges = append(edges, user.EdgeSubscriptions)
+	}
+	if m.removedcollaborations != nil {
+		edges = append(edges, user.EdgeCollaborations)
 	}
 	return edges
 }
@@ -2981,9 +3942,21 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCollaboratingMemos:
+		ids := make([]ent.Value, 0, len(m.removedcollaborating_memos))
+		for id := range m.removedcollaborating_memos {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeSubscriptions:
 		ids := make([]ent.Value, 0, len(m.removedsubscriptions))
 		for id := range m.removedsubscriptions {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeCollaborations:
+		ids := make([]ent.Value, 0, len(m.removedcollaborations))
+		for id := range m.removedcollaborations {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2993,15 +3966,21 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 5)
 	if m.clearedmemos {
 		edges = append(edges, user.EdgeMemos)
 	}
 	if m.clearedsubscribing_memos {
 		edges = append(edges, user.EdgeSubscribingMemos)
 	}
+	if m.clearedcollaborating_memos {
+		edges = append(edges, user.EdgeCollaboratingMemos)
+	}
 	if m.clearedsubscriptions {
 		edges = append(edges, user.EdgeSubscriptions)
+	}
+	if m.clearedcollaborations {
+		edges = append(edges, user.EdgeCollaborations)
 	}
 	return edges
 }
@@ -3014,8 +3993,12 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedmemos
 	case user.EdgeSubscribingMemos:
 		return m.clearedsubscribing_memos
+	case user.EdgeCollaboratingMemos:
+		return m.clearedcollaborating_memos
 	case user.EdgeSubscriptions:
 		return m.clearedsubscriptions
+	case user.EdgeCollaborations:
+		return m.clearedcollaborations
 	}
 	return false
 }
@@ -3038,8 +4021,14 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeSubscribingMemos:
 		m.ResetSubscribingMemos()
 		return nil
+	case user.EdgeCollaboratingMemos:
+		m.ResetCollaboratingMemos()
+		return nil
 	case user.EdgeSubscriptions:
 		m.ResetSubscriptions()
+		return nil
+	case user.EdgeCollaborations:
+		m.ResetCollaborations()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

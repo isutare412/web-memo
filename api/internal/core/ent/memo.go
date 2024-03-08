@@ -45,11 +45,15 @@ type MemoEdges struct {
 	Tags []*Tag `json:"tags,omitempty"`
 	// Subscribers holds the value of the subscribers edge.
 	Subscribers []*User `json:"subscribers,omitempty"`
+	// Collaborators holds the value of the collaborators edge.
+	Collaborators []*User `json:"collaborators,omitempty"`
 	// Subscriptions holds the value of the subscriptions edge.
 	Subscriptions []*Subscription `json:"subscriptions,omitempty"`
+	// Collaborations holds the value of the collaborations edge.
+	Collaborations []*Collaboration `json:"collaborations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [6]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -83,13 +87,31 @@ func (e MemoEdges) SubscribersOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "subscribers"}
 }
 
+// CollaboratorsOrErr returns the Collaborators value or an error if the edge
+// was not loaded in eager-loading.
+func (e MemoEdges) CollaboratorsOrErr() ([]*User, error) {
+	if e.loadedTypes[3] {
+		return e.Collaborators, nil
+	}
+	return nil, &NotLoadedError{edge: "collaborators"}
+}
+
 // SubscriptionsOrErr returns the Subscriptions value or an error if the edge
 // was not loaded in eager-loading.
 func (e MemoEdges) SubscriptionsOrErr() ([]*Subscription, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.Subscriptions, nil
 	}
 	return nil, &NotLoadedError{edge: "subscriptions"}
+}
+
+// CollaborationsOrErr returns the Collaborations value or an error if the edge
+// was not loaded in eager-loading.
+func (e MemoEdges) CollaborationsOrErr() ([]*Collaboration, error) {
+	if e.loadedTypes[5] {
+		return e.Collaborations, nil
+	}
+	return nil, &NotLoadedError{edge: "collaborations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -190,9 +212,19 @@ func (m *Memo) QuerySubscribers() *UserQuery {
 	return NewMemoClient(m.config).QuerySubscribers(m)
 }
 
+// QueryCollaborators queries the "collaborators" edge of the Memo entity.
+func (m *Memo) QueryCollaborators() *UserQuery {
+	return NewMemoClient(m.config).QueryCollaborators(m)
+}
+
 // QuerySubscriptions queries the "subscriptions" edge of the Memo entity.
 func (m *Memo) QuerySubscriptions() *SubscriptionQuery {
 	return NewMemoClient(m.config).QuerySubscriptions(m)
+}
+
+// QueryCollaborations queries the "collaborations" edge of the Memo entity.
+func (m *Memo) QueryCollaborations() *CollaborationQuery {
+	return NewMemoClient(m.config).QueryCollaborations(m)
 }
 
 // Update returns a builder for updating this Memo.

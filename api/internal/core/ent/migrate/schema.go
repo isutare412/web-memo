@@ -8,6 +8,47 @@ import (
 )
 
 var (
+	// CollaborationsColumns holds the columns for the "collaborations" table.
+	CollaborationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "approved", Type: field.TypeBool, Default: false},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "memo_id", Type: field.TypeUUID},
+	}
+	// CollaborationsTable holds the schema information for the "collaborations" table.
+	CollaborationsTable = &schema.Table{
+		Name:       "collaborations",
+		Columns:    CollaborationsColumns,
+		PrimaryKey: []*schema.Column{CollaborationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "collaborations_users_collaborator",
+				Columns:    []*schema.Column{CollaborationsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "collaborations_memos_memo",
+				Columns:    []*schema.Column{CollaborationsColumns[5]},
+				RefColumns: []*schema.Column{MemosColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "collaboration_memo_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{CollaborationsColumns[5], CollaborationsColumns[4]},
+			},
+			{
+				Name:    "collaboration_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{CollaborationsColumns[4]},
+			},
+		},
+	}
 	// MemosColumns holds the columns for the "memos" table.
 	MemosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -136,6 +177,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CollaborationsTable,
 		MemosTable,
 		SubscriptionsTable,
 		TagsTable,
@@ -145,6 +187,8 @@ var (
 )
 
 func init() {
+	CollaborationsTable.ForeignKeys[0].RefTable = UsersTable
+	CollaborationsTable.ForeignKeys[1].RefTable = MemosTable
 	MemosTable.ForeignKeys[0].RefTable = UsersTable
 	SubscriptionsTable.ForeignKeys[0].RefTable = UsersTable
 	SubscriptionsTable.ForeignKeys[1].RefTable = MemosTable

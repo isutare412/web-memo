@@ -47,11 +47,15 @@ type UserEdges struct {
 	Memos []*Memo `json:"memos,omitempty"`
 	// SubscribingMemos holds the value of the subscribing_memos edge.
 	SubscribingMemos []*Memo `json:"subscribing_memos,omitempty"`
+	// CollaboratingMemos holds the value of the collaborating_memos edge.
+	CollaboratingMemos []*Memo `json:"collaborating_memos,omitempty"`
 	// Subscriptions holds the value of the subscriptions edge.
 	Subscriptions []*Subscription `json:"subscriptions,omitempty"`
+	// Collaborations holds the value of the collaborations edge.
+	Collaborations []*Collaboration `json:"collaborations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [5]bool
 }
 
 // MemosOrErr returns the Memos value or an error if the edge
@@ -72,13 +76,31 @@ func (e UserEdges) SubscribingMemosOrErr() ([]*Memo, error) {
 	return nil, &NotLoadedError{edge: "subscribing_memos"}
 }
 
+// CollaboratingMemosOrErr returns the CollaboratingMemos value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CollaboratingMemosOrErr() ([]*Memo, error) {
+	if e.loadedTypes[2] {
+		return e.CollaboratingMemos, nil
+	}
+	return nil, &NotLoadedError{edge: "collaborating_memos"}
+}
+
 // SubscriptionsOrErr returns the Subscriptions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) SubscriptionsOrErr() ([]*Subscription, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Subscriptions, nil
 	}
 	return nil, &NotLoadedError{edge: "subscriptions"}
+}
+
+// CollaborationsOrErr returns the Collaborations value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CollaborationsOrErr() ([]*Collaboration, error) {
+	if e.loadedTypes[4] {
+		return e.Collaborations, nil
+	}
+	return nil, &NotLoadedError{edge: "collaborations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -184,9 +206,19 @@ func (u *User) QuerySubscribingMemos() *MemoQuery {
 	return NewUserClient(u.config).QuerySubscribingMemos(u)
 }
 
+// QueryCollaboratingMemos queries the "collaborating_memos" edge of the User entity.
+func (u *User) QueryCollaboratingMemos() *MemoQuery {
+	return NewUserClient(u.config).QueryCollaboratingMemos(u)
+}
+
 // QuerySubscriptions queries the "subscriptions" edge of the User entity.
 func (u *User) QuerySubscriptions() *SubscriptionQuery {
 	return NewUserClient(u.config).QuerySubscriptions(u)
+}
+
+// QueryCollaborations queries the "collaborations" edge of the User entity.
+func (u *User) QueryCollaborations() *CollaborationQuery {
+	return NewUserClient(u.config).QueryCollaborations(u)
 }
 
 // Update returns a builder for updating this User.

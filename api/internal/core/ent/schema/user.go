@@ -60,5 +60,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("subscribing_memos", Memo.Type).
 			Through("subscriptions", Subscription.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("collaborating_memos", Memo.Type).
+			Through("collaborations", Collaboration.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

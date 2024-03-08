@@ -37,8 +37,12 @@ const (
 	EdgeMemos = "memos"
 	// EdgeSubscribingMemos holds the string denoting the subscribing_memos edge name in mutations.
 	EdgeSubscribingMemos = "subscribing_memos"
+	// EdgeCollaboratingMemos holds the string denoting the collaborating_memos edge name in mutations.
+	EdgeCollaboratingMemos = "collaborating_memos"
 	// EdgeSubscriptions holds the string denoting the subscriptions edge name in mutations.
 	EdgeSubscriptions = "subscriptions"
+	// EdgeCollaborations holds the string denoting the collaborations edge name in mutations.
+	EdgeCollaborations = "collaborations"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// MemosTable is the table that holds the memos relation/edge.
@@ -53,6 +57,11 @@ const (
 	// SubscribingMemosInverseTable is the table name for the Memo entity.
 	// It exists in this package in order to avoid circular dependency with the "memo" package.
 	SubscribingMemosInverseTable = "memos"
+	// CollaboratingMemosTable is the table that holds the collaborating_memos relation/edge. The primary key declared below.
+	CollaboratingMemosTable = "collaborations"
+	// CollaboratingMemosInverseTable is the table name for the Memo entity.
+	// It exists in this package in order to avoid circular dependency with the "memo" package.
+	CollaboratingMemosInverseTable = "memos"
 	// SubscriptionsTable is the table that holds the subscriptions relation/edge.
 	SubscriptionsTable = "subscriptions"
 	// SubscriptionsInverseTable is the table name for the Subscription entity.
@@ -60,6 +69,13 @@ const (
 	SubscriptionsInverseTable = "subscriptions"
 	// SubscriptionsColumn is the table column denoting the subscriptions relation/edge.
 	SubscriptionsColumn = "user_id"
+	// CollaborationsTable is the table that holds the collaborations relation/edge.
+	CollaborationsTable = "collaborations"
+	// CollaborationsInverseTable is the table name for the Collaboration entity.
+	// It exists in this package in order to avoid circular dependency with the "collaboration" package.
+	CollaborationsInverseTable = "collaborations"
+	// CollaborationsColumn is the table column denoting the collaborations relation/edge.
+	CollaborationsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -79,6 +95,9 @@ var (
 	// SubscribingMemosPrimaryKey and SubscribingMemosColumn2 are the table columns denoting the
 	// primary key for the subscribing_memos relation (M2M).
 	SubscribingMemosPrimaryKey = []string{"user_id", "memo_id"}
+	// CollaboratingMemosPrimaryKey and CollaboratingMemosColumn2 are the table columns denoting the
+	// primary key for the collaborating_memos relation (M2M).
+	CollaboratingMemosPrimaryKey = []string{"user_id", "memo_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -200,6 +219,20 @@ func BySubscribingMemos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 	}
 }
 
+// ByCollaboratingMemosCount orders the results by collaborating_memos count.
+func ByCollaboratingMemosCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCollaboratingMemosStep(), opts...)
+	}
+}
+
+// ByCollaboratingMemos orders the results by collaborating_memos terms.
+func ByCollaboratingMemos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCollaboratingMemosStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // BySubscriptionsCount orders the results by subscriptions count.
 func BySubscriptionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -211,6 +244,20 @@ func BySubscriptionsCount(opts ...sql.OrderTermOption) OrderOption {
 func BySubscriptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSubscriptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCollaborationsCount orders the results by collaborations count.
+func ByCollaborationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCollaborationsStep(), opts...)
+	}
+}
+
+// ByCollaborations orders the results by collaborations terms.
+func ByCollaborations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCollaborationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newMemosStep() *sqlgraph.Step {
@@ -227,10 +274,24 @@ func newSubscribingMemosStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, SubscribingMemosTable, SubscribingMemosPrimaryKey...),
 	)
 }
+func newCollaboratingMemosStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CollaboratingMemosInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, CollaboratingMemosTable, CollaboratingMemosPrimaryKey...),
+	)
+}
 func newSubscriptionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SubscriptionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, true, SubscriptionsTable, SubscriptionsColumn),
+	)
+}
+func newCollaborationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CollaborationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, CollaborationsTable, CollaborationsColumn),
 	)
 }

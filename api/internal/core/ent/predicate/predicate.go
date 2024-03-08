@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Collaboration is the predicate function for collaboration builders.
+type Collaboration func(*sql.Selector)
+
 // Memo is the predicate function for memo builders.
 type Memo func(*sql.Selector)
 
