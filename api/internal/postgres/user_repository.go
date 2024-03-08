@@ -10,6 +10,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
@@ -85,6 +86,35 @@ func (r *UserRepository) FindAllBySubscribingMemoID(ctx context.Context, memoID 
 		bs, ok := lo.Find(b.Edges.Subscriptions, func(s *ent.Subscription) bool { return s.MemoID == memoID })
 		if !ok {
 			panic(fmt.Sprintf("subscription not found from user(%v)", b.ID))
+		}
+
+		return lo.Ternary(as.CreateTime.After(bs.CreateTime), 1, -1)
+	})
+
+	return users, nil
+}
+
+func (r *UserRepository) FindAllByCollaboratingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
+	client := transactionClient(ctx, r.client)
+
+	users, err := client.User.
+		Query().
+		Where(user.HasCollaborationsWith(collaboration.MemoID(memoID))).
+		WithSubscriptions().
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	slices.SortFunc(users, func(a, b *ent.User) int {
+		as, ok := lo.Find(a.Edges.Subscriptions, func(s *ent.Subscription) bool { return s.MemoID == memoID })
+		if !ok {
+			panic(fmt.Sprintf("collaboration not found from user(%v)", a.ID))
+		}
+
+		bs, ok := lo.Find(b.Edges.Subscriptions, func(s *ent.Subscription) bool { return s.MemoID == memoID })
+		if !ok {
+			panic(fmt.Sprintf("collaboration not found from user(%v)", b.ID))
 		}
 
 		return lo.Ternary(as.CreateTime.After(bs.CreateTime), 1, -1)

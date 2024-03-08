@@ -16,13 +16,14 @@ import (
 
 var _ = Describe("MemoRepository", func() {
 	var (
-		tagRepository  *TagRepository
-		memoRepository *MemoRepository
-		userRepository *UserRepository
+		tagRepository           *TagRepository
+		memoRepository          *MemoRepository
+		userRepository          *UserRepository
+		collaborationRepository *CollaborationRepository
 	)
 
 	BeforeEach(func(ctx SpecContext) {
-		entClient, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared")
+		entClient, err := ent.Open("sqlite3", "file:ent?mode=memory")
 		Expect(err).NotTo(HaveOccurred())
 
 		client := &Client{entClient: entClient}
@@ -32,6 +33,7 @@ var _ = Describe("MemoRepository", func() {
 		tagRepository = NewTagRepository(client)
 		memoRepository = NewMemoRepository(client)
 		userRepository = NewUserRepository(client)
+		collaborationRepository = NewCollaborationRepository(client)
 	})
 
 	Context("with fake data", func() {
@@ -51,6 +53,14 @@ var _ = Describe("MemoRepository", func() {
 					GivenName:  "Charlie",
 					FamilyName: "Decart",
 					PhotoURL:   "google.com/picture2",
+					Type:       enum.UserTypeClient,
+				},
+				{
+					Email:      "third-user@gmail.com",
+					UserName:   "Ergo God",
+					GivenName:  "Ergo",
+					FamilyName: "God",
+					PhotoURL:   "google.com/picture3",
 					Type:       enum.UserTypeClient,
 				},
 			}
@@ -94,23 +104,12 @@ var _ = Describe("MemoRepository", func() {
 				Expect(err).NotTo(HaveOccurred())
 				fakeMemos[i] = memoCreated
 
-				if err := memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID); err != nil {
-					Expect(err).NotTo(HaveOccurred())
-				}
-			}
-		})
+				memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID)
+				Expect(err).NotTo(HaveOccurred())
 
-		// Delete fake data
-		AfterEach(func(ctx SpecContext) {
-			memos, err := memoRepository.FindAllByUserIDWithTags(
-				ctx, fakeUsers[0].ID, model.MemoSortParams{}, model.PaginationParams{})
-			Expect(err).NotTo(HaveOccurred())
-			for _, memo := range memos {
-				_ = memoRepository.Delete(ctx, memo.ID)
+				_, err = collaborationRepository.Create(ctx, memoCreated.ID, fakeUsers[2].ID)
+				Expect(err).NotTo(HaveOccurred())
 			}
-
-			_, err = tagRepository.DeleteAllWithoutMemo(ctx, nil)
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("FindByID", func() {
@@ -154,6 +153,13 @@ var _ = Describe("MemoRepository", func() {
 			It("finds memos by subscriber", func(ctx SpecContext) {
 				memos, err := memoRepository.FindAllByUserIDWithTags(
 					ctx, fakeUsers[1].ID, model.MemoSortParams{}, model.PaginationParams{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(memos).To(HaveLen(len(fakeMemos)))
+			})
+
+			It("finds memos by collaborator ID", func(ctx SpecContext) {
+				memos, err := memoRepository.FindAllByUserIDWithTags(
+					ctx, fakeUsers[2].ID, model.MemoSortParams{}, model.PaginationParams{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(len(fakeMemos)))
 			})

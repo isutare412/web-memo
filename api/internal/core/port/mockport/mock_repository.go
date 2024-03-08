@@ -95,6 +95,21 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
+// FindAllByCollaboratingMemoID mocks base method.
+func (m *MockUserRepository) FindAllByCollaboratingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAllByCollaboratingMemoID", ctx, memoID)
+	ret0, _ := ret[0].([]*ent.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAllByCollaboratingMemoID indicates an expected call of FindAllByCollaboratingMemoID.
+func (mr *MockUserRepositoryMockRecorder) FindAllByCollaboratingMemoID(ctx, memoID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByCollaboratingMemoID", reflect.TypeOf((*MockUserRepository)(nil).FindAllByCollaboratingMemoID), ctx, memoID)
+}
+
 // FindAllBySubscribingMemoID mocks base method.
 func (m *MockUserRepository) FindAllBySubscribingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
 	m.ctrl.T.Helper()
@@ -449,6 +464,73 @@ func (m *MockTagRepository) FindAllByUserIDAndNameContains(ctx context.Context, 
 func (mr *MockTagRepositoryMockRecorder) FindAllByUserIDAndNameContains(ctx, userID, name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDAndNameContains", reflect.TypeOf((*MockTagRepository)(nil).FindAllByUserIDAndNameContains), ctx, userID, name)
+}
+
+// MockCollaborationRepository is a mock of CollaborationRepository interface.
+type MockCollaborationRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockCollaborationRepositoryMockRecorder
+}
+
+// MockCollaborationRepositoryMockRecorder is the mock recorder for MockCollaborationRepository.
+type MockCollaborationRepositoryMockRecorder struct {
+	mock *MockCollaborationRepository
+}
+
+// NewMockCollaborationRepository creates a new mock instance.
+func NewMockCollaborationRepository(ctrl *gomock.Controller) *MockCollaborationRepository {
+	mock := &MockCollaborationRepository{ctrl: ctrl}
+	mock.recorder = &MockCollaborationRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCollaborationRepository) EXPECT() *MockCollaborationRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockCollaborationRepository) Create(ctx context.Context, memoID, userID uuid.UUID) (*ent.Collaboration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, memoID, userID)
+	ret0, _ := ret[0].(*ent.Collaboration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockCollaborationRepositoryMockRecorder) Create(ctx, memoID, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCollaborationRepository)(nil).Create), ctx, memoID, userID)
+}
+
+// Delete mocks base method.
+func (m *MockCollaborationRepository) Delete(ctx context.Context, memoID, userID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, memoID, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockCollaborationRepositoryMockRecorder) Delete(ctx, memoID, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCollaborationRepository)(nil).Delete), ctx, memoID, userID)
+}
+
+// UpdateApprovedStatus mocks base method.
+func (m *MockCollaborationRepository) UpdateApprovedStatus(ctx context.Context, memoID, userID uuid.UUID, approve bool) (*ent.Collaboration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateApprovedStatus", ctx, memoID, userID, approve)
+	ret0, _ := ret[0].(*ent.Collaboration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateApprovedStatus indicates an expected call of UpdateApprovedStatus.
+func (mr *MockCollaborationRepositoryMockRecorder) UpdateApprovedStatus(ctx, memoID, userID, approve any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateApprovedStatus", reflect.TypeOf((*MockCollaborationRepository)(nil).UpdateApprovedStatus), ctx, memoID, userID, approve)
 }
 
 // MockKVRepository is a mock of KVRepository interface.

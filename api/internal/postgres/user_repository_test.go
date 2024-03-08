@@ -13,12 +13,13 @@ import (
 
 var _ = Describe("UserRepository", func() {
 	var (
-		userRepository *UserRepository
-		memoRepository *MemoRepository
+		userRepository          *UserRepository
+		memoRepository          *MemoRepository
+		collaborationRepository *CollaborationRepository
 	)
 
 	BeforeEach(func(ctx SpecContext) {
-		entClient, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared")
+		entClient, err := ent.Open("sqlite3", "file:ent?mode=memory")
 		Expect(err).NotTo(HaveOccurred())
 
 		client := &Client{entClient: entClient}
@@ -27,6 +28,7 @@ var _ = Describe("UserRepository", func() {
 
 		userRepository = NewUserRepository(client)
 		memoRepository = NewMemoRepository(client)
+		collaborationRepository = NewCollaborationRepository(client)
 	})
 
 	Context("with fake data", func() {
@@ -72,6 +74,9 @@ var _ = Describe("UserRepository", func() {
 
 			err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[0].ID)
 			Expect(err).NotTo(HaveOccurred())
+
+			_, err = collaborationRepository.Create(ctx, fakeMemos[0].ID, fakeUsers[0].ID)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("FindByID", func() {
@@ -108,6 +113,15 @@ var _ = Describe("UserRepository", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(subscribers).To(HaveLen(1))
 				Expect(subscribers[0].ID).To(Equal(fakeUsers[0].ID))
+			})
+		})
+
+		Context("FindAllByCollaboratingMemoID", func() {
+			It("finds only collaborators", func(ctx SpecContext) {
+				collaborators, err := userRepository.FindAllByCollaboratingMemoID(ctx, fakeMemos[0].ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(collaborators).To(HaveLen(1))
+				Expect(collaborators[0].ID).To(Equal(fakeUsers[0].ID))
 			})
 		})
 

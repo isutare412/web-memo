@@ -13,6 +13,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
@@ -103,6 +104,7 @@ func (r *MemoRepository) FindAllByUserIDWithTags(
 			memo.Or(
 				memo.OwnerID(userID),
 				memo.HasSubscriptionsWith(subscription.UserID(userID)),
+				memo.HasCollaborationsWith(collaboration.UserID(userID)),
 			)).
 		WithTags().
 		Order(buildMemoOrderOption(sortParams))
@@ -144,6 +146,7 @@ func (r *MemoRepository) FindAllByUserIDAndTagNamesWithTags(
 			memo.Or(
 				memo.OwnerID(userID),
 				memo.HasSubscriptionsWith(subscription.UserID(userID)),
+				memo.HasCollaborationsWith(collaboration.UserID(userID)),
 			)).
 		WithTags().
 		Order(buildMemoOrderOption(sortParams))
@@ -186,6 +189,7 @@ func (r *MemoRepository) CountByUserIDAndTagNames(ctx context.Context, userID uu
 			memo.Or(
 				memo.OwnerID(userID),
 				memo.HasSubscriptionsWith(subscription.UserID(userID)),
+				memo.HasCollaborationsWith(collaboration.UserID(userID)),
 			))
 
 	if len(tags) > 0 {

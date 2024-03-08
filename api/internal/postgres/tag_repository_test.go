@@ -15,13 +15,14 @@ import (
 
 var _ = Describe("TagRepository", func() {
 	var (
-		tagRepository  *TagRepository
-		memoRepository *MemoRepository
-		userRepository *UserRepository
+		tagRepository           *TagRepository
+		memoRepository          *MemoRepository
+		userRepository          *UserRepository
+		collaborationRepository *CollaborationRepository
 	)
 
 	BeforeEach(func(ctx SpecContext) {
-		entClient, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared")
+		entClient, err := ent.Open("sqlite3", "file:ent?mode=memory")
 		Expect(err).NotTo(HaveOccurred())
 
 		client := &Client{entClient: entClient}
@@ -31,6 +32,7 @@ var _ = Describe("TagRepository", func() {
 		tagRepository = NewTagRepository(client)
 		memoRepository = NewMemoRepository(client)
 		userRepository = NewUserRepository(client)
+		collaborationRepository = NewCollaborationRepository(client)
 	})
 
 	Context("with fake data", func() {
@@ -50,6 +52,14 @@ var _ = Describe("TagRepository", func() {
 					GivenName:  "Charlie",
 					FamilyName: "Decart",
 					PhotoURL:   "google.com/picture2",
+					Type:       enum.UserTypeClient,
+				},
+				{
+					Email:      "third-user@gmail.com",
+					UserName:   "Ergo God",
+					GivenName:  "Ergo",
+					FamilyName: "God",
+					PhotoURL:   "google.com/picture3",
 					Type:       enum.UserTypeClient,
 				},
 			}
@@ -86,9 +96,11 @@ var _ = Describe("TagRepository", func() {
 			Expect(err).NotTo(HaveOccurred())
 			fakeMemo = memoCreated
 
-			if err := memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID); err != nil {
-				Expect(err).NotTo(HaveOccurred())
-			}
+			err = memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID)
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = collaborationRepository.Create(ctx, memoCreated.ID, fakeUsers[2].ID)
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		// Delete fake data
@@ -130,6 +142,12 @@ var _ = Describe("TagRepository", func() {
 
 			It("returns by subscriber", func(ctx SpecContext) {
 				tags, err := tagRepository.FindAllByUserIDAndNameContains(ctx, fakeUsers[1].ID, "")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(len(tags) > 0).To(BeTrue())
+			})
+
+			It("returns by collaborator", func(ctx SpecContext) {
+				tags, err := tagRepository.FindAllByUserIDAndNameContains(ctx, fakeUsers[2].ID, "")
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(tags) > 0).To(BeTrue())
 			})

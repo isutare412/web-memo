@@ -19,6 +19,7 @@ type UserRepository interface {
 	FindByID(ctx context.Context, userID uuid.UUID) (*ent.User, error)
 	FindByEmail(ctx context.Context, email string) (*ent.User, error)
 	FindAllBySubscribingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error)
+	FindAllByCollaboratingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error)
 	Upsert(context.Context, *ent.User) (*ent.User, error)
 }
 
@@ -49,6 +50,12 @@ type TagRepository interface {
 	FindAllByUserIDAndNameContains(ctx context.Context, userID uuid.UUID, name string) ([]*ent.Tag, error)
 	CreateIfNotExist(ctx context.Context, tagName string) (*ent.Tag, error)
 	DeleteAllWithoutMemo(ctx context.Context, excludes []string) (count int, err error)
+}
+
+type CollaborationRepository interface {
+	Create(ctx context.Context, memoID, userID uuid.UUID) (*ent.Collaboration, error)
+	UpdateApprovedStatus(ctx context.Context, memoID, userID uuid.UUID, approve bool) (*ent.Collaboration, error)
+	Delete(ctx context.Context, memoID, userID uuid.UUID) error
 }
 
 type KVRepository interface {
