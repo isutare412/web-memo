@@ -31,6 +31,13 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "memo_owner_id",
+				Unique:  false,
+				Columns: []*schema.Column{MemosColumns[6]},
+			},
+		},
 	}
 	// SubscriptionsColumns holds the columns for the "subscriptions" table.
 	SubscriptionsColumns = []*schema.Column{
@@ -63,6 +70,11 @@ var (
 				Name:    "subscription_memo_id_user_id",
 				Unique:  true,
 				Columns: []*schema.Column{SubscriptionsColumns[3], SubscriptionsColumns[2]},
+			},
+			{
+				Name:    "subscription_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{SubscriptionsColumns[2]},
 			},
 		},
 	}

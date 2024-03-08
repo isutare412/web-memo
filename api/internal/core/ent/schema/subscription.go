@@ -32,6 +32,7 @@ func (Subscription) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("memo_id", "user_id").
 			Unique(),
+		index.Fields("user_id"),
 	}
 }
 
