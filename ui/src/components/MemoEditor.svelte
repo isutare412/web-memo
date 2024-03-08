@@ -190,14 +190,11 @@
     }
 
     let newLineText = ''
-    let newListSymbol = ''
     if (listSymbol.match(/[0-9]+[.)]/)) {
       const currentNumber = parseInt(listSymbol, 10)
       newLineText = '\n' + indent + (currentNumber + 1) + '. '
-      newListSymbol = (currentNumber + 1).toString() + '.'
     } else {
       newLineText = '\n' + indent + listSymbol + ' '
-      newListSymbol = listSymbol
     }
 
     // Korean in iOS Safari does not fire composition event. As we cannot check
@@ -207,7 +204,7 @@
     setTimeout(async () => {
       content = textBeforeCursor + newLineText + textAfterCursor
       await tick()
-      textareaElement.selectionStart = cursorPos + indent.length + newListSymbol.length + 2
+      textareaElement.selectionStart = cursorPos + newLineText.length
       textareaElement.selectionEnd = textareaElement.selectionStart
     }, 50)
   }
