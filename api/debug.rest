@@ -1,6 +1,11 @@
 @memoId=<memoId>
 @userId=<userId>
 
+@testerToken=eyJhbGciOiJSUzI1NiIsImtpZCI6InYxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJ3ZWItbWVtbyIsImV4cCI6MTcxMjU3ODkyMiwibmJmIjoxNzA5OTg2OTIyLCJpYXQiOjE3MDk5ODY5MjIsInVzZXJfaWQiOiIwNzkyNjdlYS00NjQ1LTQ1MzEtYWExYy05YTllZWEwOGI1ZDEiLCJ1c2VyX3R5cGUiOiJjbGllbnQiLCJlbWFpbCI6InJlZHNob3JlLnRlc3RlckBnbWFpbC5jb20iLCJuYW1lIjoiU3VoeXVrIiwiZ2l2ZW5fbmFtZSI6IlN1aHl1ayIsInBob3RvX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0tvdnVfemJ6clNiS0MtRktRcUpEb2VtU0dfLU4yVVFUY1hWNnc4MHJMSz1zOTYtYyJ9.Hr2QNc2aSjeGarbpHHiku3dsF1e9SF_-yUrBof3-juzxUxBn4bWZleLhCRIyxXDHtgXiLihxhwVZ-SDCBVGZyhourkJibqPaonNF3py6pNyVwwZFw7RZSF0NmMjR1X09uP1Oi7yAcpf94OwgoMIuCy_NGJFDL4Xb97ES3EJiSxT_gXP4H6ulb1aDqbEZdvn2LWULMvaBb2TXaghiI9tAKPhKot5QjbinqiySnnDwHKOkuxhrdnjUEgG3XnVwFddC_MHyTyCnzlXguVZe5fKyQzVltybl8SsXLLRz_ZL-2-uaDuzpz2TTY4f5qxbof3Va00gBTu0O4-SOWcoEPoS1Cw
+@testerId=079267ea-4645-4531-aa1c-9a9eea08b5d1
+@ownerToken=eyJhbGciOiJSUzI1NiIsImtpZCI6InYxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJ3ZWItbWVtbyIsImV4cCI6MTcxMjE5NDQwMiwibmJmIjoxNzA5NjAyNDAyLCJpYXQiOjE3MDk2MDI0MDIsInVzZXJfaWQiOiI5NTFkYzc0Ni0xNTgwLTQxYmQtODE0ZC1mNGNlZmEzN2M1MzMiLCJ1c2VyX3R5cGUiOiJjbGllbnQiLCJlbWFpbCI6ImlzdXRhcmU0MTJAZ21haWwuY29tIiwibmFtZSI6IuydtOyImO2YgSIsImZhbWlseV9uYW1lIjoi7J20IiwiZ2l2ZW5fbmFtZSI6IuyImO2YgSIsInBob3RvX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0t1MndDbGczLUJPRzFwTDB0N2c2WFVyYmZBazRQWWFsTDZZWnhpbXBYcGJBND1zOTYtYyJ9.LIteYx5kvfOQDtRBIsxG-KOOG7ory5-BQ7S-3rvFXqNfSHG07mw1ZpA6LyFgyFLFm7Qm4uUUuGhScd0gkkdCCOr386uG2Wl0OHnf9bMEIIa7Ug8LhSyG4WBpBCResX-Dzms2B8nbPht8RTDFg40ft6Hyf3-xF8eaHUYaTza-2l7di6YpGOpQDnHi_FqyPPGo9VPtGuoKDdKldr8V1yYZCyPKsYQGWJOS6uiBKGDE0_oMBTRe7smIXQIXkTi_ugu2LMAr3PJk1ZX5QL16r_2KX2WvQiMUBpaz-DPYgg2pIq94HB2PVbXTYCrQT1zcqO-o_qF-Kf2B33jxFV5zsL_iXA
+@ownerId=951dc746-1580-41bd-814d-f4cefa37c533
+
 ###
 GET {{url}}/api/v1/google/sign-in
 
@@ -90,3 +95,27 @@ Authorization: Bearer {{idToken}}
 ###
 GET {{url}}/api/v1/tags?kw=
 Authorization: Bearer {{idToken}}
+
+###
+GET {{url}}/api/v1/memos/{{memoId}}/collaborators/{{userId}}
+Authorization: Bearer {{idToken}}
+
+###
+GET {{url}}/api/v1/memos/{{memoId}}/collaborators
+Authorization: Bearer {{idToken}}
+
+###
+PUT {{url}}/api/v1/memos/{{memoId}}/collaborators/{{userId}}
+Authorization: Bearer {{idToken}}
+
+###
+POST {{url}}/api/v1/memos/{{memoId}}/collaborators/{{userId}}/authorize
+Authorization: Bearer {{idToken}}
+
+{
+    "approve": true
+}
+
+###
+DELETE {{url}}/api/v1/memos/{{memoId}}/collaborators/{{userId}}
+Authorization: Bearer {{ownerToken}}

@@ -28,3 +28,8 @@ type ListSubscribersResponse struct {
 	MemoOwnerID uuid.UUID
 	Subscribers []*ent.User
 }
+
+type ListCollaboratorsResponse struct {
+	MemoOwnerID   uuid.UUID
+	Collaborators []*ent.User
+}

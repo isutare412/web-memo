@@ -104,3 +104,21 @@ type subscriber struct {
 func (s *subscriber) fromUser(u *ent.User) {
 	s.ID = u.ID
 }
+
+type listCollaboratorsResponse struct {
+	Collaborators []*collaborator `json:"collaborators"`
+}
+
+type collaborator struct {
+	ID         uuid.UUID `json:"id"`
+	IsApproved bool      `json:"isApproved"`
+}
+
+func (c *collaborator) fromCollaboration(collabo *ent.Collaboration) {
+	c.ID = collabo.UserID
+	c.IsApproved = collabo.Approved
+}
+
+type authorizeCollaborationRequest struct {
+	Approve *bool `json:"approve" validate:"required"`
+}

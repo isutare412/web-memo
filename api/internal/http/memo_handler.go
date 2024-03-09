@@ -44,6 +44,11 @@ func (h *memoHandler) router() *chi.Mux {
 	r.Get("/{memoID}/subscribers", h.listSubscribers)
 	r.Put("/{memoID}/subscribers/{userID}", h.subscribeMemo)
 	r.Delete("/{memoID}/subscribers/{userID}", h.unsubscribeMemo)
+	r.Get("/{memoID}/collaborators/{userID}", h.getCollaborator)
+	r.Get("/{memoID}/collaborators", h.listCollaborators)
+	r.Put("/{memoID}/collaborators/{userID}", h.requestCollaboration)
+	r.Post("/{memoID}/collaborators/{userID}/authorize", h.authorizeCollaboration)
+	r.Delete("/{memoID}/collaborators/{userID}", h.cancelCollaboration)
 
 	return r
 }
@@ -486,6 +491,226 @@ func (h *memoHandler) unsubscribeMemo(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.memoService.UnsubscribeMemo(ctx, memoID, passport.token); err != nil {
 		responseError(w, r, fmt.Errorf("subscribing memo: %w", err))
+		return
+	}
+
+	responseStatusCode(w, http.StatusOK)
+}
+
+func (h *memoHandler) getCollaborator(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	userID, err := getUserID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting user ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+	if passport.token.UserID != userID {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "token and userID mismatch",
+		})
+		return
+	}
+
+	resp, err := h.memoService.ListCollaborators(ctx, memoID, passport.token)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("listing subscribers: %w", err))
+		return
+	}
+
+	user, ok := lo.Find(resp.Collaborators, func(u *ent.User) bool { return u.ID == userID })
+	if !ok {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			ClientMsg: "no such collaborator",
+		})
+		return
+	}
+
+	collabo, ok := lo.Find(user.Edges.Collaborations, func(c *ent.Collaboration) bool { return c.MemoID == memoID })
+	if !ok {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			ClientMsg: "no such collaboration",
+		})
+		return
+	}
+
+	responseJSON(w, &collaborator{
+		ID:         user.ID,
+		IsApproved: collabo.Approved,
+	})
+}
+
+func (h *memoHandler) listCollaborators(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+
+	resp, err := h.memoService.ListCollaborators(ctx, memoID, passport.token)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("listing subscribers: %w", err))
+		return
+	}
+
+	if resp.MemoOwnerID != passport.token.UserID {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "cannot list collaborators of other user's memo",
+		})
+		return
+	}
+
+	collaborators := make([]*collaborator, 0, len(resp.Collaborators))
+	for _, user := range resp.Collaborators {
+		for _, collabo := range user.Edges.Collaborations {
+			if collabo.MemoID != memoID {
+				continue
+			}
+
+			var c collaborator
+			c.fromCollaboration(collabo)
+			collaborators = append(collaborators, &c)
+		}
+	}
+
+	responseJSON(w, &listCollaboratorsResponse{
+		Collaborators: collaborators,
+	})
+}
+
+func (h *memoHandler) requestCollaboration(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	userID, err := getUserID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting user ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+	if passport.token.UserID != userID {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "token and userID mismatch",
+		})
+		return
+	}
+
+	if err := h.memoService.RegisterCollaborator(ctx, memoID, passport.token); err != nil {
+		responseError(w, r, fmt.Errorf("registering collaborator: %w", err))
+		return
+	}
+
+	responseStatusCode(w, http.StatusOK)
+}
+
+func (h *memoHandler) authorizeCollaboration(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	userID, err := getUserID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting user ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+
+	var req authorizeCollaborationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			Origin:    fmt.Errorf("decoding request body: %w", err),
+			ClientMsg: "invalid request body",
+		})
+		return
+	}
+	if err := validate.Struct(&req); err != nil {
+		responseError(w, r, fmt.Errorf("validating request body: %w", err))
+		return
+	}
+
+	if err := h.memoService.AuthorizeCollaborator(ctx, memoID, userID, *req.Approve, passport.token); err != nil {
+		responseError(w, r, fmt.Errorf("authorizing collaborator: %w", err))
+		return
+	}
+
+	responseStatusCode(w, http.StatusOK)
+}
+
+func (h *memoHandler) cancelCollaboration(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	memoID, err := getMemoID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting memo ID: %w", err))
+		return
+	}
+
+	userID, err := getUserID(r)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("getting user ID: %w", err))
+		return
+	}
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+	if passport.token.UserID != userID {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodePermissionDenied,
+			ClientMsg: "token and userID mismatch",
+		})
+		return
+	}
+
+	if err := h.memoService.DeleteCollaborator(ctx, memoID, userID, passport.token); err != nil {
+		responseError(w, r, fmt.Errorf("authorizing collaborator: %w", err))
 		return
 	}
 
