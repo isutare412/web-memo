@@ -18,6 +18,8 @@ export interface Subscriber {
 
 export interface Collaborator {
   id: string
+  userName: string
+  photoUrl: string
   isApproved: boolean
 }
 

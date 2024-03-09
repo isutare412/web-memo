@@ -111,11 +111,15 @@ type listCollaboratorsResponse struct {
 
 type collaborator struct {
 	ID         uuid.UUID `json:"id"`
+	UserName   string    `json:"userName"`
+	PhotoURL   string    `json:"photoUrl"`
 	IsApproved bool      `json:"isApproved"`
 }
 
-func (c *collaborator) fromCollaboration(collabo *ent.Collaboration) {
+func (c *collaborator) fromModels(collabo *ent.Collaboration, user *ent.User) {
 	c.ID = collabo.UserID
+	c.UserName = user.UserName
+	c.PhotoURL = user.PhotoURL
 	c.IsApproved = collabo.Approved
 }
 

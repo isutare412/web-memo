@@ -551,6 +551,8 @@ func (h *memoHandler) getCollaborator(w http.ResponseWriter, r *http.Request) {
 
 	responseJSON(w, &collaborator{
 		ID:         user.ID,
+		UserName:   user.UserName,
+		PhotoURL:   user.PhotoURL,
 		IsApproved: collabo.Approved,
 	})
 }
@@ -592,7 +594,7 @@ func (h *memoHandler) listCollaborators(w http.ResponseWriter, r *http.Request) 
 			}
 
 			var c collaborator
-			c.fromCollaboration(collabo)
+			c.fromModels(collabo, user)
 			collaborators = append(collaborators, &c)
 		}
 	}
