@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
+  import CollaborateButton from '$components/CollaborateButton.svelte'
   import LinkCopyButton from '$components/LinkCopyButton.svelte'
   import LinkShareButton from '$components/LinkShareButton.svelte'
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
@@ -11,11 +12,15 @@
   import Refresh from '$components/icons/Refresh.svelte'
   import { StatusError } from '$lib/apis/backend/error'
   import {
+      cancelCollaboration,
       deleteMemo,
+      getCollaborator,
       getMemo,
       getSubscriber,
+      listCollaborators,
       listSubscribers,
       publishMemo,
+      requestCollaboration,
       subscribeMemo,
       unsubscribeMemo,
   } from '$lib/apis/backend/memo'
@@ -37,10 +42,16 @@
   $: hasWritePermission = (user && memo && user.id === memo.ownerId) ?? false
 
   let subscriberCount: number | undefined = undefined
+  let collaboratorCount: number | undefined = undefined
 
   let subscribeConfirmModal: HTMLDialogElement
   let isSubscribing = false
   let isMemoSubscribed = false
+
+  let collaborateConfirmModal: HTMLDialogElement
+  let isRequestingCollaborate = false
+  let isMemoCollaborated = false
+  let isMemoCollaborateApproved = false
 
   let publishConfirmModal: HTMLDialogElement
   let isPublishing = false
@@ -56,7 +67,7 @@
     try {
       await syncUserData()
       await syncMemo(forceRefresh)
-      await syncSubscribeStatus()
+      await Promise.all([syncSubscribeStatus(), syncCollborationStatus()])
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')
@@ -81,6 +92,29 @@
       } else {
         await getSubscriber({ memoId, userId: user.id })
         isMemoSubscribed = true
+      }
+    } catch (error: unknown) {
+      if (!(error instanceof StatusError)) {
+        addToast(getErrorMessage(error), 'error')
+        return
+      } else if (error.status !== 404) {
+        addToast(error.message, 'error')
+        return
+      }
+    }
+  }
+
+  async function syncCollborationStatus() {
+    if (user === undefined || memo === undefined) return
+
+    try {
+      if (memo.ownerId === user.id) {
+        const response = await listCollaborators(memoId)
+        collaboratorCount = response.collaborators.length
+      } else {
+        const collaborator = await getCollaborator({ memoId, userId: user.id })
+        isMemoCollaborated = true
+        isMemoCollaborateApproved = collaborator.isApproved
       }
     } catch (error: unknown) {
       if (!(error instanceof StatusError)) {
@@ -145,6 +179,39 @@
 
       isSubscribing = false
       subscribeConfirmModal.close()
+    } catch (error: unknown) {
+      addToast(getErrorMessage(error), 'error')
+      return
+    }
+  }
+
+  function onCollaborateEvent() {
+    if (user === undefined) {
+      signInGoogle()
+      return
+    }
+
+    collaborateConfirmModal.showModal()
+  }
+
+  async function onCollaborateConfirm() {
+    if (memo === undefined || user === undefined) return
+
+    try {
+      isRequestingCollaborate = true
+
+      if (isMemoCollaborated) {
+        await cancelCollaboration({ memoId, userId: user.id })
+        isMemoCollaborated = false
+        isMemoCollaborateApproved = false
+      } else {
+        await requestCollaboration({ memoId, userId: user.id })
+        isMemoCollaborated = true
+        isMemoCollaborateApproved = false
+      }
+
+      isRequestingCollaborate = false
+      collaborateConfirmModal.close()
     } catch (error: unknown) {
       addToast(getErrorMessage(error), 'error')
       return
@@ -327,6 +394,11 @@
     </dialog>
   {:else}
     <div class="mt-2 flex justify-end gap-x-1">
+      <CollaborateButton
+        isActivated={isMemoCollaborated}
+        isChecked={isMemoCollaborateApproved}
+        on:collaborate={onCollaborateEvent}
+      />
       <SubscribeButton isActivated={isMemoSubscribed} on:subscribe={onSusbscribeEvent} />
     </div>
 
@@ -355,6 +427,42 @@
             class="btn btn-primary outline-none"
           >
             {#if isSubscribing}
+              <span class="loading loading-spinner" />
+            {:else}
+              OK
+            {/if}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+
+    <dialog bind:this={collaborateConfirmModal} class="modal">
+      <div class="modal-box">
+        <p>
+          {#if isMemoCollaborated}
+            <p>
+              Will you <span class="text-primary font-bold">cancel</span> collaboration?
+            </p>
+          {:else}
+            <p>
+              Will you <span class="text-primary font-bold">request</span> collaboration?<br />You
+              will be able to modify the memo after an approval.
+            </p>
+          {/if}
+        </p>
+        <div class="modal-action flex justify-end">
+          <form method="dialog">
+            <button class="btn btn-outline btn-primary outline-none">Cancel</button>
+          </form>
+          <button
+            on:click={onCollaborateConfirm}
+            disabled={isRequestingCollaborate}
+            class="btn btn-primary outline-none"
+          >
+            {#if isRequestingCollaborate}
               <span class="loading loading-spinner" />
             {:else}
               OK
