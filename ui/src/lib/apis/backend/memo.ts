@@ -16,6 +16,11 @@ export interface Subscriber {
   id: string
 }
 
+export interface Collaborator {
+  id: string
+  isApproved: boolean
+}
+
 interface ListMemosResponse {
   page: number
   pageSize: number
@@ -58,6 +63,31 @@ interface SubscribeMemoRequest {
 }
 
 interface UnsubscriberMemoRequest {
+  memoId: string
+  userId: string
+}
+
+interface GetCollaboratorRequest {
+  memoId: string
+  userId: string
+}
+
+interface ListCollaboratorsResponse {
+  collaborators: Collaborator[]
+}
+
+interface RequestCollaborationRequest {
+  memoId: string
+  userId: string
+}
+
+interface AuthorizeCollaborationRequest {
+  memoId: string
+  userId: string
+  approve: boolean
+}
+
+interface CancelCollaborationRequest {
   memoId: string
   userId: string
 }
@@ -221,4 +251,72 @@ export async function listTags(keyword?: string): Promise<string[]> {
   }
 
   return response.json()
+}
+
+export async function getCollaborator({
+  memoId,
+  userId,
+}: GetCollaboratorRequest): Promise<Collaborator> {
+  const response = await fetch(`/api/v1/memos/${memoId}/collaborators/${userId}`)
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw new StatusError(response.status, errorResponse.msg)
+  }
+
+  return response.json()
+}
+
+export async function listCollaborators(memoId: string): Promise<ListCollaboratorsResponse> {
+  const response = await fetch(`/api/v1/memos/${memoId}/collaborators`)
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw new StatusError(response.status, errorResponse.msg)
+  }
+
+  return response.json()
+}
+
+export async function requestCollaboration({
+  memoId,
+  userId,
+}: RequestCollaborationRequest): Promise<void> {
+  const response = await fetch(`/api/v1/memos/${memoId}/collaborators/${userId}`, { method: 'PUT' })
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw new StatusError(response.status, errorResponse.msg)
+  }
+
+  return
+}
+
+export async function authorizeCollaboration({
+  memoId,
+  userId,
+  approve,
+}: AuthorizeCollaborationRequest): Promise<void> {
+  const response = await fetch(`/api/v1/memos/${memoId}/collaborators/${userId}/authorize`, {
+    method: 'POST',
+    body: JSON.stringify({ approve }),
+  })
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw new StatusError(response.status, errorResponse.msg)
+  }
+
+  return
+}
+
+export async function cancelCollaboration({
+  memoId,
+  userId,
+}: CancelCollaborationRequest): Promise<void> {
+  const response = await fetch(`/api/v1/memos/${memoId}/collaborators/${userId}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw new StatusError(response.status, errorResponse.msg)
+  }
+
+  return
 }
