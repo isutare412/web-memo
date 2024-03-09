@@ -118,7 +118,7 @@ var _ = Describe("UserRepository", func() {
 
 		Context("FindAllByCollaboratingMemoID", func() {
 			It("finds only collaborators", func(ctx SpecContext) {
-				collaborators, err := userRepository.FindAllByCollaboratingMemoID(ctx, fakeMemos[0].ID)
+				collaborators, err := userRepository.FindAllByCollaboratingMemoIDWithEdges(ctx, fakeMemos[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(collaborators).To(HaveLen(1))
 				Expect(collaborators[0].ID).To(Equal(fakeUsers[0].ID))

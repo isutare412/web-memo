@@ -124,5 +124,13 @@ var _ = Describe("CollaborationRepository", func() {
 				Expect(pkgerr.IsErrNotFound(err)).To(BeTrue())
 			})
 		})
+
+		Context("DeleteAllByMemoID", func() {
+			It("deletes by memo ID", func(ctx SpecContext) {
+				count, err := collaborationRepository.DeleteAllByMemoID(ctx, fakeMemo.ID)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(count).To(Equal(1))
+			})
+		})
 	})
 })

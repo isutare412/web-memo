@@ -94,13 +94,16 @@ func (r *UserRepository) FindAllBySubscribingMemoID(ctx context.Context, memoID 
 	return users, nil
 }
 
-func (r *UserRepository) FindAllByCollaboratingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
+func (r *UserRepository) FindAllByCollaboratingMemoIDWithEdges(
+	ctx context.Context,
+	memoID uuid.UUID,
+) ([]*ent.User, error) {
 	client := transactionClient(ctx, r.client)
 
 	users, err := client.User.
 		Query().
 		Where(user.HasCollaborationsWith(collaboration.MemoID(memoID))).
-		WithSubscriptions().
+		WithCollaborations().
 		All(ctx)
 	if err != nil {
 		return nil, err

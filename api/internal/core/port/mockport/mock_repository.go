@@ -95,19 +95,19 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 	return m.recorder
 }
 
-// FindAllByCollaboratingMemoID mocks base method.
-func (m *MockUserRepository) FindAllByCollaboratingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
+// FindAllByCollaboratingMemoIDWithEdges mocks base method.
+func (m *MockUserRepository) FindAllByCollaboratingMemoIDWithEdges(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByCollaboratingMemoID", ctx, memoID)
+	ret := m.ctrl.Call(m, "FindAllByCollaboratingMemoIDWithEdges", ctx, memoID)
 	ret0, _ := ret[0].([]*ent.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindAllByCollaboratingMemoID indicates an expected call of FindAllByCollaboratingMemoID.
-func (mr *MockUserRepositoryMockRecorder) FindAllByCollaboratingMemoID(ctx, memoID any) *gomock.Call {
+// FindAllByCollaboratingMemoIDWithEdges indicates an expected call of FindAllByCollaboratingMemoIDWithEdges.
+func (mr *MockUserRepositoryMockRecorder) FindAllByCollaboratingMemoIDWithEdges(ctx, memoID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByCollaboratingMemoID", reflect.TypeOf((*MockUserRepository)(nil).FindAllByCollaboratingMemoID), ctx, memoID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByCollaboratingMemoIDWithEdges", reflect.TypeOf((*MockUserRepository)(nil).FindAllByCollaboratingMemoIDWithEdges), ctx, memoID)
 }
 
 // FindAllBySubscribingMemoID mocks base method.
@@ -516,6 +516,36 @@ func (m *MockCollaborationRepository) Delete(ctx context.Context, memoID, userID
 func (mr *MockCollaborationRepositoryMockRecorder) Delete(ctx, memoID, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCollaborationRepository)(nil).Delete), ctx, memoID, userID)
+}
+
+// DeleteAllByMemoID mocks base method.
+func (m *MockCollaborationRepository) DeleteAllByMemoID(ctx context.Context, memoID uuid.UUID) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAllByMemoID", ctx, memoID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteAllByMemoID indicates an expected call of DeleteAllByMemoID.
+func (mr *MockCollaborationRepositoryMockRecorder) DeleteAllByMemoID(ctx, memoID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAllByMemoID", reflect.TypeOf((*MockCollaborationRepository)(nil).DeleteAllByMemoID), ctx, memoID)
+}
+
+// Find mocks base method.
+func (m *MockCollaborationRepository) Find(ctx context.Context, memoID, userID uuid.UUID) (*ent.Collaboration, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Find", ctx, memoID, userID)
+	ret0, _ := ret[0].(*ent.Collaboration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Find indicates an expected call of Find.
+func (mr *MockCollaborationRepositoryMockRecorder) Find(ctx, memoID, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockCollaborationRepository)(nil).Find), ctx, memoID, userID)
 }
 
 // UpdateApprovedStatus mocks base method.

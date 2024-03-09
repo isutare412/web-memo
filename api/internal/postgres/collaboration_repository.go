@@ -134,3 +134,20 @@ func (r *CollaborationRepository) Delete(ctx context.Context, memoID, userID uui
 
 	return nil
 }
+
+func (r *CollaborationRepository) DeleteAllByMemoID(
+	ctx context.Context,
+	memoID uuid.UUID,
+) (count int, err error) {
+	client := transactionClient(ctx, r.client)
+
+	count, err = client.Collaboration.
+		Delete().
+		Where(collaboration.MemoID(memoID)).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
