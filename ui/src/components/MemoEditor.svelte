@@ -409,7 +409,7 @@
     class="textarea textarea-bordered focus:border-primary h-[360px] text-base focus:outline-none"
   />
 </div>
-<div class="mt-4 flex justify-end gap-x-2">
+<div class="mt-4 flex justify-end gap-x-1">
   <button on:click={onCancel} class="btn btn-primary btn-outline">Cancel</button>
   <button
     on:mousedown={onSubmitMouseDown}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import PeopleIcon from '$components/icons/PeopleIcon.svelte'
+  import WebPublishIcon from '$components/icons/WebPublishIcon.svelte'
   import { createEventDispatcher } from 'svelte'
 
   export let link: string
@@ -20,7 +20,7 @@
     class:btn-primary={isShared}
   >
     <div class="w-[16px]">
-      <PeopleIcon />
+      <WebPublishIcon />
     </div>
     {#if shareCount !== undefined && shareCount > 0}
       {shareCount}

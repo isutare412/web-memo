@@ -3,7 +3,7 @@
   import { page } from '$app/stores'
   import Tag from '$components/Tag.svelte'
   import BookmarkIcon from '$components/icons/BookmarkIcon.svelte'
-  import PeopleIcon from '$components/icons/PeopleIcon.svelte'
+  import WebPublishIcon from '$components/icons/WebPublishIcon.svelte'
   import type { UserData } from '$lib/auth'
   import type { Memo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
@@ -56,8 +56,8 @@
         <BookmarkIcon />
       </div>
     {:else if memo.isPublished}
-      <div class="text-primary w-[16px]">
-        <PeopleIcon />
+      <div class="text-primary w-[14px]">
+        <WebPublishIcon />
       </div>
     {/if}
     <div>
