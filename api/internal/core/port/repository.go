@@ -25,11 +25,11 @@ type UserRepository interface {
 
 type MemoRepository interface {
 	FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
-	FindByIDWithTags(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
-	FindAllByUserIDWithTags(
+	FindByIDWithEdges(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
+	FindAllByUserIDWithEdges(
 		ctx context.Context, userID uuid.UUID,
 		sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error)
-	FindAllByUserIDAndTagNamesWithTags(
+	FindAllByUserIDAndTagNamesWithEdges(
 		ctx context.Context, userID uuid.UUID, tags []string,
 		sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error)
 	CountByUserIDAndTagNames(ctx context.Context, userID uuid.UUID, tags []string) (int, error)

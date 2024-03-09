@@ -46,7 +46,7 @@ func NewService(
 }
 
 func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error) {
-	memo, err := s.memoRepository.FindByIDWithTags(ctx, memoID)
+	memo, err := s.memoRepository.FindByIDWithEdges(ctx, memoID)
 	if err != nil {
 		return nil, fmt.Errorf("finding memo: %w", err)
 	}
@@ -74,7 +74,7 @@ func (s *Service) ListMemos(
 	)
 
 	err = s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		memos, err := s.memoRepository.FindAllByUserIDAndTagNamesWithTags(ctx, userID, tags, sortParams, pageParams)
+		memos, err := s.memoRepository.FindAllByUserIDAndTagNamesWithEdges(ctx, userID, tags, sortParams, pageParams)
 		if err != nil {
 			return fmt.Errorf("finding memos of user(%s): %w", userID.String(), err)
 		}
@@ -137,7 +137,7 @@ func (s *Service) UpdateMemo(
 	var memoUpdated *ent.Memo
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		memoFound, err := s.memoRepository.FindByIDWithTags(ctx, memo.ID)
+		memoFound, err := s.memoRepository.FindByIDWithEdges(ctx, memo.ID)
 		if err != nil {
 			return fmt.Errorf("finding memo: %w", err)
 		}
@@ -199,12 +199,12 @@ func (s *Service) UpdateMemoPublishedState(
 	var memoUpdated *ent.Memo
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		memoFound, err := s.memoRepository.FindByIDWithTags(ctx, memoID)
+		memoFound, err := s.memoRepository.FindByIDWithEdges(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanWriteMemo(memoFound) {
+		if !requester.IsOwner(memoFound) {
 			return pkgerr.Known{
 				Code:      pkgerr.CodePermissionDenied,
 				ClientMsg: "not allowed to access memo",
@@ -262,12 +262,12 @@ func (s *Service) UpdateMemoPublishedState(
 
 func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		memo, err := s.memoRepository.FindByIDWithEdges(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanWriteMemo(memo) {
+		if !requester.IsOwner(memo) {
 			return pkgerr.Known{
 				Code:      pkgerr.CodePermissionDenied,
 				ClientMsg: "not allowed to access memo",
@@ -339,7 +339,7 @@ func (s *Service) ReplaceTags(
 	var tagsReplaced []*ent.Tag
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		memo, err := s.memoRepository.FindByIDWithTags(ctx, memoID)
+		memo, err := s.memoRepository.FindByIDWithEdges(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding memo: %w", err)
 		}

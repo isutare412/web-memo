@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/enum"
@@ -46,7 +47,18 @@ func (t *AppIDToken) CanWriteMemo(memo *ent.Memo) bool {
 	if t.UserType == enum.UserTypeOperator {
 		return true
 	}
-	return memo.OwnerID == t.UserID
+
+	if memo.OwnerID == t.UserID {
+		return true
+	}
+
+	if _, ok := lo.Find(
+		memo.Edges.Collaborations,
+		func(c *ent.Collaboration) bool { return c.UserID == t.UserID && c.Approved }); ok {
+		return true
+	}
+
+	return false
 }
 
 func (t *AppIDToken) CanReadMemo(memo *ent.Memo) bool {
@@ -54,4 +66,16 @@ func (t *AppIDToken) CanReadMemo(memo *ent.Memo) bool {
 		return true
 	}
 	return memo.IsPublished
+}
+
+func (t *AppIDToken) IsOwner(memo *ent.Memo) bool {
+	if t == nil {
+		return false
+	}
+
+	if t.UserType == enum.UserTypeOperator {
+		return true
+	}
+
+	return memo.OwnerID == t.UserID
 }

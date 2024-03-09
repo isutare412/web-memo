@@ -251,34 +251,34 @@ func (mr *MockMemoRepositoryMockRecorder) Delete(ctx, memoID any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockMemoRepository)(nil).Delete), ctx, memoID)
 }
 
-// FindAllByUserIDAndTagNamesWithTags mocks base method.
-func (m *MockMemoRepository) FindAllByUserIDAndTagNamesWithTags(ctx context.Context, userID uuid.UUID, tags []string, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error) {
+// FindAllByUserIDAndTagNamesWithEdges mocks base method.
+func (m *MockMemoRepository) FindAllByUserIDAndTagNamesWithEdges(ctx context.Context, userID uuid.UUID, tags []string, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByUserIDAndTagNamesWithTags", ctx, userID, tags, sortParams, pageParams)
+	ret := m.ctrl.Call(m, "FindAllByUserIDAndTagNamesWithEdges", ctx, userID, tags, sortParams, pageParams)
 	ret0, _ := ret[0].([]*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindAllByUserIDAndTagNamesWithTags indicates an expected call of FindAllByUserIDAndTagNamesWithTags.
-func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDAndTagNamesWithTags(ctx, userID, tags, sortParams, pageParams any) *gomock.Call {
+// FindAllByUserIDAndTagNamesWithEdges indicates an expected call of FindAllByUserIDAndTagNamesWithEdges.
+func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDAndTagNamesWithEdges(ctx, userID, tags, sortParams, pageParams any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDAndTagNamesWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDAndTagNamesWithTags), ctx, userID, tags, sortParams, pageParams)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDAndTagNamesWithEdges", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDAndTagNamesWithEdges), ctx, userID, tags, sortParams, pageParams)
 }
 
-// FindAllByUserIDWithTags mocks base method.
-func (m *MockMemoRepository) FindAllByUserIDWithTags(ctx context.Context, userID uuid.UUID, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error) {
+// FindAllByUserIDWithEdges mocks base method.
+func (m *MockMemoRepository) FindAllByUserIDWithEdges(ctx context.Context, userID uuid.UUID, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAllByUserIDWithTags", ctx, userID, sortParams, pageParams)
+	ret := m.ctrl.Call(m, "FindAllByUserIDWithEdges", ctx, userID, sortParams, pageParams)
 	ret0, _ := ret[0].([]*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindAllByUserIDWithTags indicates an expected call of FindAllByUserIDWithTags.
-func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDWithTags(ctx, userID, sortParams, pageParams any) *gomock.Call {
+// FindAllByUserIDWithEdges indicates an expected call of FindAllByUserIDWithEdges.
+func (mr *MockMemoRepositoryMockRecorder) FindAllByUserIDWithEdges(ctx, userID, sortParams, pageParams any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDWithTags), ctx, userID, sortParams, pageParams)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByUserIDWithEdges", reflect.TypeOf((*MockMemoRepository)(nil).FindAllByUserIDWithEdges), ctx, userID, sortParams, pageParams)
 }
 
 // FindByID mocks base method.
@@ -296,19 +296,19 @@ func (mr *MockMemoRepositoryMockRecorder) FindByID(ctx, memoID any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockMemoRepository)(nil).FindByID), ctx, memoID)
 }
 
-// FindByIDWithTags mocks base method.
-func (m *MockMemoRepository) FindByIDWithTags(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
+// FindByIDWithEdges mocks base method.
+func (m *MockMemoRepository) FindByIDWithEdges(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByIDWithTags", ctx, memoID)
+	ret := m.ctrl.Call(m, "FindByIDWithEdges", ctx, memoID)
 	ret0, _ := ret[0].(*ent.Memo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindByIDWithTags indicates an expected call of FindByIDWithTags.
-func (mr *MockMemoRepositoryMockRecorder) FindByIDWithTags(ctx, memoID any) *gomock.Call {
+// FindByIDWithEdges indicates an expected call of FindByIDWithEdges.
+func (mr *MockMemoRepositoryMockRecorder) FindByIDWithEdges(ctx, memoID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByIDWithTags", reflect.TypeOf((*MockMemoRepository)(nil).FindByIDWithTags), ctx, memoID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByIDWithEdges", reflect.TypeOf((*MockMemoRepository)(nil).FindByIDWithEdges), ctx, memoID)
 }
 
 // RegisterSubscriber mocks base method.

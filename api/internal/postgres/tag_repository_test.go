@@ -145,12 +145,6 @@ var _ = Describe("TagRepository", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(tags) > 0).To(BeTrue())
 			})
-
-			It("returns by collaborator", func(ctx SpecContext) {
-				tags, err := tagRepository.FindAllByUserIDAndNameContains(ctx, fakeUsers[2].ID, "")
-				Expect(err).NotTo(HaveOccurred())
-				Expect(len(tags) > 0).To(BeTrue())
-			})
 		})
 
 		Context("CreateIfNotExist", func() {

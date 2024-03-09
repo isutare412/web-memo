@@ -126,24 +126,25 @@ var _ = Describe("MemoRepository", func() {
 			})
 		})
 
-		Context("FindByIDWithTags", func() {
-			It("finds memo with tags eager loaded", func(ctx SpecContext) {
-				memo, err := memoRepository.FindByIDWithTags(ctx, fakeMemos[0].ID)
+		Context("FindByIDWithEdges", func() {
+			It("finds memo with edges eager loaded", func(ctx SpecContext) {
+				memo, err := memoRepository.FindByIDWithEdges(ctx, fakeMemos[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memo).NotTo(BeNil())
 				Expect(memo.ID).To(Equal(fakeMemos[0].ID))
 				Expect(len(memo.Edges.Tags)).NotTo(BeZero())
+				Expect(len(memo.Edges.Collaborations)).NotTo(BeZero())
 			})
 
 			It("returns not found error if unknown ID", func(ctx SpecContext) {
-				_, err := memoRepository.FindByIDWithTags(ctx, uuid.Must(uuid.NewRandom()))
+				_, err := memoRepository.FindByIDWithEdges(ctx, uuid.Must(uuid.NewRandom()))
 				Expect(pkgerr.IsErrNotFound(err)).To(BeTrue())
 			})
 		})
 
-		Context("FindAllByUserIDWithTags", func() {
+		Context("FindAllByUserIDWithEdges", func() {
 			It("finds memos of user", func(ctx SpecContext) {
-				memos, err := memoRepository.FindAllByUserIDWithTags(
+				memos, err := memoRepository.FindAllByUserIDWithEdges(
 					ctx, fakeUsers[0].ID, model.MemoSortParams{}, model.PaginationParams{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(len(fakeMemos)))
@@ -151,15 +152,8 @@ var _ = Describe("MemoRepository", func() {
 			})
 
 			It("finds memos by subscriber", func(ctx SpecContext) {
-				memos, err := memoRepository.FindAllByUserIDWithTags(
+				memos, err := memoRepository.FindAllByUserIDWithEdges(
 					ctx, fakeUsers[1].ID, model.MemoSortParams{}, model.PaginationParams{})
-				Expect(err).NotTo(HaveOccurred())
-				Expect(memos).To(HaveLen(len(fakeMemos)))
-			})
-
-			It("finds memos by collaborator ID", func(ctx SpecContext) {
-				memos, err := memoRepository.FindAllByUserIDWithTags(
-					ctx, fakeUsers[2].ID, model.MemoSortParams{}, model.PaginationParams{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(len(fakeMemos)))
 			})
@@ -175,7 +169,7 @@ var _ = Describe("MemoRepository", func() {
 					}
 				)
 
-				memos, err := memoRepository.FindAllByUserIDWithTags(ctx, fakeUsers[0].ID, givenSortParams, givenPageParams)
+				memos, err := memoRepository.FindAllByUserIDWithEdges(ctx, fakeUsers[0].ID, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(1))
 				Expect(memos[0].ID).To(Equal(fakeMemos[0].ID))
@@ -188,14 +182,14 @@ var _ = Describe("MemoRepository", func() {
 					givenSortParams = model.MemoSortParams{}
 				)
 
-				memos, err := memoRepository.FindAllByUserIDWithTags(
+				memos, err := memoRepository.FindAllByUserIDWithEdges(
 					ctx, uuid.Must(uuid.NewRandom()), givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(0))
 			})
 		})
 
-		Context("FindAllByUserIDAndTagNamesWithTags", func() {
+		Context("FindAllByUserIDAndTagNamesWithEdges", func() {
 			It("finds memos of user with tag name", func(ctx SpecContext) {
 				var (
 					givenTagNames   = []string{fakeTags[0].Name}
@@ -203,7 +197,7 @@ var _ = Describe("MemoRepository", func() {
 					givenSortParams = model.MemoSortParams{}
 				)
 
-				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithTags(
+				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithEdges(
 					ctx, fakeUsers[0].ID, givenTagNames, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(1))
@@ -218,7 +212,7 @@ var _ = Describe("MemoRepository", func() {
 					givenSortParams = model.MemoSortParams{}
 				)
 
-				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithTags(
+				memos, err := memoRepository.FindAllByUserIDAndTagNamesWithEdges(
 					ctx, fakeUsers[0].ID, givenTagNames, givenSortParams, givenPageParams)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memos).To(HaveLen(0))
@@ -349,7 +343,7 @@ var _ = Describe("MemoRepository", func() {
 				err := memoRepository.ReplaceTags(ctx, fakeMemos[0].ID, []int{fakeTags[1].ID}, true)
 				Expect(err).NotTo(HaveOccurred())
 
-				memo, err := memoRepository.FindByIDWithTags(ctx, fakeMemos[0].ID)
+				memo, err := memoRepository.FindByIDWithEdges(ctx, fakeMemos[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memo).NotTo(BeNil())
 				Expect(memo.Edges.Tags).To(HaveLen(1))
@@ -360,7 +354,7 @@ var _ = Describe("MemoRepository", func() {
 				err := memoRepository.ReplaceTags(ctx, fakeMemos[0].ID, nil, true)
 				Expect(err).NotTo(HaveOccurred())
 
-				memo, err := memoRepository.FindByIDWithTags(ctx, fakeMemos[0].ID)
+				memo, err := memoRepository.FindByIDWithEdges(ctx, fakeMemos[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memo).NotTo(BeNil())
 				Expect(memo.Edges.Tags).To(HaveLen(0))
@@ -375,7 +369,7 @@ var _ = Describe("MemoRepository", func() {
 				err := memoRepository.ReplaceTags(ctx, fakeMemos[0].ID, nil, false)
 				Expect(err).NotTo(HaveOccurred())
 
-				memo, err := memoRepository.FindByIDWithTags(ctx, fakeMemos[0].ID)
+				memo, err := memoRepository.FindByIDWithEdges(ctx, fakeMemos[0].ID)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memo.UpdateTime.Equal(fakeMemos[0].UpdateTime)).To(BeTrue())
 			})

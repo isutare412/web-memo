@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
-	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
@@ -54,7 +53,6 @@ func (r *TagRepository) FindAllByUserIDAndNameContains(
 				memo.Or(
 					memo.OwnerID(userID),
 					memo.HasSubscriptionsWith(subscription.UserID(userID)),
-					memo.HasCollaborationsWith(collaboration.UserID(userID)),
 				)),
 			tag.NameContainsFold(name),
 		).
