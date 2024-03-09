@@ -45,7 +45,6 @@
   $: isOwner = (user && memo && user.id === memo.ownerId) ?? false
 
   let subscriberCount: number | undefined = undefined
-
   let subscribeConfirmModal: HTMLDialogElement
   let isSubscribing = false
   let isMemoSubscribed = false
@@ -526,5 +525,12 @@
         <button>close</button>
       </form>
     </dialog>
+
+    {#if isMemoCollaborateApproved}
+      <div class="mt-4 flex justify-end gap-x-1">
+        <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button
+        >
+      </div>
+    {/if}
   {/if}
 {/if}
