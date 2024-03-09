@@ -7,6 +7,8 @@
   import Markdown from '$components/Markdown.svelte'
   import SubscribeButton from '$components/SubscribeButton.svelte'
   import Tag from '$components/Tag.svelte'
+  import Plus from '$components/icons/Plus.svelte'
+  import Refresh from '$components/icons/Refresh.svelte'
   import { StatusError } from '$lib/apis/backend/error'
   import {
       deleteMemo,
@@ -47,20 +49,25 @@
   let isDeleting = false
 
   onMount(async () => {
+    await syncPageData(false)
+  })
+
+  async function syncPageData(forceRefresh: boolean) {
     try {
       await syncUserData()
-      await syncMemo()
+      await syncMemo(forceRefresh)
       await syncSubscribeStatus()
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')
       return
     }
-  })
+  }
 
-  async function syncMemo() {
-    if (memo !== undefined) return
+  async function syncMemo(forceRefresh: boolean) {
+    if (!forceRefresh && memo !== undefined) return
 
+    memo = undefined
     memo = mapToMemo(await getMemo(memoId))
   }
 
@@ -84,6 +91,10 @@
         return
       }
     }
+  }
+
+  async function onRefreshButtonClick() {
+    await syncPageData(true)
   }
 
   function onEditClick() {
@@ -205,6 +216,18 @@
 {#if memo === undefined}
   <LoadingSpinner />
 {:else}
+  <div class="flex justify-end gap-x-2">
+    <div>
+      <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
+        <div class="w-[18px]"><Refresh /></div>
+      </button>
+    </div>
+    <div>
+      <a href="/new" class="btn btn-circle btn-sm btn-primary">
+        <div class="w-[14px]"><Plus /></div>
+      </a>
+    </div>
+  </div>
   <h1 class="break-words border-b py-2 text-3xl">{memo.title}</h1>
   {#if memo.tags.length > 0}
     <div class="mt-4 flex flex-wrap gap-1">
