@@ -44,6 +44,7 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 	userRepository := postgres.NewUserRepository(postgresClient)
 	memoRepository := postgres.NewMemoRepository(postgresClient)
 	tagRepository := postgres.NewTagRepository(postgresClient)
+	collaborationRepository := postgres.NewCollaborationRepository(postgresClient)
 
 	redisClient := redis.NewClient(cfg.ToRedisConfig())
 	kvRepository := redis.NewKVRepository(redisClient)
@@ -52,7 +53,8 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 
 	authService := auth.NewService(
 		cfg.ToAuthServiceConfig(), postgresClient, kvRepository, userRepository, googleClient, jwtClient)
-	memoService := memo.NewService(postgresClient, memoRepository, tagRepository, userRepository)
+	memoService := memo.NewService(
+		postgresClient, memoRepository, tagRepository, userRepository, collaborationRepository)
 
 	pingers := []port.Pinger{
 		postgresClient,

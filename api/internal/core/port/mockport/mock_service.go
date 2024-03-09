@@ -111,6 +111,20 @@ func (m *MockMemoService) EXPECT() *MockMemoServiceMockRecorder {
 	return m.recorder
 }
 
+// AuthorizeCollaborator mocks base method.
+func (m *MockMemoService) AuthorizeCollaborator(ctx context.Context, memoID, collaboratorID uuid.UUID, approve bool, requester *model.AppIDToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AuthorizeCollaborator", ctx, memoID, collaboratorID, approve, requester)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AuthorizeCollaborator indicates an expected call of AuthorizeCollaborator.
+func (mr *MockMemoServiceMockRecorder) AuthorizeCollaborator(ctx, memoID, collaboratorID, approve, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthorizeCollaborator", reflect.TypeOf((*MockMemoService)(nil).AuthorizeCollaborator), ctx, memoID, collaboratorID, approve, requester)
+}
+
 // CreateMemo mocks base method.
 func (m *MockMemoService) CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []string, userID uuid.UUID) (*ent.Memo, error) {
 	m.ctrl.T.Helper()
@@ -124,6 +138,20 @@ func (m *MockMemoService) CreateMemo(ctx context.Context, memo *ent.Memo, tagNam
 func (mr *MockMemoServiceMockRecorder) CreateMemo(ctx, memo, tagNames, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMemo", reflect.TypeOf((*MockMemoService)(nil).CreateMemo), ctx, memo, tagNames, userID)
+}
+
+// DeleteCollaborator mocks base method.
+func (m *MockMemoService) DeleteCollaborator(ctx context.Context, memoID, collaboratorID uuid.UUID, requester *model.AppIDToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteCollaborator", ctx, memoID, collaboratorID, requester)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCollaborator indicates an expected call of DeleteCollaborator.
+func (mr *MockMemoServiceMockRecorder) DeleteCollaborator(ctx, memoID, collaboratorID, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCollaborator", reflect.TypeOf((*MockMemoService)(nil).DeleteCollaborator), ctx, memoID, collaboratorID, requester)
 }
 
 // DeleteMemo mocks base method.
@@ -170,6 +198,21 @@ func (mr *MockMemoServiceMockRecorder) GetMemo(ctx, memoID, requester any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemo", reflect.TypeOf((*MockMemoService)(nil).GetMemo), ctx, memoID, requester)
 }
 
+// ListCollaborators mocks base method.
+func (m *MockMemoService) ListCollaborators(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListCollaboratorsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCollaborators", ctx, memoID, requester)
+	ret0, _ := ret[0].(*model.ListCollaboratorsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListCollaborators indicates an expected call of ListCollaborators.
+func (mr *MockMemoServiceMockRecorder) ListCollaborators(ctx, memoID, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCollaborators", reflect.TypeOf((*MockMemoService)(nil).ListCollaborators), ctx, memoID, requester)
+}
+
 // ListMemos mocks base method.
 func (m *MockMemoService) ListMemos(ctx context.Context, userID uuid.UUID, tags []string, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, int, error) {
 	m.ctrl.T.Helper()
@@ -214,6 +257,20 @@ func (m *MockMemoService) ListTags(ctx context.Context, memoID uuid.UUID, reques
 func (mr *MockMemoServiceMockRecorder) ListTags(ctx, memoID, requester any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTags", reflect.TypeOf((*MockMemoService)(nil).ListTags), ctx, memoID, requester)
+}
+
+// RegisterCollaborator mocks base method.
+func (m *MockMemoService) RegisterCollaborator(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterCollaborator", ctx, memoID, requester)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegisterCollaborator indicates an expected call of RegisterCollaborator.
+func (mr *MockMemoServiceMockRecorder) RegisterCollaborator(ctx, memoID, requester any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterCollaborator", reflect.TypeOf((*MockMemoService)(nil).RegisterCollaborator), ctx, memoID, requester)
 }
 
 // ReplaceTags mocks base method.

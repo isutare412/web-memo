@@ -37,4 +37,11 @@ type MemoService interface {
 	ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListSubscribersResponse, error)
 	SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error
 	UnsubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error
+
+	ListCollaborators(
+		ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListCollaboratorsResponse, error)
+	RegisterCollaborator(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error
+	AuthorizeCollaborator(
+		ctx context.Context, memoID, collaboratorID uuid.UUID, approve bool, requester *model.AppIDToken) error
+	DeleteCollaborator(ctx context.Context, memoID, collaboratorID uuid.UUID, requester *model.AppIDToken) error
 }

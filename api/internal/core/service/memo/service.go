@@ -25,10 +25,11 @@ var reservedTags = []string{
 }
 
 type Service struct {
-	transactionManager port.TransactionManager
-	memoRepository     port.MemoRepository
-	tagRepository      port.TagRepository
-	userRepository     port.UserRepository
+	transactionManager      port.TransactionManager
+	memoRepository          port.MemoRepository
+	tagRepository           port.TagRepository
+	userRepository          port.UserRepository
+	collaborationRepository port.CollaborationRepository
 }
 
 func NewService(
@@ -36,12 +37,14 @@ func NewService(
 	memoRepository port.MemoRepository,
 	tagRepository port.TagRepository,
 	userReposiotry port.UserRepository,
+	collaborationRepository port.CollaborationRepository,
 ) *Service {
 	return &Service{
-		transactionManager: transactionManager,
-		memoRepository:     memoRepository,
-		tagRepository:      tagRepository,
-		userRepository:     userReposiotry,
+		transactionManager:      transactionManager,
+		memoRepository:          memoRepository,
+		tagRepository:           tagRepository,
+		userRepository:          userReposiotry,
+		collaborationRepository: collaborationRepository,
 	}
 }
 
@@ -242,6 +245,10 @@ func (s *Service) UpdateMemoPublishedState(
 			if err := s.memoRepository.ClearSubscribers(ctx, memoFound.ID); err != nil {
 				return fmt.Errorf("clearing subscribers: %w", err)
 			}
+
+			if _, err := s.collaborationRepository.DeleteAllByMemoID(ctx, memoFound.ID); err != nil {
+				return fmt.Errorf("clearing collaborations: %w", err)
+			}
 		}
 
 		tags, err := s.tagRepository.FindAllByMemoID(ctx, memoID)
@@ -262,7 +269,7 @@ func (s *Service) UpdateMemoPublishedState(
 
 func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
-		memo, err := s.memoRepository.FindByIDWithEdges(ctx, memoID)
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding memo: %w", err)
 		}
@@ -517,6 +524,178 @@ func (s *Service) UnsubscribeMemo(ctx context.Context, memoID uuid.UUID, request
 
 		if err := s.memoRepository.UnregisterSubscriber(ctx, memoID, requester.UserID); err != nil {
 			return fmt.Errorf("unregistering subscriber: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("during transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Service) ListCollaborators(
+	ctx context.Context,
+	memoID uuid.UUID,
+	requester *model.AppIDToken,
+) (*model.ListCollaboratorsResponse, error) {
+	var (
+		ownerID       uuid.UUID
+		collaborators []*ent.User
+	)
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanReadMemo(memo) {
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
+		}
+
+		users, err := s.userRepository.FindAllByCollaboratingMemoIDWithEdges(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding collaborators: %w", err)
+		}
+
+		ownerID = memo.OwnerID
+		collaborators = users
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("during transaction: %w", err)
+	}
+
+	return &model.ListCollaboratorsResponse{
+		MemoOwnerID:   ownerID,
+		Collaborators: collaborators,
+	}, nil
+}
+
+func (s *Service) RegisterCollaborator(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
+	if requester == nil {
+		return pkgerr.Known{
+			Code:      pkgerr.CodeUnauthenticated,
+			ClientMsg: "must be signed-in for collaboration",
+		}
+	}
+
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanReadMemo(memo) {
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
+		}
+
+		_, err = s.collaborationRepository.Find(ctx, memoID, requester.UserID)
+		switch {
+		case err == nil:
+			return pkgerr.Known{
+				Code:      pkgerr.CodeAlreadyExists,
+				ClientMsg: "collaborator already exists",
+			}
+		case !pkgerr.IsErrNotFound(err):
+			return fmt.Errorf("checking collaborator existence: %w", err)
+		}
+
+		if _, err := s.collaborationRepository.Create(ctx, memoID, requester.UserID); err != nil {
+			return fmt.Errorf("creating collaboration: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("during transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Service) AuthorizeCollaborator(
+	ctx context.Context,
+	memoID, collaboratorID uuid.UUID,
+	approve bool,
+	requester *model.AppIDToken,
+) error {
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.IsOwner(memo) {
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
+		}
+
+		collabo, err := s.collaborationRepository.Find(ctx, memoID, collaboratorID)
+		if err != nil {
+			return fmt.Errorf("finding collaboration: %w", err)
+		}
+		if collabo.Approved == approve {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: lo.Ternary(approve, "user is already approved", "user is already disapproved"),
+			}
+		}
+
+		if _, err := s.collaborationRepository.UpdateApprovedStatus(ctx, memoID, collaboratorID, approve); err != nil {
+			return fmt.Errorf("updating approved status: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("during transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Service) DeleteCollaborator(
+	ctx context.Context,
+	memoID, collaboratorID uuid.UUID,
+	requester *model.AppIDToken,
+) error {
+	if requester == nil {
+		return pkgerr.Known{
+			Code:      pkgerr.CodeUnauthenticated,
+			ClientMsg: "must be signed-in for collaboration",
+		}
+	}
+
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		collabo, err := s.collaborationRepository.Find(ctx, memoID, collaboratorID)
+		if err != nil {
+			return fmt.Errorf("finding collaboration: %w", err)
+		}
+
+		if !requester.IsOwner(memo) && collabo.UserID != requester.UserID {
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
+		}
+
+		if err := s.collaborationRepository.Delete(ctx, memoID, collaboratorID); err != nil {
+			return fmt.Errorf("deleting collaboration: %w", err)
 		}
 
 		return nil
