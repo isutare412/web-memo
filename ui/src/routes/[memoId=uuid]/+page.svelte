@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import CollaborateButton from '$components/CollaborateButton.svelte'
+  import CollaborationApproveTable from '$components/CollaborationApproveTable.svelte'
   import LinkCopyButton from '$components/LinkCopyButton.svelte'
   import LinkShareButton from '$components/LinkShareButton.svelte'
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
@@ -12,6 +13,7 @@
   import Refresh from '$components/icons/Refresh.svelte'
   import { StatusError } from '$lib/apis/backend/error'
   import {
+      authorizeCollaboration,
       cancelCollaboration,
       deleteMemo,
       getCollaborator,
@@ -23,6 +25,7 @@
       requestCollaboration,
       subscribeMemo,
       unsubscribeMemo,
+      type Collaborator,
   } from '$lib/apis/backend/memo'
   import { authStore, signInGoogle, syncUserData } from '$lib/auth'
   import { mapToMemo } from '$lib/memo'
@@ -39,10 +42,9 @@
   $: memoId = $page.params.memoId
   $: pageUrl = $page.url
   $: ({ memo } = data)
-  $: hasWritePermission = (user && memo && user.id === memo.ownerId) ?? false
+  $: isOwner = (user && memo && user.id === memo.ownerId) ?? false
 
   let subscriberCount: number | undefined = undefined
-  let collaboratorCount: number | undefined = undefined
 
   let subscribeConfirmModal: HTMLDialogElement
   let isSubscribing = false
@@ -52,6 +54,10 @@
   let isRequestingCollaborate = false
   let isMemoCollaborated = false
   let isMemoCollaborateApproved = false
+
+  let collaborateApproveModal: HTMLDialogElement
+  let collaborators: Collaborator[] = []
+  $: hasApprovedCollaborators = collaborators.some((c) => c.isApproved)
 
   let publishConfirmModal: HTMLDialogElement
   let isPublishing = false
@@ -110,7 +116,7 @@
     try {
       if (memo.ownerId === user.id) {
         const response = await listCollaborators(memoId)
-        collaboratorCount = response.collaborators.length
+        collaborators = response.collaborators
       } else {
         const collaborator = await getCollaborator({ memoId, userId: user.id })
         isMemoCollaborated = true
@@ -144,6 +150,22 @@
     setPageOfSearchParams(params, 1)
     addTagToSearchParams(params, event.detail.name)
     goto(`/?${params.toString()}`)
+  }
+
+  function onCollaborateClick() {
+    if (user === undefined) {
+      signInGoogle()
+      return
+    }
+
+    if (memo == undefined) return
+
+    if (memo.ownerId !== user.id) {
+      collaborateConfirmModal.showModal()
+      return
+    }
+
+    collaborateApproveModal.showModal()
   }
 
   async function onDeleteConfirm() {
@@ -185,13 +207,18 @@
     }
   }
 
-  function onCollaborateEvent() {
-    if (user === undefined) {
-      signInGoogle()
+  async function onCollaborateApprove(event: CustomEvent<{ userId: string; checked: boolean }>) {
+    try {
+      await authorizeCollaboration({
+        memoId,
+        userId: event.detail.userId,
+        approve: event.detail.checked,
+      })
+      await syncCollborationStatus()
+    } catch (error: unknown) {
+      addToast(getErrorMessage(error), 'error')
       return
     }
-
-    collaborateConfirmModal.showModal()
   }
 
   async function onCollaborateConfirm() {
@@ -256,14 +283,12 @@
           }),
         ])
         .then(() => {
-          if (memo !== undefined && memo.isPublished)
-            addToast('Copied memo URL!', 'info', { timeout: 2000 })
+          if (memo !== undefined && memo.isPublished) addToast('Copied memo URL!', 'info')
         })
     } else {
       publishMemoPromise.then(() => {
         navigator.clipboard.writeText(memoUrl).then(() => {
-          if (memo !== undefined && memo.isPublished)
-            addToast('Copied memo URL!', 'info', { timeout: 2000 })
+          if (memo !== undefined && memo.isPublished) addToast('Copied memo URL!', 'info')
         })
       })
     }
@@ -295,6 +320,7 @@
       </a>
     </div>
   </div>
+
   <h1 class="break-words border-b py-2 text-3xl">{memo.title}</h1>
   {#if memo.tags.length > 0}
     <div class="mt-4 flex flex-wrap gap-1">
@@ -303,6 +329,7 @@
       {/each}
     </div>
   {/if}
+
   <div class="mt-3">
     <Markdown content={memo.content} />
   </div>
@@ -314,9 +341,18 @@
       <span class="text-xs opacity-70">Update {formatDate(memo.updateTime)}</span>
     </div>
   </div>
-  {#if hasWritePermission}
+
+  {#if isOwner}
     <div class="mt-2 flex justify-end gap-x-1">
       <LinkCopyButton link={pageUrl.toString()} />
+      {#if memo.isPublished}
+        <CollaborateButton
+          disabled={!collaborators.length}
+          isActivated={hasApprovedCollaborators}
+          count={collaborators.length}
+          on:click={onCollaborateClick}
+        />
+      {/if}
       <LinkShareButton
         link={pageUrl.toString()}
         shareCount={subscriberCount}
@@ -331,9 +367,23 @@
       >
     </div>
 
+    <dialog bind:this={collaborateApproveModal} class="modal">
+      <div class="modal-box min-w-80 w-fit">
+        <CollaborationApproveTable {collaborators} on:change={onCollaborateApprove} />
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn btn-outline btn-primary outline-none">Close</button>
+          </form>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+
     <dialog bind:this={publishConfirmModal} class="modal">
       <div class="modal-box">
-        <p>
+        <p class="py-4">
           {#if memo.isPublished}
             <p>
               Will you <span class="text-primary font-bold">un-publish</span> the memo?<br />Only
@@ -370,7 +420,7 @@
 
     <dialog bind:this={deleteConfirmModal} class="modal">
       <div class="modal-box">
-        <p>Are you sure?</p>
+        <p class="py-4">Are you sure?</p>
         <div class="modal-action flex justify-end">
           <form method="dialog">
             <button class="btn btn-outline btn-primary outline-none">Cancel</button>
@@ -392,19 +442,21 @@
         <button>close</button>
       </form>
     </dialog>
+
+    <!-- not owner -->
   {:else}
     <div class="mt-2 flex justify-end gap-x-1">
       <CollaborateButton
         isActivated={isMemoCollaborated}
         isChecked={isMemoCollaborateApproved}
-        on:collaborate={onCollaborateEvent}
+        on:click={onCollaborateClick}
       />
       <SubscribeButton isActivated={isMemoSubscribed} on:subscribe={onSusbscribeEvent} />
     </div>
 
     <dialog bind:this={subscribeConfirmModal} class="modal">
       <div class="modal-box">
-        <p>
+        <p class="py-4">
           {#if isMemoSubscribed}
             <p>
               Will you <span class="text-primary font-bold">unsubscribe</span> the memo?<br />The
@@ -441,7 +493,7 @@
 
     <dialog bind:this={collaborateConfirmModal} class="modal">
       <div class="modal-box">
-        <p>
+        <p class="py-4">
           {#if isMemoCollaborated}
             <p>
               Will you <span class="text-primary font-bold">cancel</span> collaboration?
@@ -449,7 +501,7 @@
           {:else}
             <p>
               Will you <span class="text-primary font-bold">request</span> collaboration?<br />You
-              will be able to modify the memo after an approval.
+              will be able to modify the memo after an approval from the owner.
             </p>
           {/if}
         </p>

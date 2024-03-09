@@ -21,7 +21,7 @@
   }
 
   function showCopyResult() {
-    addToast('Copied memo URL!', 'info', { timeout: 1500 })
+    addToast('Copied memo URL!', 'info')
   }
 </script>
 
