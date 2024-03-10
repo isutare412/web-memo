@@ -38,7 +38,7 @@
       })
 
       if (event.detail.isHold) {
-        addToast('Updated the memo without updating time.', 'info', { timeout: 2000 })
+        addToast('Updated the memo without updating time.', 'info')
       }
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
@@ -49,7 +49,7 @@
   }
 
   function onMemoCancel() {
-    goto(`/${memoId}`)
+    history.back()
   }
 </script>
 

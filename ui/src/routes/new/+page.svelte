@@ -22,7 +22,7 @@
   }
 
   function onMemoCancel() {
-    goto('/')
+    history.back()
   }
 </script>
 
