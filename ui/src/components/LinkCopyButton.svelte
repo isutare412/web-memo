@@ -1,6 +1,6 @@
 <script lang="ts">
   import CopyIcon from '$components/icons/CopyIcon.svelte'
-  import { addToast } from '$lib/toast'
+  import { ToastTimeout, addToast } from '$lib/toast'
 
   export let link: string
 
@@ -21,7 +21,7 @@
   }
 
   function showCopyResult() {
-    addToast('Copied memo URL!', 'info')
+    addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
   }
 </script>
 

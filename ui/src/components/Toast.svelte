@@ -1,6 +1,6 @@
 <script lang="ts">
   import Cross from '$components/icons/Cross.svelte'
-  import { deleteToast, type ToastLevel } from '$lib/toast'
+  import { ToastTimeout, deleteToast, type ToastLevel } from '$lib/toast'
   import { PausableTimer } from '$lib/utils/timer'
   import { onMount } from 'svelte'
   import { tweened } from 'svelte/motion'
@@ -8,7 +8,7 @@
   export let id: number
   export let message: string
   export let level: ToastLevel
-  export let timeout = 10_000
+  export let timeout: number = ToastTimeout.NORMAL
 
   const progress = tweened(0, { duration: timeout })
   let timer: PausableTimer

@@ -30,7 +30,7 @@
   import { authStore, signInGoogle, syncUserData } from '$lib/auth'
   import { mapToMemo } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
-  import { addToast } from '$lib/toast'
+  import { ToastTimeout, addToast } from '$lib/toast'
   import { formatDate } from '$lib/utils/date'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
@@ -286,12 +286,14 @@
           }),
         ])
         .then(() => {
-          if (memo !== undefined && memo.isPublished) addToast('Copied memo URL!', 'info')
+          if (memo !== undefined && memo.isPublished)
+            addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
         })
     } else {
       publishMemoPromise.then(() => {
         navigator.clipboard.writeText(memoUrl).then(() => {
-          if (memo !== undefined && memo.isPublished) addToast('Copied memo URL!', 'info')
+          if (memo !== undefined && memo.isPublished)
+            addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
         })
       })
     }
