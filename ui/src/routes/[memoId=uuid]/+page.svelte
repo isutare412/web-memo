@@ -9,8 +9,9 @@
   import Markdown from '$components/Markdown.svelte'
   import SubscribeButton from '$components/SubscribeButton.svelte'
   import Tag from '$components/Tag.svelte'
-  import Plus from '$components/icons/Plus.svelte'
+  import PenIcon from '$components/icons/PenIcon.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
+  import TrashBinIcon from '$components/icons/TrashBinIcon.svelte'
   import { StatusError } from '$lib/apis/backend/error'
   import {
       authorizeCollaboration,
@@ -313,18 +314,67 @@
 {#if memo === undefined}
   <LoadingSpinner />
 {:else}
-  <div class="flex justify-end gap-x-2">
-    <div>
-      <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
-        <div class="w-[18px]"><Refresh /></div>
-      </button>
+  {#if isOwner}
+    <div class="flex justify-end gap-x-2">
+      <div>
+        <button on:click={onDeleteClick} class="btn btn-circle btn-sm btn-primary">
+          <div class="w-[17px]"><TrashBinIcon /></div>
+        </button>
+      </div>
+      <div>
+        <button on:click={onEditClick} class="btn btn-circle btn-sm btn-primary">
+          <div class="w-[18px]"><PenIcon /></div>
+        </button>
+      </div>
+      <div>
+        <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
+          <div class="w-[16px]"><Refresh /></div>
+        </button>
+      </div>
     </div>
-    <div>
-      <a href="/new" class="btn btn-circle btn-sm btn-primary">
-        <div class="w-[14px]"><Plus /></div>
-      </a>
+
+    <dialog bind:this={deleteConfirmModal} class="modal">
+      <div class="modal-box">
+        <p class="py-4">Are you sure?</p>
+        <div class="modal-action flex justify-end">
+          <form method="dialog">
+            <button class="btn btn-outline btn-primary outline-none">Cancel</button>
+          </form>
+          <button
+            on:click={onDeleteConfirm}
+            disabled={isDeleting}
+            class="btn btn-primary outline-none"
+          >
+            {#if isDeleting}
+              <span class="loading loading-spinner" />
+            {:else}
+              Delete
+            {/if}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+
+    <!-- not owner -->
+  {:else}
+    <div class="flex justify-end gap-x-2">
+      {#if isMemoCollaborateApproved}
+        <div>
+          <button on:click={onEditClick} class="btn btn-circle btn-sm btn-primary">
+            <div class="w-[18px]"><PenIcon /></div>
+          </button>
+        </div>
+      {/if}
+      <div>
+        <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
+          <div class="w-[16px]"><Refresh /></div>
+        </button>
+      </div>
     </div>
-  </div>
+  {/if}
 
   <h1 class="break-words border-b py-2 text-3xl">{memo.title}</h1>
   {#if memo.tags.length > 0}
@@ -349,7 +399,6 @@
 
   {#if isOwner}
     <div class="mt-2 flex justify-end gap-x-1">
-      <LinkCopyButton link={pageUrl.toString()} />
       {#if memo.isPublished}
         <CollaborateButton
           disabled={!collaborators.length}
@@ -364,12 +413,7 @@
         isShared={memo.isPublished}
         on:share={onShareEvent}
       />
-    </div>
-    <div class="mt-4 flex justify-end gap-x-1">
-      <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button>
-      <button on:click={onDeleteClick} class="btn btn-outline btn-primary outline-none"
-        >Delete</button
-      >
+      <LinkCopyButton link={pageUrl.toString()} />
     </div>
 
     <dialog bind:this={collaborateApproveModal} class="modal">
@@ -418,31 +462,6 @@
       </form>
     </dialog>
 
-    <dialog bind:this={deleteConfirmModal} class="modal">
-      <div class="modal-box">
-        <p class="py-4">Are you sure?</p>
-        <div class="modal-action flex justify-end">
-          <form method="dialog">
-            <button class="btn btn-outline btn-primary outline-none">Cancel</button>
-          </form>
-          <button
-            on:click={onDeleteConfirm}
-            disabled={isDeleting}
-            class="btn btn-primary outline-none"
-          >
-            {#if isDeleting}
-              <span class="loading loading-spinner" />
-            {:else}
-              Delete
-            {/if}
-          </button>
-        </div>
-      </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-      </form>
-    </dialog>
-
     <!-- not owner -->
   {:else}
     <div class="mt-2 flex justify-end gap-x-1">
@@ -452,6 +471,7 @@
         on:click={onCollaborateClick}
       />
       <SubscribeButton isActivated={isMemoSubscribed} on:subscribe={onSusbscribeEvent} />
+      <LinkCopyButton link={pageUrl.toString()} />
     </div>
 
     <dialog bind:this={subscribeConfirmModal} class="modal">
@@ -526,12 +546,5 @@
         <button>close</button>
       </form>
     </dialog>
-
-    {#if isMemoCollaborateApproved}
-      <div class="mt-4 flex justify-end gap-x-1">
-        <button on:click={onEditClick} class="btn btn-outline btn-primary outline-none">Edit</button
-        >
-      </div>
-    {/if}
   {/if}
 {/if}

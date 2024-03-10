@@ -133,14 +133,14 @@
     <TagFilter>
       <div class="flex gap-2">
         <div>
-          <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
-            <div class="w-[18px]"><Refresh /></div>
-          </button>
+          <a href="/new" class="btn btn-circle btn-sm btn-primary">
+            <div class="w-[13px]"><Plus /></div>
+          </a>
         </div>
         <div>
-          <a href="/new" class="btn btn-circle btn-sm btn-primary">
-            <div class="w-[14px]"><Plus /></div>
-          </a>
+          <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
+            <div class="w-[16px]"><Refresh /></div>
+          </button>
         </div>
       </div>
     </TagFilter>
