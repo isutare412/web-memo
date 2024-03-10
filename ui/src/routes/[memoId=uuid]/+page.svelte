@@ -375,11 +375,6 @@
     <dialog bind:this={collaborateApproveModal} class="modal">
       <div class="modal-box min-w-80 w-fit">
         <CollaborationApproveTable {collaborators} on:change={onCollaborateApprove} />
-        <div class="modal-action">
-          <form method="dialog">
-            <button class="btn btn-outline btn-primary outline-none">Close</button>
-          </form>
-        </div>
       </div>
       <form method="dialog" class="modal-backdrop">
         <button>close</button>
@@ -512,7 +507,7 @@
         </p>
         <div class="modal-action flex justify-end">
           <form method="dialog">
-            <button class="btn btn-outline btn-primary outline-none">Cancel</button>
+            <button class="btn btn-outline btn-primary outline-none">No</button>
           </form>
           <button
             on:click={onCollaborateConfirm}
@@ -522,7 +517,7 @@
             {#if isRequestingCollaborate}
               <span class="loading loading-spinner" />
             {:else}
-              OK
+              Yes
             {/if}
           </button>
         </div>
