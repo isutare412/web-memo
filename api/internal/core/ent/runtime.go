@@ -60,12 +60,16 @@ func init() {
 	memoDescIsPublished := memoFields[4].Descriptor()
 	// memo.DefaultIsPublished holds the default value on creation for the is_published field.
 	memo.DefaultIsPublished = memoDescIsPublished.Default.(bool)
+	// memoDescVersion is the schema descriptor for version field.
+	memoDescVersion := memoFields[5].Descriptor()
+	// memo.DefaultVersion holds the default value on creation for the version field.
+	memo.DefaultVersion = memoDescVersion.Default.(int)
 	// memoDescCreateTime is the schema descriptor for create_time field.
-	memoDescCreateTime := memoFields[5].Descriptor()
+	memoDescCreateTime := memoFields[6].Descriptor()
 	// memo.DefaultCreateTime holds the default value on creation for the create_time field.
 	memo.DefaultCreateTime = memoDescCreateTime.Default.(func() time.Time)
 	// memoDescUpdateTime is the schema descriptor for update_time field.
-	memoDescUpdateTime := memoFields[6].Descriptor()
+	memoDescUpdateTime := memoFields[7].Descriptor()
 	// memo.DefaultUpdateTime holds the default value on creation for the update_time field.
 	memo.DefaultUpdateTime = memoDescUpdateTime.Default.(func() time.Time)
 	// memoDescID is the schema descriptor for id field.

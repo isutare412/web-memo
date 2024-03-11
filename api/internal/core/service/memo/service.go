@@ -145,6 +145,14 @@ func (s *Service) UpdateMemo(
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
+		if memoFound.Version != memo.Version {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeConflict,
+				ClientMsg: "memo version is outdated. please retry with a new version.",
+			}
+		}
+		memo.Version++
+
 		if !requester.CanWriteMemo(memoFound) {
 			return pkgerr.Known{
 				Code:      pkgerr.CodePermissionDenied,

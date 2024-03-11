@@ -16,6 +16,7 @@ export const reservedTags = ['published']
 export interface Memo {
   id: string
   ownerId: string
+  version: number
   createTime: Date
   updateTime: Date
   title: string
@@ -36,6 +37,7 @@ export function mapToMemo(memo: RawMemo): Memo {
   return {
     id: memo.id,
     ownerId: memo.ownerId,
+    version: memo.version,
     createTime: new Date(memo.createTime),
     updateTime: new Date(memo.updateTime),
     title: memo.title,

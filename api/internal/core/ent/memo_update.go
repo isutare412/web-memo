@@ -89,6 +89,27 @@ func (mu *MemoUpdate) SetNillableIsPublished(b *bool) *MemoUpdate {
 	return mu
 }
 
+// SetVersion sets the "version" field.
+func (mu *MemoUpdate) SetVersion(i int) *MemoUpdate {
+	mu.mutation.ResetVersion()
+	mu.mutation.SetVersion(i)
+	return mu
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (mu *MemoUpdate) SetNillableVersion(i *int) *MemoUpdate {
+	if i != nil {
+		mu.SetVersion(*i)
+	}
+	return mu
+}
+
+// AddVersion adds i to the "version" field.
+func (mu *MemoUpdate) AddVersion(i int) *MemoUpdate {
+	mu.mutation.AddVersion(i)
+	return mu
+}
+
 // SetUpdateTime sets the "update_time" field.
 func (mu *MemoUpdate) SetUpdateTime(t time.Time) *MemoUpdate {
 	mu.mutation.SetUpdateTime(t)
@@ -364,6 +385,12 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.IsPublished(); ok {
 		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
+	}
+	if value, ok := mu.mutation.Version(); ok {
+		_spec.SetField(memo.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := mu.mutation.AddedVersion(); ok {
+		_spec.AddField(memo.FieldVersion, field.TypeInt, value)
 	}
 	if value, ok := mu.mutation.UpdateTime(); ok {
 		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
@@ -722,6 +749,27 @@ func (muo *MemoUpdateOne) SetNillableIsPublished(b *bool) *MemoUpdateOne {
 	return muo
 }
 
+// SetVersion sets the "version" field.
+func (muo *MemoUpdateOne) SetVersion(i int) *MemoUpdateOne {
+	muo.mutation.ResetVersion()
+	muo.mutation.SetVersion(i)
+	return muo
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (muo *MemoUpdateOne) SetNillableVersion(i *int) *MemoUpdateOne {
+	if i != nil {
+		muo.SetVersion(*i)
+	}
+	return muo
+}
+
+// AddVersion adds i to the "version" field.
+func (muo *MemoUpdateOne) AddVersion(i int) *MemoUpdateOne {
+	muo.mutation.AddVersion(i)
+	return muo
+}
+
 // SetUpdateTime sets the "update_time" field.
 func (muo *MemoUpdateOne) SetUpdateTime(t time.Time) *MemoUpdateOne {
 	muo.mutation.SetUpdateTime(t)
@@ -1027,6 +1075,12 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 	}
 	if value, ok := muo.mutation.IsPublished(); ok {
 		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
+	}
+	if value, ok := muo.mutation.Version(); ok {
+		_spec.SetField(memo.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := muo.mutation.AddedVersion(); ok {
+		_spec.AddField(memo.FieldVersion, field.TypeInt, value)
 	}
 	if value, ok := muo.mutation.UpdateTime(); ok {
 		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)

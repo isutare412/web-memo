@@ -6,6 +6,7 @@
   export let tags: string[] = []
   export let title: string = ''
   export let content: string = ''
+  export let version: number | undefined = undefined
 
   const dispatch = createEventDispatcher()
 
@@ -85,11 +86,12 @@
     if (isPressingSubmit) return
     if (!validateBeforeSubmit()) return
 
-    isSubmitting = true
+    turnOnIsSubmittingTemporarily()
     dispatch('submit', {
       title,
       content,
       tags,
+      version,
     })
   }
 
@@ -108,14 +110,22 @@
       if (!isPressingSubmit) return
       if (!validateBeforeSubmit()) return
 
-      isSubmitting = true
+      turnOnIsSubmittingTemporarily()
       dispatch('submit', {
         title,
         content,
         tags,
+        version,
         isHold: true,
       })
     }, 1000)
+  }
+
+  function turnOnIsSubmittingTemporarily() {
+    isSubmitting = true
+    setTimeout(() => {
+      isSubmitting = false
+    }, 3000)
   }
 
   function clearIsPressingSubmit() {

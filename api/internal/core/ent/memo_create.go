@@ -60,6 +60,20 @@ func (mc *MemoCreate) SetNillableIsPublished(b *bool) *MemoCreate {
 	return mc
 }
 
+// SetVersion sets the "version" field.
+func (mc *MemoCreate) SetVersion(i int) *MemoCreate {
+	mc.mutation.SetVersion(i)
+	return mc
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (mc *MemoCreate) SetNillableVersion(i *int) *MemoCreate {
+	if i != nil {
+		mc.SetVersion(*i)
+	}
+	return mc
+}
+
 // SetCreateTime sets the "create_time" field.
 func (mc *MemoCreate) SetCreateTime(t time.Time) *MemoCreate {
 	mc.mutation.SetCreateTime(t)
@@ -221,6 +235,10 @@ func (mc *MemoCreate) defaults() {
 		v := memo.DefaultIsPublished
 		mc.mutation.SetIsPublished(v)
 	}
+	if _, ok := mc.mutation.Version(); !ok {
+		v := memo.DefaultVersion
+		mc.mutation.SetVersion(v)
+	}
 	if _, ok := mc.mutation.CreateTime(); !ok {
 		v := memo.DefaultCreateTime()
 		mc.mutation.SetCreateTime(v)
@@ -258,6 +276,9 @@ func (mc *MemoCreate) check() error {
 	}
 	if _, ok := mc.mutation.IsPublished(); !ok {
 		return &ValidationError{Name: "is_published", err: errors.New(`ent: missing required field "Memo.is_published"`)}
+	}
+	if _, ok := mc.mutation.Version(); !ok {
+		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Memo.version"`)}
 	}
 	if _, ok := mc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Memo.create_time"`)}
@@ -315,6 +336,10 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.IsPublished(); ok {
 		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
 		_node.IsPublished = value
+	}
+	if value, ok := mc.mutation.Version(); ok {
+		_spec.SetField(memo.FieldVersion, field.TypeInt, value)
+		_node.Version = value
 	}
 	if value, ok := mc.mutation.CreateTime(); ok {
 		_spec.SetField(memo.FieldCreateTime, field.TypeTime, value)
@@ -529,6 +554,24 @@ func (u *MemoUpsert) UpdateIsPublished() *MemoUpsert {
 	return u
 }
 
+// SetVersion sets the "version" field.
+func (u *MemoUpsert) SetVersion(v int) *MemoUpsert {
+	u.Set(memo.FieldVersion, v)
+	return u
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *MemoUpsert) UpdateVersion() *MemoUpsert {
+	u.SetExcluded(memo.FieldVersion)
+	return u
+}
+
+// AddVersion adds v to the "version" field.
+func (u *MemoUpsert) AddVersion(v int) *MemoUpsert {
+	u.Add(memo.FieldVersion, v)
+	return u
+}
+
 // SetUpdateTime sets the "update_time" field.
 func (u *MemoUpsert) SetUpdateTime(v time.Time) *MemoUpsert {
 	u.Set(memo.FieldUpdateTime, v)
@@ -645,6 +688,27 @@ func (u *MemoUpsertOne) SetIsPublished(v bool) *MemoUpsertOne {
 func (u *MemoUpsertOne) UpdateIsPublished() *MemoUpsertOne {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateIsPublished()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *MemoUpsertOne) SetVersion(v int) *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *MemoUpsertOne) AddVersion(v int) *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *MemoUpsertOne) UpdateVersion() *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateVersion()
 	})
 }
 
@@ -933,6 +997,27 @@ func (u *MemoUpsertBulk) SetIsPublished(v bool) *MemoUpsertBulk {
 func (u *MemoUpsertBulk) UpdateIsPublished() *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateIsPublished()
+	})
+}
+
+// SetVersion sets the "version" field.
+func (u *MemoUpsertBulk) SetVersion(v int) *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetVersion(v)
+	})
+}
+
+// AddVersion adds v to the "version" field.
+func (u *MemoUpsertBulk) AddVersion(v int) *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.AddVersion(v)
+	})
+}
+
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *MemoUpsertBulk) UpdateVersion() *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateVersion()
 	})
 }
 

@@ -3,6 +3,7 @@
   import { page } from '$app/stores'
   import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import MemoEditor from '$components/MemoEditor.svelte'
+  import { StatusError } from '$lib/apis/backend/error'
   import { getMemo, replaceMemo } from '$lib/apis/backend/memo'
   import { syncUserData } from '$lib/auth'
   import { mapToMemo, type Memo } from '$lib/memo'
@@ -26,11 +27,18 @@
   })
 
   async function onMemoSubmit(
-    event: CustomEvent<{ title: string; content: string; tags: string[]; isHold?: boolean }>
+    event: CustomEvent<{
+      title: string
+      content: string
+      tags: string[]
+      version?: number
+      isHold?: boolean
+    }>
   ) {
     try {
       await replaceMemo({
         id: memoId,
+        version: event.detail.version ?? 0,
         title: event.detail.title,
         content: event.detail.content,
         tags: event.detail.tags,
@@ -41,7 +49,18 @@
         addToast('Updated the memo without updating time.', 'info')
       }
     } catch (error) {
-      addToast(getErrorMessage(error), 'error')
+      if (!(error instanceof StatusError)) {
+        addToast(getErrorMessage(error), 'error')
+        return
+      } else if (error.status !== 409) {
+        addToast(error.message, 'error')
+        return
+      }
+
+      addToast(
+        'Someone edited the memo before you do. Please copy the contents and retry.',
+        'error'
+      )
       return
     }
 
@@ -60,6 +79,7 @@
     title={memo.title}
     content={memo.content}
     tags={memo.tags}
+    version={memo.version}
     on:submit={onMemoSubmit}
     on:cancel={onMemoCancel}
   />

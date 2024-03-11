@@ -23,6 +23,8 @@ const (
 	FieldContent = "content"
 	// FieldIsPublished holds the string denoting the is_published field in the database.
 	FieldIsPublished = "is_published"
+	// FieldVersion holds the string denoting the version field in the database.
+	FieldVersion = "version"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
@@ -86,6 +88,7 @@ var Columns = []string{
 	FieldTitle,
 	FieldContent,
 	FieldIsPublished,
+	FieldVersion,
 	FieldCreateTime,
 	FieldUpdateTime,
 }
@@ -119,6 +122,8 @@ var (
 	ContentValidator func(string) error
 	// DefaultIsPublished holds the default value on creation for the "is_published" field.
 	DefaultIsPublished bool
+	// DefaultVersion holds the default value on creation for the "version" field.
+	DefaultVersion int
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
@@ -153,6 +158,11 @@ func ByContent(opts ...sql.OrderTermOption) OrderOption {
 // ByIsPublished orders the results by the is_published field.
 func ByIsPublished(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPublished, opts...).ToFunc()
+}
+
+// ByVersion orders the results by the version field.
+func ByVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVersion, opts...).ToFunc()
 }
 
 // ByCreateTime orders the results by the create_time field.

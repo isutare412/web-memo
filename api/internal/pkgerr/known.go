@@ -57,6 +57,13 @@ func IsErrAlreadyExists(err error) bool {
 	return false
 }
 
+func IsErrConflict(err error) bool {
+	if kerr, ok := AsKnown(err); ok {
+		return kerr.Code == CodeConflict
+	}
+	return false
+}
+
 func IsErrUnauthenticated(err error) bool {
 	if kerr, ok := AsKnown(err); ok {
 		return kerr.Code == CodeUnauthenticated
@@ -78,6 +85,7 @@ const (
 	CodeBadRequest
 	CodeNotFound
 	CodeAlreadyExists
+	CodeConflict
 	CodeUnauthenticated
 	CodePermissionDenied
 )
@@ -91,7 +99,7 @@ func (c Code) ToHTTPStatusCode() int {
 		status = http.StatusBadRequest
 	case CodeNotFound:
 		status = http.StatusNotFound
-	case CodeAlreadyExists:
+	case CodeAlreadyExists, CodeConflict:
 		status = http.StatusConflict
 	case CodeUnauthenticated:
 		status = http.StatusUnauthorized

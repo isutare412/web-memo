@@ -701,6 +701,8 @@ type MemoMutation struct {
 	title                 *string
 	content               *string
 	is_published          *bool
+	version               *int
+	addversion            *int
 	create_time           *time.Time
 	update_time           *time.Time
 	clearedFields         map[string]struct{}
@@ -972,6 +974,62 @@ func (m *MemoMutation) OldIsPublished(ctx context.Context) (v bool, err error) {
 // ResetIsPublished resets all changes to the "is_published" field.
 func (m *MemoMutation) ResetIsPublished() {
 	m.is_published = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *MemoMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *MemoMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the Memo entity.
+// If the Memo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *MemoMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *MemoMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *MemoMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
 }
 
 // SetCreateTime sets the "create_time" field.
@@ -1377,7 +1435,7 @@ func (m *MemoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemoMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.owner != nil {
 		fields = append(fields, memo.FieldOwnerID)
 	}
@@ -1389,6 +1447,9 @@ func (m *MemoMutation) Fields() []string {
 	}
 	if m.is_published != nil {
 		fields = append(fields, memo.FieldIsPublished)
+	}
+	if m.version != nil {
+		fields = append(fields, memo.FieldVersion)
 	}
 	if m.create_time != nil {
 		fields = append(fields, memo.FieldCreateTime)
@@ -1412,6 +1473,8 @@ func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case memo.FieldIsPublished:
 		return m.IsPublished()
+	case memo.FieldVersion:
+		return m.Version()
 	case memo.FieldCreateTime:
 		return m.CreateTime()
 	case memo.FieldUpdateTime:
@@ -1433,6 +1496,8 @@ func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldContent(ctx)
 	case memo.FieldIsPublished:
 		return m.OldIsPublished(ctx)
+	case memo.FieldVersion:
+		return m.OldVersion(ctx)
 	case memo.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case memo.FieldUpdateTime:
@@ -1474,6 +1539,13 @@ func (m *MemoMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsPublished(v)
 		return nil
+	case memo.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
 	case memo.FieldCreateTime:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -1495,13 +1567,21 @@ func (m *MemoMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *MemoMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, memo.FieldVersion)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *MemoMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case memo.FieldVersion:
+		return m.AddedVersion()
+	}
 	return nil, false
 }
 
@@ -1510,6 +1590,13 @@ func (m *MemoMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *MemoMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case memo.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Memo numeric field %s", name)
 }
@@ -1548,6 +1635,9 @@ func (m *MemoMutation) ResetField(name string) error {
 		return nil
 	case memo.FieldIsPublished:
 		m.ResetIsPublished()
+		return nil
+	case memo.FieldVersion:
+		m.ResetVersion()
 		return nil
 	case memo.FieldCreateTime:
 		m.ResetCreateTime()

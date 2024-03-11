@@ -28,6 +28,8 @@ func (Memo) Fields() []ent.Field {
 			MaxLen(20_000),
 		field.Bool("is_published").
 			Default(false),
+		field.Int("version").
+			Default(0),
 		field.Time("create_time").
 			Default(time.Now).
 			Immutable(),

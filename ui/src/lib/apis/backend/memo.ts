@@ -4,6 +4,7 @@ import { SortOrder } from '$lib/memo'
 export interface RawMemo {
   id: string
   ownerId: string
+  version: number
   createTime: string
   updateTime: string
   title: string
@@ -39,6 +40,7 @@ interface CreateMemoRequest {
 
 interface ReplaceMemoRequest {
   id: string
+  version: number
   title: string
   content: string
   tags: string[]
@@ -162,6 +164,7 @@ export async function replaceMemo(request: ReplaceMemoRequest): Promise<RawMemo>
       title: request.title,
       content: request.content,
       tags: request.tags,
+      version: request.version,
     }),
   })
   if (!response.ok) {
