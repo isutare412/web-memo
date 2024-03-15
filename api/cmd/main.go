@@ -26,17 +26,17 @@ func main() {
 
 	slog.Debug("loaded config", "config", cfg)
 
-	components, err := wire.NewComponents(cfg)
+	app, err := wire.NewApp(cfg)
 	if err != nil {
-		slog.Error("failed to wire components", "error", err)
+		slog.Error("failed to wire app", "error", err)
 		os.Exit(1)
 	}
 
-	if err := components.Initialize(); err != nil {
-		slog.Error("failed to initialize components", "error", err)
+	if err := app.Initialize(); err != nil {
+		slog.Error("failed to initialize app", "error", err)
 		os.Exit(1)
 	}
 
-	components.Run()
-	components.Shutdown()
+	app.Run()
+	app.Shutdown()
 }

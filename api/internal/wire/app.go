@@ -21,7 +21,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/redis"
 )
 
-type Components struct {
+type App struct {
 	cfg *config.Config
 
 	postgresClient *postgres.Client
@@ -30,7 +30,7 @@ type Components struct {
 	cronScheduler  *cron.Scheduler
 }
 
-func NewComponents(cfg *config.Config) (*Components, error) {
+func NewApp(cfg *config.Config) (*App, error) {
 	postgresClient, err := postgres.NewClient(cfg.ToPostgresConfig())
 	if err != nil {
 		return nil, fmt.Errorf("creating PostgreSQL client: %w", err)
@@ -68,7 +68,7 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 		return nil, fmt.Errorf("creating cron scheduler: %w", err)
 	}
 
-	return &Components{
+	return &App{
 		cfg: cfg,
 
 		postgresClient: postgresClient,
@@ -78,27 +78,27 @@ func NewComponents(cfg *config.Config) (*Components, error) {
 	}, nil
 }
 
-func (c *Components) Initialize() (err error) {
-	slog.Info("component initialization start", "timeout", c.cfg.Wire.InitializeTimeout)
+func (a *App) Initialize() (err error) {
+	slog.Info("component initialization start", "timeout", a.cfg.Wire.InitializeTimeout)
 	start := time.Now()
 	defer func() {
 		slog.Info("component initialization done", "elapsed", time.Since(start))
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), c.cfg.Wire.InitializeTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), a.cfg.Wire.InitializeTimeout)
 	defer cancel()
 
 	slog.Info("migrate schemas")
-	if err := c.postgresClient.MigrateSchemas(ctx); err != nil {
+	if err := a.postgresClient.MigrateSchemas(ctx); err != nil {
 		return fmt.Errorf("migrating schemas: %w", err)
 	}
 
 	return nil
 }
 
-func (c *Components) Run() {
-	httpServerErrs := c.httpServer.Run()
-	cronSchedulerErrs := c.cronScheduler.Run()
+func (a *App) Run() {
+	httpServerErrs := a.httpServer.Run()
+	cronSchedulerErrs := a.cronScheduler.Run()
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -113,33 +113,33 @@ func (c *Components) Run() {
 	}
 }
 
-func (c *Components) Shutdown() {
-	slog.Info("graceful shutdown start", "timeout", c.cfg.Wire.ShutdownTimeout)
+func (a *App) Shutdown() {
+	slog.Info("graceful shutdown start", "timeout", a.cfg.Wire.ShutdownTimeout)
 	start := time.Now()
 	defer func() {
 		slog.Info("graceful shutdown done", "elapsed", time.Since(start))
 	}()
 
-	ctx, cancel := context.WithTimeout(context.Background(), c.cfg.Wire.ShutdownTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), a.cfg.Wire.ShutdownTimeout)
 	defer cancel()
 
 	slog.Info("shutdown cronScheduler")
-	if err := c.cronScheduler.Shutdown(ctx); err != nil {
+	if err := a.cronScheduler.Shutdown(ctx); err != nil {
 		slog.Error("failed to shutdown cronScheduler", "error", err)
 	}
 
 	slog.Info("shutdown httpServer")
-	if err := c.httpServer.Shutdown(ctx); err != nil {
+	if err := a.httpServer.Shutdown(ctx); err != nil {
 		slog.Error("failed to shutdown httpServer", "error", err)
 	}
 
 	slog.Info("shutdown redisClient")
-	if err := c.redisClient.Shutdown(ctx); err != nil {
+	if err := a.redisClient.Shutdown(ctx); err != nil {
 		slog.Error("failed to shutdown redisClient", "error", err)
 	}
 
 	slog.Info("shutdown postgresClient")
-	if err := c.postgresClient.Shutdown(ctx); err != nil {
+	if err := a.postgresClient.Shutdown(ctx); err != nil {
 		slog.Error("failed to shutdown postgresClient", "error", err)
 	}
 }
