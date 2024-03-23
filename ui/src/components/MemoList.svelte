@@ -1,9 +1,9 @@
 <script lang="ts">
   import MemoListItem from '$components/MemoListItem.svelte'
-  import type { UserData } from '$lib/auth'
+  import type { User } from '$lib/auth'
   import type { Memo } from '$lib/memo'
 
-  export let user: UserData
+  export let user: User
   export let memos: Memo[]
   export let showUpdateTime = false
 </script>
