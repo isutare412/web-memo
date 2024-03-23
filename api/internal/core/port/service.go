@@ -12,7 +12,7 @@ import (
 
 type AuthService interface {
 	VerifyAppIDToken(string) (*model.AppIDToken, error)
-	RefreshAppIDToken(ctx context.Context, tokenString string) (newToken string, err error)
+	RefreshAppIDToken(ctx context.Context, tokenString string) (newToken *model.AppIDToken, newTokenString string, err error)
 	StartGoogleSignIn(context.Context, *http.Request) (redirectURL string, err error)
 	FinishGoogleSignIn(context.Context, *http.Request) (redirectURL, appToken string, err error)
 }

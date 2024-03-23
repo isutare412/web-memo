@@ -37,6 +37,8 @@ type AppIDToken struct {
 	FamilyName string
 	GivenName  string
 	PhotoURL   string
+	IssuedAt   time.Time
+	ExpireAt   time.Time
 }
 
 func NewAppIDToken(user *ent.User) *AppIDToken {

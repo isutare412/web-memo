@@ -46,12 +46,12 @@ var _ = Describe("Client", func() {
 				}
 			)
 
-			token, err := jwtClient.SignAppIDToken(givenAppIDToken)
+			signedToken, tokenString, err := jwtClient.SignAppIDToken(givenAppIDToken)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			gotAppIDToken, err := jwtClient.VerifyAppIDToken(token)
+			gotAppIDToken, err := jwtClient.VerifyAppIDToken(tokenString)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(gotAppIDToken).Should(Equal(givenAppIDToken))
+			Expect(gotAppIDToken).Should(Equal(signedToken))
 		})
 	})
 })

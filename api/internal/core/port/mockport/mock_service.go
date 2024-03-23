@@ -59,12 +59,13 @@ func (mr *MockAuthServiceMockRecorder) FinishGoogleSignIn(arg0, arg1 any) *gomoc
 }
 
 // RefreshAppIDToken mocks base method.
-func (m *MockAuthService) RefreshAppIDToken(ctx context.Context, tokenString string) (string, error) {
+func (m *MockAuthService) RefreshAppIDToken(ctx context.Context, tokenString string) (*model.AppIDToken, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RefreshAppIDToken", ctx, tokenString)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(*model.AppIDToken)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // RefreshAppIDToken indicates an expected call of RefreshAppIDToken.

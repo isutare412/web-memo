@@ -48,7 +48,7 @@ type appClaims struct {
 	PhotoURL   string `json:"photo_url,omitempty"`
 }
 
-func newAppClaims(token *model.AppIDToken, ttl time.Duration) appClaims {
+func newAppClaims(token *model.AppIDToken, expire time.Time) appClaims {
 	now := time.Now()
 
 	return appClaims{
@@ -56,7 +56,7 @@ func newAppClaims(token *model.AppIDToken, ttl time.Duration) appClaims {
 			Issuer:    webMemoIssuer,
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
+			ExpiresAt: jwt.NewNumericDate(expire),
 		},
 		UserID:     token.UserID.String(),
 		UserType:   string(token.UserType),
@@ -82,5 +82,7 @@ func (c *appClaims) toAppIDToken() (*model.AppIDToken, error) {
 		FamilyName: c.FamilyName,
 		GivenName:  c.GivenName,
 		PhotoURL:   c.PhotoURL,
+		IssuedAt:   c.IssuedAt.Time,
+		ExpireAt:   c.ExpiresAt.Time,
 	}, nil
 }

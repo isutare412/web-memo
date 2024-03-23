@@ -56,23 +56,26 @@ func (s *Service) VerifyAppIDToken(tokenString string) (*model.AppIDToken, error
 	return s.jwtClient.VerifyAppIDToken(tokenString)
 }
 
-func (s *Service) RefreshAppIDToken(ctx context.Context, tokenString string) (newToken string, err error) {
+func (s *Service) RefreshAppIDToken(
+	ctx context.Context,
+	tokenString string,
+) (newToken *model.AppIDToken, newTokenString string, err error) {
 	token, err := s.jwtClient.VerifyAppIDToken(tokenString)
 	if err != nil {
-		return "", fmt.Errorf("verifying app id token: %w", err)
+		return nil, "", fmt.Errorf("verifying app id token: %w", err)
 	}
 
 	user, err := s.userRepository.FindByEmail(ctx, token.Email)
 	if err != nil {
-		return "", fmt.Errorf("finding user: %w", err)
+		return nil, "", fmt.Errorf("finding user: %w", err)
 	}
 
-	newToken, err = s.jwtClient.SignAppIDToken(model.NewAppIDToken(user))
+	newToken, newTokenString, err = s.jwtClient.SignAppIDToken(model.NewAppIDToken(user))
 	if err != nil {
-		return "", fmt.Errorf("signing app id token: %w", err)
+		return nil, "", fmt.Errorf("signing app id token: %w", err)
 	}
 
-	return newToken, nil
+	return newToken, newTokenString, nil
 }
 
 func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL string, err error) {
@@ -104,7 +107,10 @@ func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (red
 	return redirectURL, nil
 }
 
-func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL, appToken string, err error) {
+func (s *Service) FinishGoogleSignIn(
+	ctx context.Context,
+	req *http.Request,
+) (redirectURL, appTokenString string, err error) {
 	state, err := parseGoogleOAuthState(req.URL.Query())
 	if err != nil {
 		return "", "", fmt.Errorf("getting google oauth state: %w", err)
@@ -174,7 +180,7 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 		return "", "", fmt.Errorf("during transaction: %w", err)
 	}
 
-	appToken, err = s.jwtClient.SignAppIDToken(model.NewAppIDToken(userUpserted))
+	_, appTokenString, err = s.jwtClient.SignAppIDToken(model.NewAppIDToken(userUpserted))
 	if err != nil {
 		return "", "", fmt.Errorf("signing app ID token: %w", err)
 	}
@@ -184,7 +190,7 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 		redirectURL = state.Referer
 	}
 
-	return redirectURL, appToken, nil
+	return redirectURL, appTokenString, nil
 }
 
 func (s *Service) generateOAuthStateID(ctx context.Context) (string, error) {

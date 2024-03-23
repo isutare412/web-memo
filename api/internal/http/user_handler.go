@@ -53,14 +53,16 @@ func (h *userHandler) refreshUserToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newToken, err := h.authService.RefreshAppIDToken(ctx, passport.tokenString)
+	newToken, newTokenString, err := h.authService.RefreshAppIDToken(ctx, passport.tokenString)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("refreshing app id token: %w", err))
 		return
 	}
 
-	http.SetCookie(w, newWebMemoCookie(newToken, h.cookieExpiration))
-	responseStatusCode(w, http.StatusOK)
+	http.SetCookie(w, newWebMemoCookie(newTokenString, h.cookieExpiration))
+	var resp user
+	resp.fromAppIDToken(newToken)
+	responseJSON(w, &resp)
 }
 
 func (h *userHandler) signOutUser(w http.ResponseWriter, r *http.Request) {

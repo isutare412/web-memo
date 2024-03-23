@@ -1,6 +1,8 @@
 package http
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/model"
@@ -14,6 +16,8 @@ type user struct {
 	GivenName  string    `json:"givenName,omitempty"`
 	FamilyName string    `json:"familyName,omitempty"`
 	PhotoURL   string    `json:"photoUrl,omitempty"`
+	IssuedAt   time.Time `json:"issuedAt"`
+	ExpireAt   time.Time `json:"expireAt"`
 }
 
 func (u *user) fromAppIDToken(token *model.AppIDToken) {
@@ -24,4 +28,6 @@ func (u *user) fromAppIDToken(token *model.AppIDToken) {
 	u.GivenName = token.GivenName
 	u.FamilyName = token.FamilyName
 	u.PhotoURL = token.PhotoURL
+	u.IssuedAt = token.IssuedAt
+	u.ExpireAt = token.ExpireAt
 }

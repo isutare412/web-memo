@@ -54,12 +54,13 @@ func (mr *MockJWTClientMockRecorder) ParseGoogleIDTokenUnverified(tokenString an
 }
 
 // SignAppIDToken mocks base method.
-func (m *MockJWTClient) SignAppIDToken(arg0 *model.AppIDToken) (string, error) {
+func (m *MockJWTClient) SignAppIDToken(arg0 *model.AppIDToken) (*model.AppIDToken, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignAppIDToken", arg0)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(*model.AppIDToken)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // SignAppIDToken indicates an expected call of SignAppIDToken.

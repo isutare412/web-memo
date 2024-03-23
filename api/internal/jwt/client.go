@@ -71,16 +71,23 @@ func (c *Client) ParseGoogleIDTokenUnverified(tokenString string) (*model.Google
 	return claims.ToGoogleIDToken(), nil
 }
 
-func (c *Client) SignAppIDToken(appToken *model.AppIDToken) (tokenString string, err error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, newAppClaims(appToken, c.expiration))
-	token.Header[headerKID] = c.activeKeyPair.name
+func (c *Client) SignAppIDToken(appToken *model.AppIDToken) (token *model.AppIDToken, tokenString string, err error) {
+	expire := time.Now().Add(c.expiration)
+	appClaims := newAppClaims(appToken, expire)
+	jwtClaim := jwt.NewWithClaims(jwt.SigningMethodRS256, appClaims)
+	jwtClaim.Header[headerKID] = c.activeKeyPair.name
 
-	tokenString, err = token.SignedString(c.activeKeyPair.private)
+	tokenString, err = jwtClaim.SignedString(c.activeKeyPair.private)
 	if err != nil {
-		return "", fmt.Errorf("signing app ID token: %w", err)
+		return nil, "", fmt.Errorf("signing app ID token: %w", err)
 	}
 
-	return tokenString, nil
+	token, err = appClaims.toAppIDToken()
+	if err != nil {
+		return nil, "", fmt.Errorf("converting to app ID token: %w", err)
+	}
+
+	return token, tokenString, nil
 }
 
 func (c *Client) VerifyAppIDToken(tokenString string) (*model.AppIDToken, error) {

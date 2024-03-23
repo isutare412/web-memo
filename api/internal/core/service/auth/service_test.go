@@ -173,14 +173,14 @@ var _ = Describe("Service", func() {
 
 				mockJWTClient.EXPECT().
 					SignAppIDToken(gomock.Any()).
-					DoAndReturn(func(t *model.AppIDToken) (tokenString string, err error) {
+					DoAndReturn(func(t *model.AppIDToken) (token *model.AppIDToken, tokenString string, err error) {
 						Expect(t.UserID).Should(Equal(givenUser.ID))
 						Expect(t.Email).Should(Equal(givenUser.Email))
 						Expect(t.UserName).Should(Equal(givenUser.UserName))
 						Expect(t.GivenName).Should(Equal(givenUser.GivenName))
 						Expect(t.FamilyName).Should(Equal(givenUser.FamilyName))
 						Expect(t.PhotoURL).Should(Equal(givenUser.PhotoURL))
-						return givenAppIDToken, nil
+						return nil, givenAppIDToken, nil
 					})
 
 				redirectURL, appIDToken, err := authService.FinishGoogleSignIn(ctx, givenHTTPRequest)
