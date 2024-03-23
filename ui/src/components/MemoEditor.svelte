@@ -61,6 +61,11 @@
       return
     }
 
+    if (event.key === 'Tab') {
+      indentTextarea(event)
+      return
+    }
+
     if (event.key === '~') {
       strikeThroughTextarea(event)
       return
@@ -217,6 +222,44 @@
       textareaElement.selectionStart = cursorPos + newLineText.length
       textareaElement.selectionEnd = textareaElement.selectionStart
     }, 50)
+  }
+
+  async function indentTextarea(
+    event: KeyboardEvent & {
+      currentTarget: EventTarget & HTMLTextAreaElement
+    }
+  ) {
+    const cursorPos = textareaElement.selectionStart
+    const textBeforeCursor = textareaElement.value.substring(0, cursorPos)
+    const textAfterCursor = textareaElement.value.substring(cursorPos)
+    const linesBeforeCursor = textBeforeCursor.split('\n')
+    const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1]
+    const beforeLastLine =
+      linesBeforeCursor.length > 1
+        ? linesBeforeCursor.slice(0, linesBeforeCursor.length - 1).join('\n') + '\n'
+        : ''
+
+    const match = lastLine.match(/^(\s*)([-*+]|[0-9]+[.)])(\s.*)/)
+    if (!match) return
+
+    event.preventDefault()
+
+    const indent = match[1]
+    const afterIndent = match[2] + match[3]
+    let newIndent = indent
+    if (event.shiftKey) {
+      if (indent.length >= 2) {
+        newIndent = indent.slice(2)
+      }
+    } else {
+      newIndent = '  ' + indent
+    }
+    const newLastLine = newIndent + afterIndent
+
+    content = beforeLastLine + newLastLine + textAfterCursor
+    await tick()
+    textareaElement.selectionStart = cursorPos + (newIndent.length - indent.length)
+    textareaElement.selectionEnd = textareaElement.selectionStart
   }
 
   async function strikeThroughTextarea(
