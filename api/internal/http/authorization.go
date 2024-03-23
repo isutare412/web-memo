@@ -12,10 +12,9 @@ import (
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
-const cookieNameWebMemoToken = "wmToken"
-
 type passport struct {
-	token *model.AppIDToken
+	tokenString string
+	token       *model.AppIDToken
 }
 
 type immigration struct {
@@ -67,7 +66,8 @@ func (imi *immigration) issuePassportFromHeader(_ http.ResponseWriter, r *http.R
 		}
 	}
 
-	token, err := imi.authService.VerifyAppIDTokenString(splitted[1])
+	tokenString := splitted[1]
+	token, err := imi.authService.VerifyAppIDToken(tokenString)
 	if err != nil {
 		return nil, false, pkgerr.Known{
 			Code:      pkgerr.CodeBadRequest,
@@ -77,7 +77,8 @@ func (imi *immigration) issuePassportFromHeader(_ http.ResponseWriter, r *http.R
 	}
 
 	return &passport{
-		token: token,
+		tokenString: tokenString,
+		token:       token,
 	}, true, nil
 }
 
@@ -90,7 +91,8 @@ func (imi *immigration) issuePassportFromCookie(_ http.ResponseWriter, r *http.R
 		return nil, false, fmt.Errorf("getting token cookie: %w", err)
 	}
 
-	token, err := imi.authService.VerifyAppIDTokenString(cookie.Value)
+	tokenString := cookie.Value
+	token, err := imi.authService.VerifyAppIDToken(tokenString)
 	if err != nil {
 		return nil, false, pkgerr.Known{
 			Code:      pkgerr.CodeBadRequest,
@@ -100,7 +102,8 @@ func (imi *immigration) issuePassportFromCookie(_ http.ResponseWriter, r *http.R
 	}
 
 	return &passport{
-		token: token,
+		tokenString: tokenString,
+		token:       token,
 	}, true, nil
 }
 

@@ -52,8 +52,27 @@ func NewService(
 	}
 }
 
-func (s *Service) VerifyAppIDTokenString(tokenString string) (*model.AppIDToken, error) {
-	return s.jwtClient.VerifyAppIDTokenString(tokenString)
+func (s *Service) VerifyAppIDToken(tokenString string) (*model.AppIDToken, error) {
+	return s.jwtClient.VerifyAppIDToken(tokenString)
+}
+
+func (s *Service) RefreshAppIDToken(ctx context.Context, tokenString string) (newToken string, err error) {
+	token, err := s.jwtClient.VerifyAppIDToken(tokenString)
+	if err != nil {
+		return "", fmt.Errorf("verifying app id token: %w", err)
+	}
+
+	user, err := s.userRepository.FindByEmail(ctx, token.Email)
+	if err != nil {
+		return "", fmt.Errorf("finding user: %w", err)
+	}
+
+	newToken, err = s.jwtClient.SignAppIDToken(model.NewAppIDToken(user))
+	if err != nil {
+		return "", fmt.Errorf("signing app id token: %w", err)
+	}
+
+	return newToken, nil
 }
 
 func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (redirectURL string, err error) {
@@ -155,15 +174,7 @@ func (s *Service) FinishGoogleSignIn(ctx context.Context, req *http.Request) (re
 		return "", "", fmt.Errorf("during transaction: %w", err)
 	}
 
-	appToken, err = s.jwtClient.SignAppIDToken(&model.AppIDToken{
-		UserID:     userUpserted.ID,
-		UserType:   userUpserted.Type,
-		Email:      userUpserted.Email,
-		UserName:   userUpserted.UserName,
-		FamilyName: userUpserted.FamilyName,
-		GivenName:  userUpserted.GivenName,
-		PhotoURL:   userUpserted.PhotoURL,
-	})
+	appToken, err = s.jwtClient.SignAppIDToken(model.NewAppIDToken(userUpserted))
 	if err != nil {
 		return "", "", fmt.Errorf("signing app ID token: %w", err)
 	}

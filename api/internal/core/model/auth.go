@@ -39,6 +39,18 @@ type AppIDToken struct {
 	PhotoURL   string
 }
 
+func NewAppIDToken(user *ent.User) *AppIDToken {
+	return &AppIDToken{
+		UserID:     user.ID,
+		UserType:   user.Type,
+		Email:      user.Email,
+		UserName:   user.UserName,
+		FamilyName: user.FamilyName,
+		GivenName:  user.GivenName,
+		PhotoURL:   user.PhotoURL,
+	}
+}
+
 func (t *AppIDToken) CanWriteMemo(memo *ent.Memo) bool {
 	if t == nil {
 		return false

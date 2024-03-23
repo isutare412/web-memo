@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -10,18 +11,21 @@ import (
 )
 
 type userHandler struct {
-	authService port.AuthService
+	authService      port.AuthService
+	cookieExpiration time.Duration
 }
 
-func newUserHandler(authService port.AuthService) *userHandler {
+func newUserHandler(cfg Config, authService port.AuthService) *userHandler {
 	return &userHandler{
-		authService: authService,
+		authService:      authService,
+		cookieExpiration: cfg.CookieTokenExpiration,
 	}
 }
 
 func (h *userHandler) router() *chi.Mux {
 	r := chi.NewRouter()
 	r.Get("/me", h.getSelfUser)
+	r.Post("/refresh-token", h.refreshUserToken)
 	r.Get("/sign-out", h.signOutUser)
 	return r
 }
@@ -38,6 +42,25 @@ func (h *userHandler) getSelfUser(w http.ResponseWriter, r *http.Request) {
 	var resp user
 	resp.fromAppIDToken(passport.token)
 	responseJSON(w, &resp)
+}
+
+func (h *userHandler) refreshUserToken(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	passport, ok := extractPassport(ctx)
+	if !ok {
+		responsePassportError(w, r)
+		return
+	}
+
+	newToken, err := h.authService.RefreshAppIDToken(ctx, passport.tokenString)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("refreshing app id token: %w", err))
+		return
+	}
+
+	http.SetCookie(w, newWebMemoCookie(newToken, h.cookieExpiration))
+	responseStatusCode(w, http.StatusOK)
 }
 
 func (h *userHandler) signOutUser(w http.ResponseWriter, r *http.Request) {

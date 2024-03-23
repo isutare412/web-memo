@@ -20,7 +20,7 @@ type Server struct {
 func NewServer(cfg Config, authService port.AuthService, memoService port.MemoService, pingers []port.Pinger) *Server {
 	healthHandler := newHealthHandler(pingers)
 	googleHandler := newGoogleHandler(cfg, authService)
-	userHandler := newUserHandler(authService)
+	userHandler := newUserHandler(cfg, authService)
 	memoHandler := newMemoHandler(memoService)
 	tagHandler := newTagHandler(memoService)
 

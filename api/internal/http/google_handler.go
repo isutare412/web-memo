@@ -52,15 +52,7 @@ func (h *googleHandler) googleSignInFinish(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     cookieNameWebMemoToken,
-		Value:    appToken,
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-		Expires:  time.Now().Add(h.cookieExpiration),
-	})
-
 	slog.Info("finished google sign-in", "redirectURL", redirectURL)
+	http.SetCookie(w, newWebMemoCookie(appToken, h.cookieExpiration))
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }

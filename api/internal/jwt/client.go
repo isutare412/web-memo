@@ -83,7 +83,7 @@ func (c *Client) SignAppIDToken(appToken *model.AppIDToken) (tokenString string,
 	return tokenString, nil
 }
 
-func (c *Client) VerifyAppIDTokenString(tokenString string) (*model.AppIDToken, error) {
+func (c *Client) VerifyAppIDToken(tokenString string) (*model.AppIDToken, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&appClaims{},

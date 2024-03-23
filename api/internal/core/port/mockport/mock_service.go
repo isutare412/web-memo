@@ -58,6 +58,21 @@ func (mr *MockAuthServiceMockRecorder) FinishGoogleSignIn(arg0, arg1 any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishGoogleSignIn", reflect.TypeOf((*MockAuthService)(nil).FinishGoogleSignIn), arg0, arg1)
 }
 
+// RefreshAppIDToken mocks base method.
+func (m *MockAuthService) RefreshAppIDToken(ctx context.Context, tokenString string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RefreshAppIDToken", ctx, tokenString)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RefreshAppIDToken indicates an expected call of RefreshAppIDToken.
+func (mr *MockAuthServiceMockRecorder) RefreshAppIDToken(ctx, tokenString any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAppIDToken", reflect.TypeOf((*MockAuthService)(nil).RefreshAppIDToken), ctx, tokenString)
+}
+
 // StartGoogleSignIn mocks base method.
 func (m *MockAuthService) StartGoogleSignIn(arg0 context.Context, arg1 *http.Request) (string, error) {
 	m.ctrl.T.Helper()
@@ -73,19 +88,19 @@ func (mr *MockAuthServiceMockRecorder) StartGoogleSignIn(arg0, arg1 any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartGoogleSignIn", reflect.TypeOf((*MockAuthService)(nil).StartGoogleSignIn), arg0, arg1)
 }
 
-// VerifyAppIDTokenString mocks base method.
-func (m *MockAuthService) VerifyAppIDTokenString(arg0 string) (*model.AppIDToken, error) {
+// VerifyAppIDToken mocks base method.
+func (m *MockAuthService) VerifyAppIDToken(arg0 string) (*model.AppIDToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyAppIDTokenString", arg0)
+	ret := m.ctrl.Call(m, "VerifyAppIDToken", arg0)
 	ret0, _ := ret[0].(*model.AppIDToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// VerifyAppIDTokenString indicates an expected call of VerifyAppIDTokenString.
-func (mr *MockAuthServiceMockRecorder) VerifyAppIDTokenString(arg0 any) *gomock.Call {
+// VerifyAppIDToken indicates an expected call of VerifyAppIDToken.
+func (mr *MockAuthServiceMockRecorder) VerifyAppIDToken(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyAppIDTokenString", reflect.TypeOf((*MockAuthService)(nil).VerifyAppIDTokenString), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyAppIDToken", reflect.TypeOf((*MockAuthService)(nil).VerifyAppIDToken), arg0)
 }
 
 // MockMemoService is a mock of MemoService interface.
