@@ -37,6 +37,7 @@
         if (showAutocomplete && tagCandidateSelected !== undefined) return
 
         addTag(tagInputValue)
+        showAutocomplete = false
         break
     }
   }
@@ -59,6 +60,7 @@
     if (!validateTag(tagInputValue)) return
 
     addTag(tagInputValue)
+    showAutocomplete = false
   }
 
   function onTitleInput() {
