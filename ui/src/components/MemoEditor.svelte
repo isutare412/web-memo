@@ -1,6 +1,9 @@
 <script lang="ts">
+  import Autocomplete from '$components/Autocomplete.svelte'
   import Tag from '$components/Tag.svelte'
+  import { listTags } from '$lib/apis/backend/memo'
   import { reservedTags } from '$lib/memo'
+  import { debounce, partition } from 'lodash-es'
   import { createEventDispatcher, tick } from 'svelte'
 
   export let tags: string[] = []
@@ -11,11 +14,19 @@
   const dispatch = createEventDispatcher()
 
   let tagInputValue = ''
+  let tagInput: HTMLInputElement
+  let tagInputContainer: HTMLDivElement
   let textareaElement: HTMLTextAreaElement
+
   let titleWarning = false
   let tagWarning: string | undefined = undefined
+
   let isSubmitting = false
   let isPressingSubmit = false
+
+  let showAutocomplete = false
+  let tagCandidates: string[] = []
+  let tagCandidateSelected: string | undefined = undefined
 
   function onTagInputKeyUp(
     event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
@@ -23,10 +34,25 @@
     switch (event.key) {
       case 'Enter':
         if (!validateTag(tagInputValue)) return
+        if (showAutocomplete && tagCandidateSelected !== undefined) return
 
         addTag(tagInputValue)
         break
     }
+  }
+
+  async function onTagInput() {
+    if (tagInputValue.trim() !== '') {
+      tagWarning = undefined
+    }
+
+    await updateTagCandidates()
+    showAutocomplete = true
+  }
+
+  async function onTagInputFocus() {
+    await updateTagCandidates()
+    showAutocomplete = true
   }
 
   function onTagInputButtonClick() {
@@ -41,14 +67,13 @@
     }
   }
 
-  function onTagInput() {
-    if (tagInputValue.trim() !== '') {
-      tagWarning = undefined
-    }
-  }
-
   function onTagClick(event: CustomEvent<{ name: string }>) {
     tags = tags.filter((tag) => tag !== event.detail.name)
+  }
+
+  function onAutocompleteSelect(event: CustomEvent<{ item: string }>) {
+    tagInputValue = event.detail.item
+    showAutocomplete = false
   }
 
   function onTextareaKeydown(
@@ -175,6 +200,20 @@
     tags.push(value)
     tags = tags.toSorted()
     tagInputValue = ''
+  }
+
+  async function updateTagCandidates() {
+    const tagsReceived = await listTags(tagInputValue.trim())
+
+    tagCandidates = partition(tagsReceived, (tag) =>
+      tag.toLowerCase().startsWith(tagInputValue.toLowerCase())
+    ).flat()
+
+    tagCandidates = tagCandidates.filter((candidate) => {
+      if (reservedTags.find((t) => t === candidate)) return false
+      if (tags.find((t) => t === candidate)) return false
+      return true
+    })
   }
 
   async function insertListSymbolTextarea(
@@ -403,6 +442,22 @@
   }
 </script>
 
+<svelte:window
+  on:keyup={(event) => {
+    if (event.key === 'Escape') {
+      showAutocomplete = false
+      tagInput.blur()
+    }
+  }}
+  on:click={(event) => {
+    if (!(event.target instanceof Element)) return
+
+    if (!tagInputContainer.contains(event.target)) {
+      showAutocomplete = false
+    }
+  }}
+/>
+
 <div class="flex flex-col gap-y-3">
   <div>
     {#if titleWarning}
@@ -423,15 +478,17 @@
     {#if tagWarning !== undefined}
       <label for="tag-input" class="text-error text-xs">{tagWarning}</label>
     {/if}
-    <div class="flex">
+    <div bind:this={tagInputContainer} class="flex">
       <input
         type="text"
         placeholder="Tag"
         id="tag-input"
         maxlength="20"
         bind:value={tagInputValue}
-        on:input={onTagInput}
+        bind:this={tagInput}
+        on:input={debounce(onTagInput, 500)}
         on:keyup={onTagInputKeyUp}
+        on:focus={onTagInputFocus}
         class="input input-bordered focus:border-primary w-full max-w-xs rounded-r-none border-r-0 focus:outline-none"
         class:border-error={tagWarning !== undefined}
         class:focus:border-error={tagWarning !== undefined}
@@ -442,6 +499,13 @@
         class:btn-error={tagWarning !== undefined}>Add</button
       >
     </div>
+    {#if showAutocomplete}
+      <Autocomplete
+        items={tagCandidates}
+        bind:selectedItem={tagCandidateSelected}
+        on:select={onAutocompleteSelect}
+      />
+    {/if}
     {#if tags.length > 0}
       <div class="mt-2 flex flex-wrap gap-1">
         {#each tags as tag (tag)}
