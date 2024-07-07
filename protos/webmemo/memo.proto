@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package webmemo;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "proto/webmemopb";
+
+message Memo {
+  string id = 1;
+  string owner_id = 2;
+  string title = 3;
+  string content = 4;
+  bool is_published = 5;
+  int64 version = 6;
+  repeated string tags = 7;
+  google.protobuf.Timestamp create_time = 8;
+  google.protobuf.Timestamp update_time = 9;
+}

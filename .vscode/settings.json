@@ -9,5 +9,8 @@
       "idToken": "<idToken>"
     }
   },
-  "eslint.workingDirectories": ["./ui"]
+  "eslint.workingDirectories": ["./ui"],
+  "protoc": {
+    "options": ["-Iprotos"]
+  },
 }

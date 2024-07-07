@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package webmemo;
+
+import "google/protobuf/timestamp.proto";
+import "webmemo/memo.proto";
+
+option go_package = "proto/webmemopb";
+
+message ResourceEvent {
+  EventPublisher publisher = 1;
+  google.protobuf.Timestamp event_publish_time = 2;
+
+  oneof event {
+    MemoCreateEvent memo_create_event = 10;
+    MemoUpdateEvent memo_update_event = 11;
+    MemoDeleteEvent memo_delete_event = 12;
+  }
+}
+
+enum EventPublisher {
+  EVENT_PUBLISHER_UNSPECIFIED = 0;
+  EVENT_PUBLISHER_API = 1;
+}
+
+message MemoCreateEvent {
+  Memo memo = 1;
+}
+
+message MemoUpdateEvent {
+  Memo memo = 1;
+}
+
+message MemoDeleteEvent {
+  string memo_id = 1;
+}
