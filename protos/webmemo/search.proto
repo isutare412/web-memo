@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package webmemo;
+
+option go_package = "proto/webmemopb";
+
+service SearchService {
+  rpc SearchMemos(SearchMemosRequest) returns (SearchMemosResponse);
+}
+
+message SearchMemosRequest {
+  repeated string keywords = 1; // multiple keywords should be queried by OR.
+  bool fuzziness = 2;
+}
+
+message SearchMemosResponse {
+  repeated SearchHit hits = 1; // order of hits is in descending order by score
+}
+
+message SearchHit {
+  string memo_id = 1;
+  float score = 2;
+}
