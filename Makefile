@@ -1,3 +1,8 @@
+ifneq (,$(wildcard ./.env.local))
+    include .env.local
+    export
+endif
+
 # images
 TAG_API ?= latest
 TAG_UI ?= latest
