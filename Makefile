@@ -1,6 +1,6 @@
 ifneq (,$(wildcard ./.env.local))
     include .env.local
-    export
+    export $(shell sed 's/=.*//' ./.env.local)
 endif
 
 # images
