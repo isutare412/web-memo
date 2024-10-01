@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"go.uber.org/mock/gomock"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/enum"
@@ -25,7 +25,6 @@ var _ = Describe("Service", func() {
 		var authService *auth.Service
 
 		var (
-			mockController         *gomock.Controller
 			mockTransactionManager *mockport.MockTransactionManager
 			mockKVRepository       *mockport.MockKVRepository
 			mockUserRepository     *mockport.MockUserRepository
@@ -45,12 +44,11 @@ var _ = Describe("Service", func() {
 		)
 
 		BeforeEach(func() {
-			mockController = gomock.NewController(GinkgoT())
-			mockTransactionManager = mockport.NewMockTransactionManager(mockController)
-			mockKVRepository = mockport.NewMockKVRepository(mockController)
-			mockUserRepository = mockport.NewMockUserRepository(mockController)
-			mockGoogleClient = mockport.NewMockGoogleClient(mockController)
-			mockJWTClient = mockport.NewMockJWTClient(mockController)
+			mockTransactionManager = mockport.NewMockTransactionManager(GinkgoT())
+			mockKVRepository = mockport.NewMockKVRepository(GinkgoT())
+			mockUserRepository = mockport.NewMockUserRepository(GinkgoT())
+			mockGoogleClient = mockport.NewMockGoogleClient(GinkgoT())
+			mockJWTClient = mockport.NewMockJWTClient(GinkgoT())
 
 			authService = auth.NewService(
 				givenAuthConfig, mockTransactionManager, mockKVRepository, mockUserRepository,
@@ -79,8 +77,8 @@ var _ = Describe("Service", func() {
 				)
 
 				mockKVRepository.EXPECT().
-					Set(gomock.Any(), gomock.Any(), "", givenAuthConfig.OAuthStateTimeout).
-					DoAndReturn(func(_ context.Context, key, _ string, _ time.Duration) error {
+					Set(mock.Anything, mock.Anything, "", givenAuthConfig.OAuthStateTimeout).
+					RunAndReturn(func(_ context.Context, key, _ string, _ time.Duration) error {
 						gotStateID = key
 						return nil
 					})
@@ -131,12 +129,12 @@ var _ = Describe("Service", func() {
 				)
 
 				mockKVRepository.EXPECT().
-					GetThenDelete(gomock.Any(), givenStateID).
+					GetThenDelete(mock.Anything, givenStateID).
 					Return("", nil)
 
 				mockGoogleClient.EXPECT().
-					ExchangeAuthCode(gomock.Any(), givenAuthCode, gomock.Any()).
-					DoAndReturn(func(_ context.Context, _, redirectURI string) (model.GoogleTokenResponse, error) {
+					ExchangeAuthCode(mock.Anything, givenAuthCode, mock.Anything).
+					RunAndReturn(func(_ context.Context, _, redirectURI string) (model.GoogleTokenResponse, error) {
 						baseURL := fmt.Sprintf("http://%s", givenHost)
 						callbackURL, err := url.JoinPath(baseURL, givenAuthConfig.Google.OAuthCallbackPath)
 						Expect(err).ShouldNot(HaveOccurred())
@@ -158,22 +156,22 @@ var _ = Describe("Service", func() {
 					}, nil)
 
 				mockTransactionManager.EXPECT().
-					WithTx(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(_ context.Context, fn func(context.Context) error) error {
-						return fn(ctx)
+					WithTx(mock.Anything, mock.Anything).
+					RunAndReturn(func(ctx context.Context, f func(context.Context) error) error {
+						return f(ctx)
 					})
 
 				mockUserRepository.EXPECT().
-					FindByEmail(gomock.Any(), givenUser.Email).
+					FindByEmail(mock.Anything, givenUser.Email).
 					Return(nil, pkgerr.Known{Code: pkgerr.CodeNotFound})
 
 				mockUserRepository.EXPECT().
-					Upsert(gomock.Any(), gomock.Any()).
+					Upsert(mock.Anything, mock.Anything).
 					Return(givenUser, nil)
 
 				mockJWTClient.EXPECT().
-					SignAppIDToken(gomock.Any()).
-					DoAndReturn(func(t *model.AppIDToken) (token *model.AppIDToken, tokenString string, err error) {
+					SignAppIDToken(mock.Anything).
+					RunAndReturn(func(t *model.AppIDToken) (token *model.AppIDToken, tokenString string, err error) {
 						Expect(t.UserID).Should(Equal(givenUser.ID))
 						Expect(t.Email).Should(Equal(givenUser.Email))
 						Expect(t.UserName).Should(Equal(givenUser.UserName))

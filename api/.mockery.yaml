@@ -1,0 +1,19 @@
+with-expecter: true
+packages:
+  github.com/isutare412/web-memo/api/internal/core/port:
+    config:
+      dir: "{{.InterfaceDir}}/mock{{.PackageName}}"
+      outpkg: "mock{{.PackageName}}"
+    interfaces:
+      GoogleClient:
+      JWTClient:
+      Pinger:
+      TransactionManager:
+      UserRepository:
+      MemoRepository:
+      TagRepository:
+      CollaborationRepository:
+      KVRepository:
+      AuthService:
+      MemoService:
+
