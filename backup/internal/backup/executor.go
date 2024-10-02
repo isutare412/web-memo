@@ -37,6 +37,14 @@ func (e *Executor) BackupDatabase(ctx context.Context, req model.DatabaseBackupR
 	return nil
 }
 
+func (e *Executor) ReadFile(ctx context.Context, fileName string) (io.ReadCloser, error) {
+	file, err := os.Open(fileName)
+	if err != nil {
+		return nil, fmt.Errorf("opening file %s: %w", fileName, err)
+	}
+	return file, nil
+}
+
 func setBackupVariables(cmd *exec.Cmd, req model.DatabaseBackupRequest, destination io.Writer) {
 	cmd.Env = []string{
 		fmt.Sprintf("PGPASSWORD=%s", req.Password),
