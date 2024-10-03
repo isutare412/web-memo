@@ -5,6 +5,7 @@ log:
 aws:
   access-key: <access_key>
   secret: <secret_access_key>
+  region: ap-northeast-2
   s3:
     backup-bucket: webmemo
 backup:

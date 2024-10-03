@@ -22,6 +22,7 @@ func (c *Config) ToLogConfig() log.Config {
 
 func (c *Config) ToAWSS3Config() aws.S3Config {
 	return aws.S3Config{
+		Region:    c.AWS.Region,
 		AccessKey: c.AWS.AccessKey,
 		Secret:    c.AWS.Secret,
 		Bucket:    c.AWS.S3.BackupBucket,
@@ -43,6 +44,7 @@ func (c *Config) ToBackupConfig() backup.Config {
 type AWSConfig struct {
 	AccessKey string   `koanf:"access-key" validate:"required"`
 	Secret    string   `koanf:"secret" validate:"required"`
+	Region    string   `koanf:"region" validate:"required"`
 	S3        S3Config `koanf:"s3"`
 }
 

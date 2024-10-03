@@ -23,6 +23,7 @@ func NewS3Client(cfg S3Config) (*S3Client, error) {
 		config.WithCredentialsProvider(
 			credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.Secret, ""),
 		),
+		config.WithRegion(cfg.Region),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("loading aws config: %w", err)
@@ -46,6 +47,10 @@ func (c *S3Client) UploadObject(ctx context.Context, key string, body io.Reader)
 }
 
 func (c *S3Client) DeleteObjects(ctx context.Context, keys []string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+
 	var (
 		chunkedKeys = chunkSlice(keys, 1000) // S3 supports bulk delete up to 1000 keys.
 		totalErr    error

@@ -20,6 +20,7 @@ log:
 aws:
   access-key: test_key
   secret: test_secret
+  region: test_region
   s3:
     backup-bucket: test_bucket
 backup:
@@ -58,6 +59,7 @@ func TestLoadValidated(t *testing.T) {
 				AWS: AWSConfig{
 					AccessKey: "test_key",
 					Secret:    "test_secret",
+					Region:    "test_region",
 					S3: S3Config{
 						BackupBucket: "test_bucket",
 					},
@@ -94,6 +96,7 @@ aws:
 				AWS: AWSConfig{
 					AccessKey: "test_key",
 					Secret:    "test_secret",
+					Region:    "test_region",
 					S3: S3Config{
 						BackupBucket: "other_bucket",
 					},
@@ -128,6 +131,7 @@ aws:
 				AWS: AWSConfig{
 					AccessKey: "test_key",
 					Secret:    "test_secret",
+					Region:    "test_region",
 					S3: S3Config{
 						BackupBucket: "another_bucket",
 					},
