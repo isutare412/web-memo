@@ -5,13 +5,19 @@ import (
 
 	"github.com/isutare412/web-memo/backup/internal/aws"
 	"github.com/isutare412/web-memo/backup/internal/core/service/backup"
+	"github.com/isutare412/web-memo/backup/internal/log"
 )
 
 type Config struct {
 	ProcessTimeout time.Duration  `koanf:"process-timeout" validate:"required"`
+	Log            log.Config     `koanf:"log"`
 	AWS            AWSConfig      `koanf:"aws"`
 	Backup         BackupConfig   `koanf:"backup"`
 	Postgres       PostgresConfig `koanf:"postgres"`
+}
+
+func (c *Config) ToLogConfig() log.Config {
+	return c.Log
 }
 
 func (c *Config) ToAWSS3Config() aws.S3Config {

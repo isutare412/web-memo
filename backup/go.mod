@@ -11,6 +11,8 @@ require (
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.22.1
 	github.com/knadh/koanf v1.5.0
+	github.com/lmittmann/tint v1.0.5
+	github.com/mattn/go-isatty v0.0.12
 	github.com/stretchr/testify v1.9.0
 )
 

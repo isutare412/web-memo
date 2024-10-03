@@ -8,10 +8,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/isutare412/web-memo/backup/internal/log"
 )
 
 const baseConfig = `
 process-timeout: 1m
+log:
+  format: text
+  level: debug
 aws:
   access-key: test_key
   secret: test_secret
@@ -46,6 +51,10 @@ func TestLoadValidated(t *testing.T) {
 			},
 			want: &Config{
 				ProcessTimeout: time.Minute,
+				Log: log.Config{
+					Format: log.FormatText,
+					Level:  log.LevelDebug,
+				},
 				AWS: AWSConfig{
 					AccessKey: "test_key",
 					Secret:    "test_secret",
@@ -78,6 +87,10 @@ aws:
 			},
 			want: &Config{
 				ProcessTimeout: time.Minute,
+				Log: log.Config{
+					Format: log.FormatText,
+					Level:  log.LevelDebug,
+				},
 				AWS: AWSConfig{
 					AccessKey: "test_key",
 					Secret:    "test_secret",
@@ -108,6 +121,10 @@ aws:
 			},
 			want: &Config{
 				ProcessTimeout: time.Minute,
+				Log: log.Config{
+					Format: log.FormatText,
+					Level:  log.LevelDebug,
+				},
 				AWS: AWSConfig{
 					AccessKey: "test_key",
 					Secret:    "test_secret",
