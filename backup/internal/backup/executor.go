@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strconv"
 
 	"github.com/isutare412/web-memo/backup/internal/core/model"
 )
@@ -39,6 +40,8 @@ func setBackupVariables(cmd *exec.Cmd, req model.DatabaseBackupRequest, destinat
 	}
 
 	cmd.Args = []string{
+		"-h", req.Host,
+		"-p", strconv.Itoa(req.Port),
 		"-U", req.User,
 		req.DatabaseName,
 	}
