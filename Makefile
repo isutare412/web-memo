@@ -5,8 +5,10 @@ endif
 
 # images
 TAG_API ?= latest
+TAG_BACKUP ?= latest
 TAG_UI ?= latest
 IMAGE_API = redshoore/webmemo-api:$(TAG_API)
+IMAGE_BACKUP = redshoore/webmemo-backup:$(TAG_BACKUP)
 IMAGE_UI = redshoore/webmemo-ui:$(TAG_UI)
 
 # docker hub
@@ -39,20 +41,30 @@ proto-go: protoc protoc-gen-go protoc-gen-go-grpc ## Compile protobuf to Go.
 ##@ Build
 
 .PHONY: build-api
-build-api: ## Build docker image of API.
+build-api: ## Build docker image of API module.
 	docker build -f api/Dockerfile -t $(IMAGE_API) api
 
+.PHONY: build-backup
+build-backup: ## Build docker image of backup module.
+	docker build -f backup/Dockerfile -t $(IMAGE_BACKUP) backup
+
+
 .PHONY: build-ui
-build-ui: ## Build docker image of UI.
+build-ui: ## Build docker image of UI module.
 	docker build -f ui/Dockerfile -t $(IMAGE_UI) ui
 
 .PHONY: push-api
-push-api: ## Push docker image of API.
+push-api: ## Push docker image of API module.
 	echo $(DOCKER_PASSWORD) | docker login -u $(DOCKER_USER) --password-stdin
 	docker push $(IMAGE_API)
 
+.PHONY: push-backup
+push-backup: ## Push docker image of backup module.
+	echo $(DOCKER_PASSWORD) | docker login -u $(DOCKER_USER) --password-stdin
+	docker push $(IMAGE_BACKUP)
+
 .PHONY: push-ui
-push-ui: ## Push docker image of UI.
+push-ui: ## Push docker image of UI module.
 	echo $(DOCKER_PASSWORD) | docker login -u $(DOCKER_USER) --password-stdin
 	docker push $(IMAGE_UI)
 
