@@ -24,22 +24,34 @@ func (_m *MockBackupExecutor) EXPECT() *MockBackupExecutor_Expecter {
 	return &MockBackupExecutor_Expecter{mock: &_m.Mock}
 }
 
-// BackupDatabase provides a mock function with given fields: _a0, _a1
-func (_m *MockBackupExecutor) BackupDatabase(_a0 context.Context, _a1 model.DatabaseBackupRequest) error {
-	ret := _m.Called(_a0, _a1)
+// BackupDatabase provides a mock function with given fields: ctx, req
+func (_m *MockBackupExecutor) BackupDatabase(ctx context.Context, req model.DatabaseBackupRequest) (io.Reader, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BackupDatabase")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, model.DatabaseBackupRequest) error); ok {
-		r0 = rf(_a0, _a1)
+	var r0 io.Reader
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, model.DatabaseBackupRequest) (io.Reader, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, model.DatabaseBackupRequest) io.Reader); ok {
+		r0 = rf(ctx, req)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(io.Reader)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, model.DatabaseBackupRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockBackupExecutor_BackupDatabase_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BackupDatabase'
@@ -48,84 +60,25 @@ type MockBackupExecutor_BackupDatabase_Call struct {
 }
 
 // BackupDatabase is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 model.DatabaseBackupRequest
-func (_e *MockBackupExecutor_Expecter) BackupDatabase(_a0 interface{}, _a1 interface{}) *MockBackupExecutor_BackupDatabase_Call {
-	return &MockBackupExecutor_BackupDatabase_Call{Call: _e.mock.On("BackupDatabase", _a0, _a1)}
+//   - ctx context.Context
+//   - req model.DatabaseBackupRequest
+func (_e *MockBackupExecutor_Expecter) BackupDatabase(ctx interface{}, req interface{}) *MockBackupExecutor_BackupDatabase_Call {
+	return &MockBackupExecutor_BackupDatabase_Call{Call: _e.mock.On("BackupDatabase", ctx, req)}
 }
 
-func (_c *MockBackupExecutor_BackupDatabase_Call) Run(run func(_a0 context.Context, _a1 model.DatabaseBackupRequest)) *MockBackupExecutor_BackupDatabase_Call {
+func (_c *MockBackupExecutor_BackupDatabase_Call) Run(run func(ctx context.Context, req model.DatabaseBackupRequest)) *MockBackupExecutor_BackupDatabase_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(model.DatabaseBackupRequest))
 	})
 	return _c
 }
 
-func (_c *MockBackupExecutor_BackupDatabase_Call) Return(_a0 error) *MockBackupExecutor_BackupDatabase_Call {
-	_c.Call.Return(_a0)
+func (_c *MockBackupExecutor_BackupDatabase_Call) Return(backup io.Reader, err error) *MockBackupExecutor_BackupDatabase_Call {
+	_c.Call.Return(backup, err)
 	return _c
 }
 
-func (_c *MockBackupExecutor_BackupDatabase_Call) RunAndReturn(run func(context.Context, model.DatabaseBackupRequest) error) *MockBackupExecutor_BackupDatabase_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ReadFile provides a mock function with given fields: ctx, fileName
-func (_m *MockBackupExecutor) ReadFile(ctx context.Context, fileName string) (io.ReadCloser, error) {
-	ret := _m.Called(ctx, fileName)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ReadFile")
-	}
-
-	var r0 io.ReadCloser
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (io.ReadCloser, error)); ok {
-		return rf(ctx, fileName)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) io.ReadCloser); ok {
-		r0 = rf(ctx, fileName)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(io.ReadCloser)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, fileName)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockBackupExecutor_ReadFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadFile'
-type MockBackupExecutor_ReadFile_Call struct {
-	*mock.Call
-}
-
-// ReadFile is a helper method to define mock.On call
-//   - ctx context.Context
-//   - fileName string
-func (_e *MockBackupExecutor_Expecter) ReadFile(ctx interface{}, fileName interface{}) *MockBackupExecutor_ReadFile_Call {
-	return &MockBackupExecutor_ReadFile_Call{Call: _e.mock.On("ReadFile", ctx, fileName)}
-}
-
-func (_c *MockBackupExecutor_ReadFile_Call) Run(run func(ctx context.Context, fileName string)) *MockBackupExecutor_ReadFile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MockBackupExecutor_ReadFile_Call) Return(_a0 io.ReadCloser, _a1 error) *MockBackupExecutor_ReadFile_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockBackupExecutor_ReadFile_Call) RunAndReturn(run func(context.Context, string) (io.ReadCloser, error)) *MockBackupExecutor_ReadFile_Call {
+func (_c *MockBackupExecutor_BackupDatabase_Call) RunAndReturn(run func(context.Context, model.DatabaseBackupRequest) (io.Reader, error)) *MockBackupExecutor_BackupDatabase_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -8,6 +8,5 @@ import (
 )
 
 type BackupExecutor interface {
-	BackupDatabase(context.Context, model.DatabaseBackupRequest) error
-	ReadFile(ctx context.Context, fileName string) (io.ReadCloser, error)
+	BackupDatabase(ctx context.Context, req model.DatabaseBackupRequest) (backup io.Reader, err error)
 }

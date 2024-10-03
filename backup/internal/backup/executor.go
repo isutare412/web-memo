@@ -1,10 +1,10 @@
 package backup
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 
 	"github.com/isutare412/web-memo/backup/internal/core/model"
@@ -20,29 +20,17 @@ func NewExecutor() *Executor {
 	}
 }
 
-func (e *Executor) BackupDatabase(ctx context.Context, req model.DatabaseBackupRequest) error {
-	file, err := os.Create(req.BackupFilePath)
-	if err != nil {
-		return fmt.Errorf("creating backup file: %w", err)
-	}
-	defer file.Close()
-
+func (e *Executor) BackupDatabase(ctx context.Context, req model.DatabaseBackupRequest) (backup io.Reader, err error) {
 	cmd := exec.CommandContext(ctx, e.pgDump)
-	setBackupVariables(cmd, req, file)
+
+	stdout := new(bytes.Buffer)
+	setBackupVariables(cmd, req, stdout)
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("executing pg_dump: %w", err)
+		return nil, fmt.Errorf("executing pg_dump: %w", err)
 	}
 
-	return nil
-}
-
-func (e *Executor) ReadFile(ctx context.Context, fileName string) (io.ReadCloser, error) {
-	file, err := os.Open(fileName)
-	if err != nil {
-		return nil, fmt.Errorf("opening file %s: %w", fileName, err)
-	}
-	return file, nil
+	return stdout, nil
 }
 
 func setBackupVariables(cmd *exec.Cmd, req model.DatabaseBackupRequest, destination io.Writer) {
