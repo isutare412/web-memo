@@ -1,0 +1,51 @@
+package backup
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"os/exec"
+
+	"github.com/isutare412/web-memo/backup/internal/core/model"
+)
+
+type Executor struct {
+	pgDump string
+}
+
+func NewExecutor() *Executor {
+	return &Executor{
+		pgDump: "pg_dump",
+	}
+}
+
+func (e *Executor) BackupDatabase(ctx context.Context, req model.DatabaseBackupRequest) error {
+	file, err := os.Create(req.BackupFilePath)
+	if err != nil {
+		return fmt.Errorf("creating backup file: %w", err)
+	}
+	defer file.Close()
+
+	cmd := exec.CommandContext(ctx, e.pgDump)
+	setBackupVariables(cmd, req, file)
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("executing pg_dump: %w", err)
+	}
+
+	return nil
+}
+
+func setBackupVariables(cmd *exec.Cmd, req model.DatabaseBackupRequest, destination io.Writer) {
+	cmd.Env = []string{
+		fmt.Sprintf("PGPASSWORD=%s", req.Password),
+	}
+
+	cmd.Args = []string{
+		"-U", req.User,
+		req.DatabaseName,
+	}
+
+	cmd.Stdout = destination
+}

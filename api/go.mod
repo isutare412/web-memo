@@ -1,6 +1,6 @@
 module github.com/isutare412/web-memo/api
 
-go 1.22
+go 1.23.1
 
 require (
 	entgo.io/ent v0.12.5
