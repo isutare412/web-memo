@@ -1,0 +1,15 @@
+process-timeout: 1h
+aws:
+  access-key: <access_key>
+  secret: <secret_access_key>
+  s3:
+    backup-bucket: webmemo
+backup:
+  prefix: backups/postgresql/
+  retention: 30d
+postgres:
+  host: localhost
+  port: 28100
+  user: admin
+  password: admin123123
+  database: web_memo
