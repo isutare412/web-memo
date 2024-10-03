@@ -10,7 +10,7 @@ import (
 	"github.com/isutare412/web-memo/backup/internal/core/port"
 )
 
-var regexPatternDateTime = regexp.MustCompile(`^.*\d{14}`)
+var regexPatternDateTime = regexp.MustCompile(`\d{14}`)
 
 type Service struct {
 	backupExecutor port.BackupExecutor
