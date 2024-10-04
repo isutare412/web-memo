@@ -2,7 +2,7 @@
 
 ## Deployment
 
-![web memo deployment architecture](docs/assets/deployment-architecture.drawio.png)
+![web memo deployment architecture](docs/assets/deployment-diagram.drawio.png)
 
 ## API
 
