@@ -3,6 +3,7 @@ package backup
 import (
 	"context"
 	"fmt"
+	"path"
 	"regexp"
 	"slices"
 	"time"
@@ -66,7 +67,8 @@ func backupTimeString(t time.Time) string {
 }
 
 func backupKey(t time.Time, prefix, database string) string {
-	return fmt.Sprintf("%s%s-backup-%s.sql", prefix, backupTimeString(t), database)
+	filename := fmt.Sprintf("%s-backup-%s.sql", backupTimeString(t), database)
+	return path.Join(prefix, filename)
 }
 
 func pickBackupKeysBefore(backups []string, t time.Time) []string {
