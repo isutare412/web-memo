@@ -8,7 +8,7 @@ networks:
 
 services:
   postgres:
-    image: bitnami/postgresql:16-debian-11
+    image: bitnami/postgresql:17-debian-12
     networks:
       - app-tier
     ports:

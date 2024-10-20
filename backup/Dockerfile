@@ -14,7 +14,7 @@ COPY internal/ internal/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o server ./cmd/...
 
-FROM --platform=linux/amd64 bitnami/postgresql:16-debian-11
+FROM --platform=linux/amd64 bitnami/postgresql:17-debian-12
 
 WORKDIR /app
 COPY --from=builder /app/server .
