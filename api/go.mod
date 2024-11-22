@@ -3,7 +3,7 @@ module github.com/isutare412/web-memo/api
 go 1.23.1
 
 require (
-	entgo.io/ent v0.12.5
+	entgo.io/ent v0.14.1
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-co-op/gocron/v2 v2.2.0
 	github.com/go-playground/locales v0.14.1
@@ -31,7 +31,7 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.18.0 // indirect
+	ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
