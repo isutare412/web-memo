@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "WebMemo",
+  "short_name": "WebMemo",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
