@@ -47,11 +47,29 @@ resources:
     memory: 256Mi
 
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+  horizontal:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80 # 0 to disable
+    targetMemoryUtilizationPercentage: 0 # 0 to disable
+  vertical:
+    enabled: false
+    updatePolicy:
+      updateMode: InPlaceOrRecreate
+      minReplicas: 2
+    resourcePolicy:
+      containerPolicies:
+        - containerName: '*'
+          controlledResources:
+            - memory
+            # - cpu
+          minAllowed:
+            memory: 100Mi
+            # cpu: 100m
+          maxAllowed:
+            memory: 512Mi
+            # cpu: 1
 
 nodeSelector: {}
 
