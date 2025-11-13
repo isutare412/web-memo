@@ -34,7 +34,12 @@ func (e *Executor) BackupDatabase(ctx context.Context, req model.DatabaseBackupR
 		return nil, fmt.Errorf("executing pg_dump: %w: %s", err, stderr.String())
 	}
 
-	return stdout, nil
+	result, err := io.ReadAll(stdout)
+	if err != nil {
+		return nil, fmt.Errorf("reading pg_dump output: %w", err)
+	}
+
+	return bytes.NewReader(result), nil
 }
 
 func setBackupVariables(cmd *exec.Cmd, req model.DatabaseBackupRequest, stdout, stderr io.Writer) {

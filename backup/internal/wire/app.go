@@ -3,6 +3,7 @@ package wire
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/isutare412/web-memo/backup/internal/aws"
 	"github.com/isutare412/web-memo/backup/internal/backup"
@@ -39,10 +40,12 @@ func (a *App) Run() error {
 	if err := a.backupService.BackupDatabase(ctx); err != nil {
 		return fmt.Errorf("backup database: %w", err)
 	}
+	slog.Info("backup database completed")
 
 	if err := a.backupService.PruneDatabaseBackups(ctx); err != nil {
 		return fmt.Errorf("pruning database backups: %w", err)
 	}
+	slog.Info("prune database backups completed")
 
 	return nil
 }
