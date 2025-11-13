@@ -16,6 +16,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o server ./cmd/...
 
 FROM --platform=linux/amd64 postgres:18-trixie
 
+RUN apt-get update && apt-get install -y ca-certificates
+
 WORKDIR /app
 COPY --from=builder /app/server .
 COPY config.yaml configs/
