@@ -30,15 +30,17 @@ func Init(cfg Config) {
 	switch cfg.Format {
 	case FormatJSON:
 		logger = slog.New(slog.NewJSONHandler(writer, &slog.HandlerOptions{
-			Level:     level,
-			AddSource: addSource,
+			Level:       level,
+			AddSource:   addSource,
+			ReplaceAttr: replaceAttrJSON,
 		}))
 	case FormatText:
 		logger = slog.New(tint.NewHandler(writer, &tint.Options{
-			Level:      level,
-			TimeFormat: time.RFC3339,
-			NoColor:    !isatty.IsTerminal(writer.Fd()),
-			AddSource:  addSource,
+			Level:       level,
+			TimeFormat:  time.RFC3339,
+			NoColor:     !isatty.IsTerminal(writer.Fd()),
+			AddSource:   addSource,
+			ReplaceAttr: replaceAttrTint,
 		}))
 	}
 

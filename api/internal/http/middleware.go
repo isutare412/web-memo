@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/isutare412/web-memo/api/internal/log"
 )
 
 type contextBagKey struct{}
@@ -78,7 +80,7 @@ func logRequests(next http.Handler) http.Handler {
 			}
 		}
 
-		accessLog.Info("handle HTTP request")
+		accessLog.Log(r.Context(), log.SlogLevelAccess, "HTTP request handled")
 	}
 
 	return http.HandlerFunc(fn)
