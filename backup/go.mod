@@ -1,6 +1,6 @@
 module github.com/isutare412/web-memo/backup
 
-go 1.23.0
+go 1.25.3
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.31.0
