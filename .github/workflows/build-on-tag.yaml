@@ -20,11 +20,14 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: true
-          tags: redshoore/webmemo-api:${{ github.ref_name }}
+          platforms: linux/amd64
           context: api
+          tags: |
+            redshoore/webmemo-api:${{ github.ref_name }}
+            redshoore/webmemo-api:latest
 
   build-backup:
     runs-on: ubuntu-22.04
@@ -41,11 +44,14 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: true
-          tags: redshoore/webmemo-backup:${{ github.ref_name }}
+          platforms: linux/amd64
           context: backup
+          tags: |
+            redshoore/webmemo-backup:${{ github.ref_name }}
+            redshoore/webmemo-backup:latest
 
   build-ui:
     runs-on: ubuntu-22.04
@@ -62,8 +68,11 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: true
-          tags: redshoore/webmemo-ui:${{ github.ref_name }}
+          platforms: linux/amd64
           context: ui
+          tags: |
+            redshoore/webmemo-ui:${{ github.ref_name }}
+            redshoore/webmemo-ui:latest
