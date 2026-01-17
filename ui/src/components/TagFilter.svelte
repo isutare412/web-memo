@@ -6,9 +6,9 @@
   import Funnel from '$components/icons/Funnel.svelte'
   import { listTags } from '$lib/apis/backend/memo'
   import {
-      addTagToSearchParams,
-      deleteTagFromSearchParams,
-      setPageOfSearchParams,
+    addTagToSearchParams,
+    deleteTagFromSearchParams,
+    setPageOfSearchParams,
   } from '$lib/searchParams'
   import { debounce, partition } from 'lodash-es'
   import { get } from 'svelte/store'
@@ -111,7 +111,7 @@
           on:keyup={onTagInputKeyUp}
           on:input={debounce(onTagInput, 500)}
           on:focus={onTagInputFocus}
-          class="input input-sm input-bordered focus:border-primary w-full text-base focus:outline-none"
+          class="input input-sm input-bordered w-full text-base focus:border-primary focus:outline-none"
         />
         {#if showAutocomplete}
           <Autocomplete

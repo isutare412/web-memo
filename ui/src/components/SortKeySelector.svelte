@@ -26,7 +26,7 @@
   <select
     bind:value={selectedKey}
     on:change={onSelectChange}
-    class="select select-sm select-bordered rounded-none border-0 border-b focus:outline-none"
+    class="select select-bordered select-sm rounded-none border-0 border-b focus:outline-none"
   >
     {#each options as opt}
       <option value={opt.key} selected={opt.selected}>{displayValues[opt.key]}</option>

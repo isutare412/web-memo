@@ -7,7 +7,7 @@
   const forbiddenTags = ['form', 'button']
 </script>
 
-<article class="prose break-words">
+<article class="prose max-w-none break-words">
   {@html DOMPurify.sanitize(Marked.parse(content, { breaks: true }), {
     FORBID_TAGS: forbiddenTags,
   })}

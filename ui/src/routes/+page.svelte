@@ -13,18 +13,18 @@
   import { listMemos } from '$lib/apis/backend/memo'
   import { authStore, syncUserData } from '$lib/auth'
   import {
-      SortOrder,
-      defaultPageSize,
-      defaultSortOrder,
-      mapToMemo,
-      setPreferredPageSize,
-      setPreferredSortOrder,
-      type MemoListPageData,
+    SortOrder,
+    defaultPageSize,
+    defaultSortOrder,
+    mapToMemo,
+    setPreferredPageSize,
+    setPreferredSortOrder,
+    type MemoListPageData,
   } from '$lib/memo'
   import {
-      setPageOfSearchParams,
-      setPageSizeOfSearchParams,
-      setSortOrderOfSearchParams,
+    setPageOfSearchParams,
+    setPageSizeOfSearchParams,
+    setSortOrderOfSearchParams,
   } from '$lib/searchParams'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
@@ -133,12 +133,12 @@
     <TagFilter>
       <div class="flex gap-2">
         <div>
-          <a href="/new" class="btn btn-circle btn-sm btn-primary">
+          <a href="/new" class="btn btn-circle btn-primary btn-sm">
             <div class="w-[13px]"><Plus /></div>
           </a>
         </div>
         <div>
-          <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
+          <button on:click={onRefreshButtonClick} class="btn btn-circle btn-primary btn-sm">
             <div class="w-[16px]"><Refresh /></div>
           </button>
         </div>

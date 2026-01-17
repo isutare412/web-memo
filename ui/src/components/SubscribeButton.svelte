@@ -14,7 +14,7 @@
 <div class:opacity-70={!isActivated}>
   <button
     on:click={onClickSubscribeButton}
-    class="btn btn-sm btn-outline rounded-full"
+    class="btn btn-outline btn-sm rounded-full"
     class:btn-primary={isActivated}
   >
     <div class="w-[12px]">

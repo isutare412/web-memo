@@ -5,10 +5,10 @@
   import ThemeToggle from '$components/ThemeToggle.svelte'
   import ToastContainer from '$components/ToastContainer.svelte'
   import {
-      getPreferredTheme,
-      setDocumentDataTheme,
-      setPreferredTheme,
-      type ThemeMode,
+    getPreferredTheme,
+    setDocumentDataTheme,
+    setPreferredTheme,
+    type ThemeMode,
   } from '$lib/theme'
   import '@fontsource-variable/inter'
   import { onMount } from 'svelte'
@@ -28,7 +28,7 @@
 </script>
 
 <div class="flex min-h-screen flex-col">
-  <nav class="border-base-300 border-b shadow md:mb-4">
+  <nav class="border-b border-base-300 shadow md:mb-4">
     <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
       <a class="text-3xl" href="/">Web Memo</a>
       <div class="flex items-center gap-x-3">
@@ -39,7 +39,7 @@
   </nav>
 
   <main
-    class="md:border-base-300 mx-auto mb-6 w-full max-w-3xl p-6 md:rounded-xl md:border md:shadow-md"
+    class="mx-auto mb-6 w-full max-w-3xl p-6 md:rounded-xl md:border md:border-base-300 md:shadow-md"
   >
     {#if $navigating !== null}
       <LoadingSpinner />

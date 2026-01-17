@@ -13,7 +13,7 @@
   }
 </script>
 
-<label class="swap swap-rotate hover:text-primary transition-colors">
+<label class="swap swap-rotate transition-colors hover:text-primary">
   <!-- this hidden checkbox controls the state -->
   <input type="checkbox" bind:checked on:click={onClick} />
 

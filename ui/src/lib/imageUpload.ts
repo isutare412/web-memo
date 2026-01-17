@@ -70,7 +70,10 @@ export async function uploadImage(file: File, callbacks: ImageUploadCallbacks): 
     if (imageStatus.state === 'READY') {
       callbacks.onComplete(imageId, imageStatus.url)
     } else {
-      callbacks.onError(imageId, new Error(`Image processing failed with state: ${imageStatus.state}`))
+      callbacks.onError(
+        imageId,
+        new Error(`Image processing failed with state: ${imageStatus.state}`)
+      )
     }
   } catch (error) {
     callbacks.onError('', error instanceof Error ? error : new Error(String(error)))
@@ -112,16 +115,20 @@ export async function uploadImageFromDataURL(
     if (imageStatus.state === 'READY') {
       callbacks.onComplete(imageId, imageStatus.url)
     } else {
-      callbacks.onError(imageId, new Error(`Image processing failed with state: ${imageStatus.state}`))
+      callbacks.onError(
+        imageId,
+        new Error(`Image processing failed with state: ${imageStatus.state}`)
+      )
     }
   } catch (error) {
     callbacks.onError('', error instanceof Error ? error : new Error(String(error)))
   }
 }
 
-export function extractImageFromClipboard(
-  clipboardData: DataTransfer
-): { file: File | null; dataURL: string | null } {
+export function extractImageFromClipboard(clipboardData: DataTransfer): {
+  file: File | null
+  dataURL: string | null
+} {
   // Check for file items first
   for (const item of clipboardData.items) {
     if (item.type.startsWith('image/')) {

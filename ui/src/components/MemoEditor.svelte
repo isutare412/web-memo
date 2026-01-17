@@ -1,6 +1,10 @@
 <script lang="ts">
   import Autocomplete from '$components/Autocomplete.svelte'
+  import HeadingIcon from '$components/icons/HeadingIcon.svelte'
   import ImageIcon from '$components/icons/ImageIcon.svelte'
+  import ListOrderedIcon from '$components/icons/ListOrderedIcon.svelte'
+  import ListUnorderedIcon from '$components/icons/ListUnorderedIcon.svelte'
+  import Markdown from '$components/Markdown.svelte'
   import Tag from '$components/Tag.svelte'
   import { listTags } from '$lib/apis/backend/memo'
   import {
@@ -38,6 +42,8 @@
 
   let isDraggingOver = false
   let uploadingImages = new Map<string, string>()
+
+  let editorMode: 'write' | 'preview' = 'write'
 
   function onTagInputKeyUp(
     event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
@@ -480,15 +486,49 @@
     }
   }
 
-  async function insertTextAtCursor(text: string) {
+  function replaceRange(start: number, end: number, text: string) {
+    textareaElement.focus()
+    textareaElement.setSelectionRange(start, end)
+    document.execCommand('insertText', false, text)
+  }
+
+  function insertTextAtCursor(text: string) {
+    const cursorPos = textareaElement.selectionStart
+    replaceRange(cursorPos, cursorPos, text)
+  }
+
+  function toggleLinePrefix(prefix: string, pattern: RegExp) {
     const cursorPos = textareaElement.selectionStart
     const textBefore = content.substring(0, cursorPos)
-    const textAfter = content.substring(cursorPos)
+    const lastNewline = textBefore.lastIndexOf('\n')
+    const lineStart = lastNewline + 1
+    const lineEnd = content.indexOf('\n', cursorPos)
+    const actualLineEnd = lineEnd === -1 ? content.length : lineEnd
+    const currentLine = content.substring(lineStart, actualLineEnd)
 
-    content = textBefore + text + textAfter
-    await tick()
-    textareaElement.selectionStart = cursorPos + text.length
-    textareaElement.selectionEnd = textareaElement.selectionStart
+    if (pattern.test(currentLine)) {
+      const match = currentLine.match(pattern)
+      const matchLen = match ? match[0].length : 0
+      replaceRange(lineStart, lineStart + matchLen, '')
+      const newCursorPos = Math.max(lineStart, cursorPos - matchLen)
+      textareaElement.setSelectionRange(newCursorPos, newCursorPos)
+    } else {
+      replaceRange(lineStart, lineStart, prefix)
+      const newCursorPos = cursorPos + prefix.length
+      textareaElement.setSelectionRange(newCursorPos, newCursorPos)
+    }
+  }
+
+  function onHeadingClick() {
+    toggleLinePrefix('### ', /^###\s*/)
+  }
+
+  function onOrderedListClick() {
+    toggleLinePrefix('1. ', /^\d+\.\s*/)
+  }
+
+  function onUnorderedListClick() {
+    toggleLinePrefix('- ', /^[-*+]\s*/)
   }
 
   function onTextareaPaste(event: ClipboardEvent) {
@@ -558,7 +598,7 @@
 <div class="flex flex-col gap-y-3">
   <div>
     {#if titleWarning}
-      <label for="title" class="text-error text-xs">Need title</label>
+      <label for="title" class="text-xs text-error">Need title</label>
     {/if}
     <input
       type="text"
@@ -566,14 +606,14 @@
       id="title"
       bind:value={title}
       on:input={onTitleInput}
-      class="input input-bordered focus:border-primary w-full focus:outline-none"
+      class="input input-bordered w-full focus:border-primary focus:outline-none"
       class:border-error={titleWarning}
       class:focus:border-error={titleWarning}
     />
   </div>
   <div>
     {#if tagWarning !== undefined}
-      <label for="tag-input" class="text-error text-xs">{tagWarning}</label>
+      <label for="tag-input" class="text-xs text-error">{tagWarning}</label>
     {/if}
     <div bind:this={tagInputContainer} class="flex">
       <input
@@ -586,13 +626,13 @@
         on:input={debounce(onTagInput, 500)}
         on:keyup={onTagInputKeyUp}
         on:focus={onTagInputFocus}
-        class="input input-bordered focus:border-primary w-full max-w-xs rounded-r-none border-r-0 focus:outline-none"
+        class="input input-bordered w-full max-w-xs rounded-r-none border-r-0 focus:border-primary focus:outline-none"
         class:border-error={tagWarning !== undefined}
         class:focus:border-error={tagWarning !== undefined}
       />
       <button
         on:click={onTagInputButtonClick}
-        class="btn btn-primary btn-outline rounded-l-none"
+        class="btn btn-outline btn-primary rounded-l-none"
         class:btn-error={tagWarning !== undefined}>Add</button
       >
     </div>
@@ -616,15 +656,63 @@
     {/if}
   </div>
   <div>
-    <div class="mb-1 flex gap-1">
-      <button
-        type="button"
-        on:click={onImageButtonClick}
-        class="btn btn-ghost btn-sm px-2"
-        title="Upload image"
-      >
-        <div class="w-5"><ImageIcon /></div>
-      </button>
+    <div class="mb-1 flex items-center justify-between">
+      <div role="tablist" class="tabs-boxed tabs tabs-sm bg-base-200">
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          class:tab-active={editorMode === 'write'}
+          on:click={() => (editorMode = 'write')}
+        >
+          Write
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          class:tab-active={editorMode === 'preview'}
+          on:click={() => (editorMode = 'preview')}
+        >
+          Preview
+        </button>
+      </div>
+      {#if editorMode === 'write'}
+        <div class="flex gap-1">
+          <button
+            type="button"
+            on:click={onHeadingClick}
+            class="btn btn-ghost btn-sm px-2"
+            title="Heading"
+          >
+            <div class="w-5"><HeadingIcon /></div>
+          </button>
+          <button
+            type="button"
+            on:click={onOrderedListClick}
+            class="btn btn-ghost btn-sm px-2"
+            title="Ordered list"
+          >
+            <div class="w-5"><ListOrderedIcon /></div>
+          </button>
+          <button
+            type="button"
+            on:click={onUnorderedListClick}
+            class="btn btn-ghost btn-sm px-2"
+            title="Unordered list"
+          >
+            <div class="w-5"><ListUnorderedIcon /></div>
+          </button>
+          <button
+            type="button"
+            on:click={onImageButtonClick}
+            class="btn btn-ghost btn-sm px-2"
+            title="Upload image"
+          >
+            <div class="w-5"><ImageIcon /></div>
+          </button>
+        </div>
+      {/if}
     </div>
     <input
       type="file"
@@ -633,24 +721,36 @@
       on:change={onFileInputChange}
       class="hidden"
     />
-    <textarea
-      placeholder="Content"
-      bind:this={textareaElement}
-      bind:value={content}
-      on:keydown={onTextareaKeydown}
-      on:paste={onTextareaPaste}
-      on:drop={onTextareaDrop}
-      on:dragover={onTextareaDragOver}
-      on:dragleave={onTextareaDragLeave}
-      class="textarea textarea-bordered focus:border-primary h-[360px] w-full text-base focus:outline-none"
-      class:border-primary={isDraggingOver}
-      class:border-dashed={isDraggingOver}
-      class:bg-base-200={isDraggingOver}
-    />
+    {#if editorMode === 'write'}
+      <textarea
+        placeholder="Content"
+        bind:this={textareaElement}
+        bind:value={content}
+        on:keydown={onTextareaKeydown}
+        on:paste={onTextareaPaste}
+        on:drop={onTextareaDrop}
+        on:dragover={onTextareaDragOver}
+        on:dragleave={onTextareaDragLeave}
+        class="textarea textarea-bordered h-[360px] w-full text-base focus:border-primary focus:outline-none"
+        class:border-primary={isDraggingOver}
+        class:border-dashed={isDraggingOver}
+        class:bg-base-200={isDraggingOver}
+      />
+    {:else}
+      <div
+        class="h-[360px] w-full overflow-y-auto rounded-lg border border-base-content/20 bg-base-100 p-4"
+      >
+        {#if content.trim()}
+          <Markdown {content} />
+        {:else}
+          <p class="italic text-base-content/50">Nothing to preview</p>
+        {/if}
+      </div>
+    {/if}
   </div>
 </div>
 <div class="mt-4 flex justify-end gap-x-1">
-  <button on:click={onCancel} class="btn btn-primary btn-outline">Cancel</button>
+  <button on:click={onCancel} class="btn btn-outline btn-primary">Cancel</button>
   <button
     on:mousedown={onSubmitMouseDown}
     on:mouseup={clearIsPressingSubmit}

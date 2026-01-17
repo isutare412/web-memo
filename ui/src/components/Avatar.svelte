@@ -9,7 +9,7 @@
 <div class="dropdown dropdown-end">
   <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
   <!-- svelte-ignore a11y-label-has-associated-control -->
-  <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+  <label tabindex="0" class="avatar btn btn-circle btn-ghost">
     <div class="h-10 w-10 rounded-full">
       <img src={photoUrl} alt="profile" />
     </div>
@@ -17,7 +17,7 @@
   <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
   <ul
     tabindex="0"
-    class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-4 w-36 p-2 shadow"
+    class="menu dropdown-content menu-sm z-[1] mt-4 w-36 rounded-box bg-base-100 p-2 shadow"
   >
     {#if user}
       <li><button on:click={signOut}>Sign Out</button></li>

@@ -61,14 +61,14 @@
   <button
     on:click={onClickFirstButton}
     disabled={!enablePrev}
-    class="btn btn-ghost btn-sm btn-square disabled:bg-transparent"
+    class="btn btn-square btn-ghost btn-sm disabled:bg-transparent"
   >
     <div class="w-[30px] rotate-180"><AngleRightDouble /></div>
   </button>
   <button
     on:click={onClickPrevButton}
     disabled={!enablePrev}
-    class="btn btn-ghost btn-sm btn-square disabled:bg-transparent"
+    class="btn btn-square btn-ghost btn-sm disabled:bg-transparent"
   >
     <div class="w-[30px] rotate-180"><AngleRight /></div>
   </button>
@@ -79,21 +79,21 @@
       bind:value={pageInput}
       on:keyup={onPageInputKeyUp}
       on:focusout={onPageInputFocusOut}
-      class="input input-bordered input-sm focus:border-primary w-full max-w-[44px] px-2 text-center text-base focus:outline-none"
+      class="input input-sm input-bordered w-full max-w-[44px] px-2 text-center text-base focus:border-primary focus:outline-none"
     />
     <span class="text-sm font-light opacity-75">of {lastPage}</span>
   </div>
   <button
     on:click={onClickNextButton}
     disabled={!enableNext}
-    class="btn btn-ghost btn-sm btn-square disabled:bg-transparent"
+    class="btn btn-square btn-ghost btn-sm disabled:bg-transparent"
   >
     <div class="w-[30px]"><AngleRight /></div>
   </button>
   <button
     on:click={onClickLastButton}
     disabled={!enableNext}
-    class="btn btn-ghost btn-sm btn-square disabled:bg-transparent"
+    class="btn btn-square btn-ghost btn-sm disabled:bg-transparent"
   >
     <div class="w-[30px]"><AngleRightDouble /></div>
   </button>

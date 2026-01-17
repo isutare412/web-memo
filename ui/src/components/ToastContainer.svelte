@@ -5,7 +5,7 @@
   $: toasts = $toastStore.toasts
 </script>
 
-<div class="toast-center toast sm:toast-end w-full min-w-0 max-w-[500px]">
+<div class="toast toast-center w-full min-w-0 max-w-[500px] sm:toast-end">
   {#each toasts as toast (toast.id)}
     <Toast {...toast} />
   {/each}

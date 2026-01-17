@@ -46,7 +46,7 @@
 >
   <button
     on:click={() => deleteToast(id)}
-    class="btn-ghost btn-sm btn-circle btn absolute right-2 top-3"
+    class="btn btn-circle btn-ghost btn-sm absolute right-2 top-3"
   >
     <div class="h-4 w-4">
       <Cross />

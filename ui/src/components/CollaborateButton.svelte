@@ -19,7 +19,7 @@
   <button
     {disabled}
     on:click={onClickCollaborateButton}
-    class="btn btn-sm btn-outline rounded-full"
+    class="btn btn-outline btn-sm rounded-full"
     class:btn-primary={isActivated}
   >
     <div class="w-[16px]">

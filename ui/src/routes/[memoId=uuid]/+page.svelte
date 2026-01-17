@@ -14,19 +14,19 @@
   import TrashBinIcon from '$components/icons/TrashBinIcon.svelte'
   import { StatusError } from '$lib/apis/backend/error'
   import {
-      authorizeCollaboration,
-      cancelCollaboration,
-      deleteMemo,
-      getCollaborator,
-      getMemo,
-      getSubscriber,
-      listCollaborators,
-      listSubscribers,
-      publishMemo,
-      requestCollaboration,
-      subscribeMemo,
-      unsubscribeMemo,
-      type Collaborator,
+    authorizeCollaboration,
+    cancelCollaboration,
+    deleteMemo,
+    getCollaborator,
+    getMemo,
+    getSubscriber,
+    listCollaborators,
+    listSubscribers,
+    publishMemo,
+    requestCollaboration,
+    subscribeMemo,
+    unsubscribeMemo,
+    type Collaborator,
   } from '$lib/apis/backend/memo'
   import { authStore, signInGoogle, syncUserData } from '$lib/auth'
   import { mapToMemo } from '$lib/memo'
@@ -317,17 +317,17 @@
   {#if isOwner}
     <div class="flex justify-end gap-x-2">
       <div>
-        <button on:click={onDeleteClick} class="btn btn-circle btn-sm btn-primary">
+        <button on:click={onDeleteClick} class="btn btn-circle btn-primary btn-sm">
           <div class="w-[17px]"><TrashBinIcon /></div>
         </button>
       </div>
       <div>
-        <button on:click={onEditClick} class="btn btn-circle btn-sm btn-primary">
+        <button on:click={onEditClick} class="btn btn-circle btn-primary btn-sm">
           <div class="w-[18px]"><PenIcon /></div>
         </button>
       </div>
       <div>
-        <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
+        <button on:click={onRefreshButtonClick} class="btn btn-circle btn-primary btn-sm">
           <div class="w-[16px]"><Refresh /></div>
         </button>
       </div>
@@ -363,13 +363,13 @@
     <div class="flex justify-end gap-x-2">
       {#if isMemoCollaborateApproved}
         <div>
-          <button on:click={onEditClick} class="btn btn-circle btn-sm btn-primary">
+          <button on:click={onEditClick} class="btn btn-circle btn-primary btn-sm">
             <div class="w-[18px]"><PenIcon /></div>
           </button>
         </div>
       {/if}
       <div>
-        <button on:click={onRefreshButtonClick} class="btn btn-circle btn-sm btn-primary">
+        <button on:click={onRefreshButtonClick} class="btn btn-circle btn-primary btn-sm">
           <div class="w-[16px]"><Refresh /></div>
         </button>
       </div>
@@ -417,7 +417,7 @@
     </div>
 
     <dialog bind:this={collaborateApproveModal} class="modal">
-      <div class="modal-box min-w-80 w-fit">
+      <div class="modal-box w-fit min-w-80">
         <CollaborationApproveTable {collaborators} on:change={onCollaborateApprove} />
       </div>
       <form method="dialog" class="modal-backdrop">
@@ -430,12 +430,12 @@
         <p class="py-4">
           {#if memo.isPublished}
             <p>
-              Will you <span class="text-primary font-bold">un-publish</span> the memo?<br />Only
+              Will you <span class="font-bold text-primary">un-publish</span> the memo?<br />Only
               you will be able to access the memo through a link.
             </p>
           {:else}
             <p>
-              Will you <span class="text-primary font-bold">publish</span> the memo?<br />Anyone
+              Will you <span class="font-bold text-primary">publish</span> the memo?<br />Anyone
               will be able to access the memo through a link.
             </p>
           {/if}
@@ -479,12 +479,12 @@
         <p class="py-4">
           {#if isMemoSubscribed}
             <p>
-              Will you <span class="text-primary font-bold">unsubscribe</span> the memo?<br />The
+              Will you <span class="font-bold text-primary">unsubscribe</span> the memo?<br />The
               memo will not be exposed to your memo list.
             </p>
           {:else}
             <p>
-              Will you <span class="text-primary font-bold">subcribe</span> the memo?<br />The memo
+              Will you <span class="font-bold text-primary">subcribe</span> the memo?<br />The memo
               will be exposed to your memo list.
             </p>
           {/if}
@@ -516,11 +516,11 @@
         <p class="py-4">
           {#if isMemoCollaborated}
             <p>
-              Will you <span class="text-primary font-bold">cancel</span> collaboration?
+              Will you <span class="font-bold text-primary">cancel</span> collaboration?
             </p>
           {:else}
             <p>
-              Will you <span class="text-primary font-bold">request</span> collaboration?<br />You
+              Will you <span class="font-bold text-primary">request</span> collaboration?<br />You
               will be able to modify the memo after an approval from the owner.
             </p>
           {/if}

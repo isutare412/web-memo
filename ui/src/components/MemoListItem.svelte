@@ -33,7 +33,7 @@
   <div class="flex items-center">
     <a
       href={`/${memo.id}`}
-      class="link link-hover inline-block max-w-full flex-auto truncate text-lg"
+      class="link-hover link inline-block max-w-full flex-auto truncate text-lg"
     >
       {memo.title}
     </a>
@@ -52,11 +52,11 @@
   {/if}
   <div class="flex items-center justify-end gap-x-1">
     {#if memo.ownerId !== user.id}
-      <div class="text-primary w-[12px]">
+      <div class="w-[12px] text-primary">
         <BookmarkIcon />
       </div>
     {:else if memo.isPublished}
-      <div class="text-primary w-[14px]">
+      <div class="w-[14px] text-primary">
         <WebPublishIcon />
       </div>
     {/if}
