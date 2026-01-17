@@ -37,6 +37,12 @@
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
 
+  // Extract first image URL from markdown content for OpenGraph
+  function extractFirstImageFromMarkdown(content: string): string | undefined {
+    const match = content.match(/!\[.*?\]\((.*?)\)/)
+    return match?.[1]
+  }
+
   export let data: PageData
 
   $: user = $authStore.user
@@ -44,6 +50,7 @@
   $: pageUrl = $page.url
   $: ({ memo } = data)
   $: isOwner = (user && memo && user.id === memo.ownerId) ?? false
+  $: ogImage = memo ? extractFirstImageFromMarkdown(memo.content) : undefined
 
   let subscriberCount: number | undefined = undefined
   let subscribeConfirmModal: HTMLDialogElement
@@ -308,6 +315,9 @@
       property="og:description"
       content={memo.content.length > 200 ? `${memo.content.slice(0, 197)}...` : memo.content}
     />
+    {#if ogImage}
+      <meta property="og:image" content={ogImage} />
+    {/if}
   {/if}
 </svelte:head>
 
