@@ -1,7 +1,14 @@
 <script lang="ts">
   import Autocomplete from '$components/Autocomplete.svelte'
+  import ImageIcon from '$components/icons/ImageIcon.svelte'
   import Tag from '$components/Tag.svelte'
   import { listTags } from '$lib/apis/backend/memo'
+  import {
+    uploadImage,
+    extractImageFromClipboard,
+    extractImageFromDrop,
+    type ImageUploadCallbacks,
+  } from '$lib/imageUpload'
   import { reservedTags } from '$lib/memo'
   import { debounce, partition } from 'lodash-es'
   import { createEventDispatcher, tick } from 'svelte'
@@ -17,6 +24,7 @@
   let tagInput: HTMLInputElement
   let tagInputContainer: HTMLDivElement
   let textareaElement: HTMLTextAreaElement
+  let fileInput: HTMLInputElement
 
   let titleWarning = false
   let tagWarning: string | undefined = undefined
@@ -27,6 +35,9 @@
   let showAutocomplete = false
   let tagCandidates: string[] = []
   let tagCandidateSelected: string | undefined = undefined
+
+  let isDraggingOver = false
+  let uploadingImages = new Map<string, string>()
 
   function onTagInputKeyUp(
     event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
@@ -442,6 +453,90 @@
       textareaElement.selectionEnd = selectionEnd + 2
     }
   }
+
+  function getImageUploadCallbacks(): ImageUploadCallbacks {
+    return {
+      onPlaceholder: (imageId: string, placeholder: string) => {
+        uploadingImages.set(imageId, placeholder)
+        insertTextAtCursor(placeholder)
+      },
+      onComplete: (imageId: string, url: string) => {
+        const placeholder = uploadingImages.get(imageId)
+        if (placeholder) {
+          content = content.replace(placeholder, `![image](${url})`)
+          uploadingImages.delete(imageId)
+        }
+      },
+      onError: (imageId: string, error: Error) => {
+        console.error('Image upload failed:', error)
+        if (imageId) {
+          const placeholder = uploadingImages.get(imageId)
+          if (placeholder) {
+            content = content.replace(placeholder, `![Upload failed](error)`)
+            uploadingImages.delete(imageId)
+          }
+        }
+      },
+    }
+  }
+
+  async function insertTextAtCursor(text: string) {
+    const cursorPos = textareaElement.selectionStart
+    const textBefore = content.substring(0, cursorPos)
+    const textAfter = content.substring(cursorPos)
+
+    content = textBefore + text + textAfter
+    await tick()
+    textareaElement.selectionStart = cursorPos + text.length
+    textareaElement.selectionEnd = textareaElement.selectionStart
+  }
+
+  function onTextareaPaste(event: ClipboardEvent) {
+    if (!event.clipboardData) return
+
+    const { file } = extractImageFromClipboard(event.clipboardData)
+    if (file) {
+      event.preventDefault()
+      uploadImage(file, getImageUploadCallbacks())
+    }
+  }
+
+  function onTextareaDrop(event: DragEvent) {
+    event.preventDefault()
+    isDraggingOver = false
+
+    if (!event.dataTransfer) return
+
+    const file = extractImageFromDrop(event.dataTransfer)
+    if (file) {
+      uploadImage(file, getImageUploadCallbacks())
+    }
+  }
+
+  function onTextareaDragOver(event: DragEvent) {
+    event.preventDefault()
+    isDraggingOver = true
+  }
+
+  function onTextareaDragLeave() {
+    isDraggingOver = false
+  }
+
+  function onImageButtonClick() {
+    fileInput.click()
+  }
+
+  function onFileInputChange(event: Event & { currentTarget: HTMLInputElement }) {
+    const files = event.currentTarget.files
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    if (file.type.startsWith('image/')) {
+      uploadImage(file, getImageUploadCallbacks())
+    }
+
+    event.currentTarget.value = ''
+  }
 </script>
 
 <svelte:window
@@ -520,13 +615,39 @@
       </div>
     {/if}
   </div>
-  <textarea
-    placeholder="Content"
-    bind:this={textareaElement}
-    bind:value={content}
-    on:keydown={onTextareaKeydown}
-    class="textarea textarea-bordered focus:border-primary h-[360px] text-base focus:outline-none"
-  />
+  <div>
+    <div class="mb-1 flex gap-1">
+      <button
+        type="button"
+        on:click={onImageButtonClick}
+        class="btn btn-ghost btn-sm px-2"
+        title="Upload image"
+      >
+        <div class="w-5"><ImageIcon /></div>
+      </button>
+    </div>
+    <input
+      type="file"
+      accept="image/*"
+      bind:this={fileInput}
+      on:change={onFileInputChange}
+      class="hidden"
+    />
+    <textarea
+      placeholder="Content"
+      bind:this={textareaElement}
+      bind:value={content}
+      on:keydown={onTextareaKeydown}
+      on:paste={onTextareaPaste}
+      on:drop={onTextareaDrop}
+      on:dragover={onTextareaDragOver}
+      on:dragleave={onTextareaDragLeave}
+      class="textarea textarea-bordered focus:border-primary h-[360px] w-full text-base focus:outline-none"
+      class:border-primary={isDraggingOver}
+      class:border-dashed={isDraggingOver}
+      class:bg-base-200={isDraggingOver}
+    />
+  </div>
 </div>
 <div class="mt-4 flex justify-end gap-x-1">
   <button on:click={onCancel} class="btn btn-primary btn-outline">Cancel</button>

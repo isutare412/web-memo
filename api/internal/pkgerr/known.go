@@ -110,3 +110,20 @@ func (c Code) ToHTTPStatusCode() int {
 	}
 	return status
 }
+
+func CodeFromHTTPStatusCode(statusCode int) Code {
+	switch statusCode {
+	case http.StatusBadRequest:
+		return CodeBadRequest
+	case http.StatusNotFound:
+		return CodeNotFound
+	case http.StatusConflict:
+		return CodeConflict
+	case http.StatusUnauthorized:
+		return CodeUnauthenticated
+	case http.StatusForbidden:
+		return CodePermissionDenied
+	default:
+		return CodeUnspecified
+	}
+}

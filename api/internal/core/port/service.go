@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/isutare412/imageer/pkg/images"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/model"
@@ -45,4 +46,9 @@ type MemoService interface {
 	AuthorizeCollaborator(
 		ctx context.Context, memoID, collaboratorID uuid.UUID, approve bool, requester *model.AppIDToken) error
 	DeleteCollaborator(ctx context.Context, memoID, collaboratorID uuid.UUID, requester *model.AppIDToken) error
+}
+
+type ImageService interface {
+	CreateUploadURL(ctx context.Context, fileName string, format images.Format) (*model.UploadURL, error)
+	GetImage(ctx context.Context, imageID string, waitUntilProcessed bool) (*model.Image, error)
 }

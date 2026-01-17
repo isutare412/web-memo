@@ -17,12 +17,19 @@ type Server struct {
 	server *http.Server
 }
 
-func NewServer(cfg Config, authService port.AuthService, memoService port.MemoService, pingers []port.Pinger) *Server {
+func NewServer(
+	cfg Config,
+	authService port.AuthService,
+	memoService port.MemoService,
+	pingers []port.Pinger,
+	imageService port.ImageService,
+) *Server {
 	healthHandler := newHealthHandler(pingers)
 	googleHandler := newGoogleHandler(cfg, authService)
 	userHandler := newUserHandler(cfg, authService)
 	memoHandler := newMemoHandler(memoService)
 	tagHandler := newTagHandler(memoService)
+	imageHandler := newImageHandler(imageService)
 
 	imi := newImmigration(authService)
 
@@ -44,6 +51,7 @@ func NewServer(cfg Config, authService port.AuthService, memoService port.MemoSe
 		auth.Mount("/users", userHandler.router())
 		auth.Mount("/memos", memoHandler.router())
 		auth.Mount("/tags", tagHandler.router())
+		auth.Mount("/images", imageHandler.router())
 	})
 
 	return &Server{

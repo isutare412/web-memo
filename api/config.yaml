@@ -36,3 +36,7 @@ oauth:
   callback-path: /api/v1/google/sign-in/finish
 cron:
   tag-cleanup-interval: 10m
+imageer:
+  base-url: <imageer_base_url>
+  api-key: <imageer_api_key>
+  project-id: <imageer_project_id>

@@ -12,10 +12,12 @@ import (
 	"github.com/isutare412/web-memo/api/internal/config"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
+	"github.com/isutare412/web-memo/api/internal/core/service/image"
 	"github.com/isutare412/web-memo/api/internal/core/service/memo"
 	"github.com/isutare412/web-memo/api/internal/cron"
 	"github.com/isutare412/web-memo/api/internal/google"
 	"github.com/isutare412/web-memo/api/internal/http"
+	"github.com/isutare412/web-memo/api/internal/imageer"
 	"github.com/isutare412/web-memo/api/internal/jwt"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
@@ -51,17 +53,23 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 	googleClient := google.NewClient(cfg.ToGoogleClientConfig())
 
+	imageerClient, err := imageer.NewClient(cfg.ToImageerConfig())
+	if err != nil {
+		return nil, fmt.Errorf("creating Imageer client: %w", err)
+	}
+
 	authService := auth.NewService(
 		cfg.ToAuthServiceConfig(), postgresClient, kvRepository, userRepository, googleClient, jwtClient)
 	memoService := memo.NewService(
 		postgresClient, memoRepository, tagRepository, userRepository, collaborationRepository)
+	imageService := image.NewService(cfg.ToImageServiceConfig(), imageerClient)
 
 	pingers := []port.Pinger{
 		postgresClient,
 		redisClient,
 	}
 
-	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService, memoService, pingers)
+	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService, memoService, pingers, imageService)
 
 	cronScheduler, err := cron.NewScheduler(cfg.ToCronConfig(), memoService)
 	if err != nil {

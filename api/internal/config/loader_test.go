@@ -91,7 +91,11 @@ oauth:
   state-timeout: 42m
   callback-path: /api/v1/google/sign-in/finish
 cron:
-  tag-cleanup-interval: 19m`
+  tag-cleanup-interval: 19m
+imageer:
+  base-url: https://imageer.example.com
+  api-key: test-api-key
+  project-id: 12345678-1234-1234-1234-123456789012`
 		)
 
 		BeforeEach(func() {
@@ -153,6 +157,11 @@ cron:
 					},
 					Cron: config.CronConfig{
 						TagCleanupInterval: 19 * time.Minute,
+					},
+					Imageer: config.ImageerConfig{
+						BaseURL:   "https://imageer.example.com",
+						APIKey:    "test-api-key",
+						ProjectID: "12345678-1234-1234-1234-123456789012",
 					},
 				}
 			)
@@ -220,6 +229,11 @@ cron:
 					},
 					Cron: config.CronConfig{
 						TagCleanupInterval: 19 * time.Minute,
+					},
+					Imageer: config.ImageerConfig{
+						BaseURL:   "https://imageer.example.com",
+						APIKey:    "test-api-key",
+						ProjectID: "12345678-1234-1234-1234-123456789012",
 					},
 				}
 			)
@@ -291,6 +305,11 @@ oauth:
 					},
 					Cron: config.CronConfig{
 						TagCleanupInterval: 19 * time.Minute,
+					},
+					Imageer: config.ImageerConfig{
+						BaseURL:   "https://imageer.example.com",
+						APIKey:    "test-api-key",
+						ProjectID: "12345678-1234-1234-1234-123456789012",
 					},
 				}
 			)

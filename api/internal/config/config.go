@@ -4,9 +4,11 @@ import (
 	"time"
 
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
+	"github.com/isutare412/web-memo/api/internal/core/service/image"
 	"github.com/isutare412/web-memo/api/internal/cron"
 	"github.com/isutare412/web-memo/api/internal/google"
 	"github.com/isutare412/web-memo/api/internal/http"
+	"github.com/isutare412/web-memo/api/internal/imageer"
 	"github.com/isutare412/web-memo/api/internal/jwt"
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
@@ -23,6 +25,7 @@ type Config struct {
 	JWT      jwt.Config      `koanf:"jwt"`
 	OAuth    OAuthConfig     `koanf:"oauth"`
 	Cron     CronConfig      `koanf:"cron"`
+	Imageer  ImageerConfig   `koanf:"imageer"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
@@ -73,6 +76,19 @@ func (c *Config) ToAuthServiceConfig() auth.Config {
 	}
 }
 
+func (c *Config) ToImageerConfig() imageer.Config {
+	return imageer.Config{
+		BaseURL: c.Imageer.BaseURL,
+		APIKey:  c.Imageer.APIKey,
+	}
+}
+
+func (c *Config) ToImageServiceConfig() image.Config {
+	return image.Config{
+		ProjectID: c.Imageer.ProjectID,
+	}
+}
+
 type WireConfig struct {
 	InitializeTimeout time.Duration `koanf:"initialize-timeout" validate:"required"`
 	ShutdownTimeout   time.Duration `koanf:"shutdown-timeout" validate:"required"`
@@ -104,4 +120,10 @@ type OAuthConfig struct {
 
 type CronConfig struct {
 	TagCleanupInterval time.Duration `koanf:"tag-cleanup-interval" validate:"required,min=1m"`
+}
+
+type ImageerConfig struct {
+	BaseURL   string `koanf:"base-url" validate:"required,url"`
+	APIKey    string `koanf:"api-key" validate:"required"`
+	ProjectID string `koanf:"project-id" validate:"required"`
 }
