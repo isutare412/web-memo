@@ -40,3 +40,4 @@ imageer:
   base-url: <imageer_base_url>
   api-key: <imageer_api_key>
   project-id: <imageer_project_id>
+  downscale-preset-name: downscale-85

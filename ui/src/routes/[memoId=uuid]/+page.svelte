@@ -46,7 +46,7 @@
   export let data: PageData
 
   $: user = $authStore.user
-  $: memoId = $page.params.memoId
+  $: memoId = $page.params.memoId!
   $: pageUrl = $page.url
   $: ({ memo } = data)
   $: isOwner = (user && memo && user.id === memo.ownerId) ?? false

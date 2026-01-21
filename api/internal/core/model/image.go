@@ -13,18 +13,14 @@ type UploadURL struct {
 	ExpiresAt time.Time
 }
 
-type ImageVariant struct {
-	ID         string
-	PresetName string
-	URL        string
-	Format     images.Format
-	State      string
+type ImageData struct {
+	URL    string
+	Format images.Format
 }
 
 type Image struct {
-	ID       string
-	State    images.State
-	URL      string
-	Format   images.Format
-	Variants []ImageVariant
+	ID         string
+	State      images.State
+	Original   *ImageData
+	Downscaled *ImageData
 }

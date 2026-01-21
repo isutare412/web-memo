@@ -9,8 +9,8 @@ import (
 )
 
 type createUploadURLRequest struct {
-	FileName string        `json:"fileName" validate:"required"`
-	Format   images.Format `json:"format" validate:"required"`
+	FileName string        `json:"fileName"`
+	Format   images.Format `json:"format"`
 }
 
 type createUploadURLResponse struct {
@@ -27,35 +27,31 @@ func (r *createUploadURLResponse) fromModel(u *model.UploadURL) {
 	r.ExpiresAt = u.ExpiresAt
 }
 
-type getImageStatusResponse struct {
-	ID       string            `json:"id"`
-	State    images.State      `json:"state"`
-	URL      string            `json:"url"`
-	Format   images.Format     `json:"format"`
-	Variants []imageVariantDTO `json:"variants"`
+type imageDataDTO struct {
+	URL    string        `json:"url"`
+	Format images.Format `json:"format"`
 }
 
-type imageVariantDTO struct {
+type getImageStatusResponse struct {
 	ID         string        `json:"id"`
-	PresetName string        `json:"presetName"`
-	URL        string        `json:"url"`
-	Format     images.Format `json:"format"`
-	State      string        `json:"state"`
+	State      images.State  `json:"state"`
+	Original   *imageDataDTO `json:"original"`
+	Downscaled *imageDataDTO `json:"downscaled"`
 }
 
 func (r *getImageStatusResponse) fromModel(img *model.Image) {
 	r.ID = img.ID
 	r.State = img.State
-	r.URL = img.URL
-	r.Format = img.Format
-	r.Variants = make([]imageVariantDTO, 0, len(img.Variants))
-	for _, v := range img.Variants {
-		r.Variants = append(r.Variants, imageVariantDTO{
-			ID:         v.ID,
-			PresetName: v.PresetName,
-			URL:        v.URL,
-			Format:     v.Format,
-			State:      v.State,
-		})
+	if img.Original != nil {
+		r.Original = &imageDataDTO{
+			URL:    img.Original.URL,
+			Format: img.Original.Format,
+		}
+	}
+	if img.Downscaled != nil {
+		r.Downscaled = &imageDataDTO{
+			URL:    img.Downscaled.URL,
+			Format: img.Downscaled.Format,
+		}
 	}
 }

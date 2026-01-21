@@ -12,22 +12,30 @@ import (
 )
 
 type Service struct {
-	imageerClient *gateway.ClientWithResponses
-	projectID     string
+	imageerClient       *gateway.ClientWithResponses
+	projectID           string
+	downscalePresetName string
 }
 
 func NewService(cfg Config, imageerClient *gateway.ClientWithResponses) *Service {
 	return &Service{
-		imageerClient: imageerClient,
-		projectID:     cfg.ProjectID,
+		imageerClient:       imageerClient,
+		projectID:           cfg.ProjectID,
+		downscalePresetName: cfg.DownscalePresetName,
 	}
 }
 
-func (s *Service) CreateUploadURL(ctx context.Context, fileName string, format images.Format) (*model.UploadURL, error) {
-	resp, err := s.imageerClient.CreateUploadURLWithResponse(ctx, s.projectID, gateway.CreateUploadURLJSONRequestBody{
+func (s *Service) CreateUploadURL(ctx context.Context, fileName string, format images.Format,
+) (*model.UploadURL, error) {
+	reqBody := gateway.CreateUploadURLJSONRequestBody{
 		FileName: fileName,
 		Format:   format,
-	})
+	}
+	if s.downscalePresetName != "" {
+		reqBody.PresetNames = []string{s.downscalePresetName}
+	}
+
+	resp, err := s.imageerClient.CreateUploadURLWithResponse(ctx, s.projectID, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("calling imageer CreateUploadURL: %w", err)
 	}
@@ -44,7 +52,8 @@ func (s *Service) CreateUploadURL(ctx context.Context, fileName string, format i
 	}, nil
 }
 
-func (s *Service) GetImage(ctx context.Context, imageID string, waitUntilProcessed bool) (*model.Image, error) {
+func (s *Service) GetImage(ctx context.Context, imageID string, waitUntilProcessed bool,
+) (*model.Image, error) {
 	params := &gateway.GetImageParams{
 		WaitUntilProcessed: lo.EmptyableToPtr(waitUntilProcessed),
 	}
@@ -58,19 +67,27 @@ func (s *Service) GetImage(ctx context.Context, imageID string, waitUntilProcess
 		return nil, imageerError(resp.StatusCode(), resp.JSONDefault)
 	}
 
-	return &model.Image{
-		ID:     resp.JSON200.ID,
-		State:  resp.JSON200.State,
-		URL:    resp.JSON200.URL,
-		Format: resp.JSON200.Format,
-		Variants: lo.Map(resp.JSON200.Variants, func(v gateway.ImageVariant, _ int) model.ImageVariant {
-			return model.ImageVariant{
-				ID:         v.ID,
-				PresetName: v.PresetName,
-				URL:        v.URL,
-				Format:     v.Format,
-				State:      string(v.State),
+	img := &model.Image{
+		ID:    resp.JSON200.ID,
+		State: resp.JSON200.State,
+		Original: &model.ImageData{
+			URL:    resp.JSON200.URL,
+			Format: resp.JSON200.Format,
+		},
+	}
+
+	// Find downscaled variant if preset name is configured
+	if s.downscalePresetName != "" {
+		for _, v := range resp.JSON200.Variants {
+			if v.PresetName == s.downscalePresetName && v.State == images.VariantStateReady {
+				img.Downscaled = &model.ImageData{
+					URL:    v.URL,
+					Format: v.Format,
+				}
+				break
 			}
-		}),
-	}, nil
+		}
+	}
+
+	return img, nil
 }

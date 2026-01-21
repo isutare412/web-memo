@@ -85,7 +85,8 @@ func (c *Config) ToImageerConfig() imageer.Config {
 
 func (c *Config) ToImageServiceConfig() image.Config {
 	return image.Config{
-		ProjectID: c.Imageer.ProjectID,
+		ProjectID:           c.Imageer.ProjectID,
+		DownscalePresetName: c.Imageer.DownscalePresetName,
 	}
 }
 
@@ -123,7 +124,8 @@ type CronConfig struct {
 }
 
 type ImageerConfig struct {
-	BaseURL   string `koanf:"base-url" validate:"required,url"`
-	APIKey    string `koanf:"api-key" validate:"required"`
-	ProjectID string `koanf:"project-id" validate:"required"`
+	BaseURL             string `koanf:"base-url" validate:"required,url"`
+	APIKey              string `koanf:"api-key" validate:"required"`
+	ProjectID           string `koanf:"project-id" validate:"required"`
+	DownscalePresetName string `koanf:"downscale-preset-name"`
 }

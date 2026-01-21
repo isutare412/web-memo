@@ -466,10 +466,15 @@
         uploadingImages.set(imageId, placeholder)
         insertTextAtCursor(placeholder)
       },
-      onComplete: (imageId: string, url: string) => {
+      onComplete: (imageId: string, displayUrl: string, originalUrl: string) => {
         const placeholder = uploadingImages.get(imageId)
         if (placeholder) {
-          content = content.replace(placeholder, `![image](${url})`)
+          // Use linked image markdown when URLs differ to enable click-to-view original
+          const markdown =
+            displayUrl !== originalUrl
+              ? `[![image](${displayUrl})](${originalUrl})`
+              : `![image](${displayUrl})`
+          content = content.replace(placeholder, markdown)
           uploadingImages.delete(imageId)
         }
       },

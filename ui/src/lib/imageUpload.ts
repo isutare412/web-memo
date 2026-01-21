@@ -7,7 +7,7 @@ import {
 
 export interface ImageUploadCallbacks {
   onPlaceholder: (imageId: string, placeholder: string) => void
-  onComplete: (imageId: string, url: string) => void
+  onComplete: (imageId: string, displayUrl: string, originalUrl: string) => void
   onError: (imageId: string, error: Error) => void
 }
 
@@ -68,7 +68,9 @@ export async function uploadImage(file: File, callbacks: ImageUploadCallbacks): 
     const imageStatus = await waitForImageReady(imageId)
 
     if (imageStatus.state === 'READY') {
-      callbacks.onComplete(imageId, imageStatus.url)
+      const displayUrl = imageStatus.downscaled?.url ?? imageStatus.original?.url ?? ''
+      const originalUrl = imageStatus.original?.url ?? displayUrl
+      callbacks.onComplete(imageId, displayUrl, originalUrl)
     } else {
       callbacks.onError(
         imageId,
@@ -113,7 +115,9 @@ export async function uploadImageFromDataURL(
     const imageStatus = await waitForImageReady(imageId)
 
     if (imageStatus.state === 'READY') {
-      callbacks.onComplete(imageId, imageStatus.url)
+      const displayUrl = imageStatus.downscaled?.url ?? imageStatus.original?.url ?? ''
+      const originalUrl = imageStatus.original?.url ?? displayUrl
+      callbacks.onComplete(imageId, displayUrl, originalUrl)
     } else {
       callbacks.onError(
         imageId,

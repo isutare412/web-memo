@@ -16,20 +16,16 @@ export interface CreateUploadURLResponse {
   expiresAt: string
 }
 
-export interface ImageVariant {
-  id: string
-  presetName: string
+export interface ImageData {
   url: string
   format: ImageFormat
-  state: string
 }
 
 export interface ImageStatusResponse {
   id: string
   state: ImageState
-  url: string
-  format: ImageFormat
-  variants: ImageVariant[]
+  original: ImageData | null
+  downscaled: ImageData | null
 }
 
 export async function createUploadURL(

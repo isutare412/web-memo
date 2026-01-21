@@ -11,7 +11,7 @@
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
 
-  $: memoId = $page.params.memoId
+  $: memoId = $page.params.memoId!
   let memo: Memo | undefined
 
   onMount(async () => {
