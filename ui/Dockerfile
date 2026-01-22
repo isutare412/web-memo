@@ -17,6 +17,9 @@ RUN pnpm install --frozen-lockfile
 # Rebuild the source code only when needed
 FROM base AS builder
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY src src
@@ -34,6 +37,9 @@ RUN pnpm run build
 
 # Production image, copy all the files and run
 FROM base AS runner
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
