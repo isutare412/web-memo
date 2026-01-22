@@ -4,6 +4,7 @@
   import ImageIcon from '$components/icons/ImageIcon.svelte'
   import ListOrderedIcon from '$components/icons/ListOrderedIcon.svelte'
   import ListUnorderedIcon from '$components/icons/ListUnorderedIcon.svelte'
+  import CheckIcon from '$components/icons/CheckIcon.svelte'
   import Markdown from '$components/Markdown.svelte'
   import Tag from '$components/Tag.svelte'
   import { listTags } from '$lib/apis/backend/memo'
@@ -246,12 +247,13 @@
     const linesBeforeCursor = textBeforeCursor.split('\n')
     const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1]
 
-    const match = lastLine.match(/^(\s*)([-*+]|[0-9]+[.)])\s(.*)/)
+    const match = lastLine.match(/^(\s*)([-*+]|[0-9]+[.)])\s(?:(\[[ xX]\])\s)?(.*)/)
     if (!match) return
 
     const indent = match[1]
     const listSymbol = match[2]
-    const listContents = match[3]
+    const checkbox = match[3]
+    const listContents = match[4]
 
     if (listContents === '') {
       event.preventDefault()
@@ -263,11 +265,12 @@
     }
 
     let newLineText = ''
+    const checkboxPart = checkbox ? '[ ] ' : ''
     if (listSymbol.match(/[0-9]+[.)]/)) {
       const currentNumber = parseInt(listSymbol, 10)
-      newLineText = '\n' + indent + (currentNumber + 1) + '. '
+      newLineText = '\n' + indent + (currentNumber + 1) + '. ' + checkboxPart
     } else {
-      newLineText = '\n' + indent + listSymbol + ' '
+      newLineText = '\n' + indent + listSymbol + ' ' + checkboxPart
     }
 
     // Korean in iOS Safari does not fire composition event. As we cannot check
@@ -536,6 +539,10 @@
     toggleLinePrefix('- ', /^[-*+]\s*/)
   }
 
+  function onCheckboxClick() {
+    toggleLinePrefix('- [ ] ', /^[-*+]\s*\[[ xX]\]\s*/)
+  }
+
   function onTextareaPaste(event: ClipboardEvent) {
     if (!event.clipboardData) return
 
@@ -687,7 +694,7 @@
           <button
             type="button"
             on:click={onHeadingClick}
-            class="btn btn-ghost btn-sm px-2"
+            class="btn btn-ghost btn-sm px-1"
             title="Heading"
           >
             <div class="w-5"><HeadingIcon /></div>
@@ -695,7 +702,7 @@
           <button
             type="button"
             on:click={onOrderedListClick}
-            class="btn btn-ghost btn-sm px-2"
+            class="btn btn-ghost btn-sm px-1"
             title="Ordered list"
           >
             <div class="w-5"><ListOrderedIcon /></div>
@@ -703,15 +710,23 @@
           <button
             type="button"
             on:click={onUnorderedListClick}
-            class="btn btn-ghost btn-sm px-2"
+            class="btn btn-ghost btn-sm px-1"
             title="Unordered list"
           >
             <div class="w-5"><ListUnorderedIcon /></div>
           </button>
           <button
             type="button"
+            on:click={onCheckboxClick}
+            class="btn btn-ghost btn-sm px-1"
+            title="Checkbox"
+          >
+            <div class="w-5"><CheckIcon /></div>
+          </button>
+          <button
+            type="button"
             on:click={onImageButtonClick}
-            class="btn btn-ghost btn-sm px-2"
+            class="btn btn-ghost btn-sm px-1"
             title="Upload image"
           >
             <div class="w-5"><ImageIcon /></div>

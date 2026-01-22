@@ -23,13 +23,14 @@
     listCollaborators,
     listSubscribers,
     publishMemo,
+    replaceMemo,
     requestCollaboration,
     subscribeMemo,
     unsubscribeMemo,
     type Collaborator,
   } from '$lib/apis/backend/memo'
   import { authStore, signInGoogle, syncUserData } from '$lib/auth'
-  import { mapToMemo } from '$lib/memo'
+  import { mapToMemo, toggleCheckboxInMarkdown } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
   import { ToastTimeout, addToast } from '$lib/toast'
   import { formatDate } from '$lib/utils/date'
@@ -50,6 +51,7 @@
   $: pageUrl = $page.url
   $: ({ memo } = data)
   $: isOwner = (user && memo && user.id === memo.ownerId) ?? false
+  $: canEdit = isOwner || isMemoCollaborateApproved
   $: ogImage = memo ? extractFirstImageFromMarkdown(memo.content) : undefined
 
   let subscriberCount: number | undefined = undefined
@@ -256,6 +258,31 @@
     publishConfirmModal.showModal()
   }
 
+  async function onCheckboxToggle(event: CustomEvent<{ index: number }>) {
+    if (!memo || !canEdit) return
+
+    const newContent = toggleCheckboxInMarkdown(memo.content, event.detail.index)
+
+    try {
+      const updatedMemo = await replaceMemo({
+        id: memo.id,
+        version: memo.version,
+        title: memo.title,
+        content: newContent,
+        tags: memo.tags,
+        isPinUpdateTime: true,
+      })
+      memo = mapToMemo(updatedMemo)
+    } catch (error) {
+      if (error instanceof StatusError && error.status === 409) {
+        addToast('Memo was modified elsewhere. Refreshing...', 'warning')
+        await syncMemo(true)
+      } else {
+        addToast(getErrorMessage(error), 'error')
+      }
+    }
+  }
+
   function onPublishConfirm() {
     if (memo === undefined) {
       return
@@ -396,7 +423,7 @@
   {/if}
 
   <div class="mt-3">
-    <Markdown content={memo.content} />
+    <Markdown content={memo.content} editable={canEdit} on:checkboxToggle={onCheckboxToggle} />
   </div>
   <div class="mt-3 flex flex-col gap-y-1">
     <div class="flex justify-end">

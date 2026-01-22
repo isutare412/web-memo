@@ -71,3 +71,18 @@ export function getPreferredSortOrder(): SortOrder | null {
 export function setPreferredSortOrder(order: SortOrder) {
   localStorage.setItem(storageKeySortOrder, order.toString())
 }
+
+export function toggleCheckboxInMarkdown(content: string, index: number): string {
+  const checkboxRegex = /^(\s*[-*+]\s*)\[([ xX])\]/gm
+  let currentIndex = 0
+
+  return content.replace(checkboxRegex, (match, prefix, checked) => {
+    if (currentIndex === index) {
+      currentIndex++
+      const newState = checked === ' ' ? 'x' : ' '
+      return `${prefix}[${newState}]`
+    }
+    currentIndex++
+    return match
+  })
+}
