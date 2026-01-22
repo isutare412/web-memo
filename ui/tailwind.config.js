@@ -18,8 +18,8 @@ export default {
           ...require('daisyui/src/theming/themes')['light'],
           '--btn-text-case': 'none',
         },
-        dracula: {
-          ...require('daisyui/src/theming/themes')['dracula'],
+        dark: {
+          ...require('daisyui/src/theming/themes')['dark'],
           '--btn-text-case': 'none',
         },
       },
