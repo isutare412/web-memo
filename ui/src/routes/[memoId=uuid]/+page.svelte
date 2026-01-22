@@ -74,6 +74,8 @@
   let deleteConfirmModal: HTMLDialogElement
   let isDeleting = false
 
+  let isCheckboxUpdating = false
+
   onMount(async () => {
     await syncPageData(false)
   })
@@ -259,8 +261,9 @@
   }
 
   async function onCheckboxToggle(event: CustomEvent<{ index: number }>) {
-    if (!memo || !canEdit) return
+    if (!memo || !canEdit || isCheckboxUpdating) return
 
+    isCheckboxUpdating = true
     const newContent = toggleCheckboxInMarkdown(memo.content, event.detail.index)
 
     try {
@@ -280,6 +283,8 @@
       } else {
         addToast(getErrorMessage(error), 'error')
       }
+    } finally {
+      isCheckboxUpdating = false
     }
   }
 
@@ -423,7 +428,12 @@
   {/if}
 
   <div class="mt-3">
-    <Markdown content={memo.content} editable={canEdit} on:checkboxToggle={onCheckboxToggle} />
+    <Markdown
+      content={memo.content}
+      editable={canEdit}
+      disabled={isCheckboxUpdating}
+      on:checkboxToggle={onCheckboxToggle}
+    />
   </div>
   <div class="mt-3 flex flex-col gap-y-1">
     <div class="flex justify-end">

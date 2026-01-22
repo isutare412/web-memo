@@ -6,6 +6,7 @@
 
   export let content: string
   export let editable: boolean = false
+  export let disabled: boolean = false
 
   const dispatch = createEventDispatcher<{ checkboxToggle: { index: number } }>()
 
@@ -57,7 +58,7 @@
       ADD_TAGS: ['input'],
       ADD_ATTR: ['type', 'checked', 'disabled', 'data-checkbox-index'],
     }),
-    editable
+    editable && !disabled
   )
 </script>
 
