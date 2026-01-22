@@ -7,9 +7,12 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Install dependencies based on the preferred package manager
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -19,7 +22,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY src src
 COPY static static
 COPY package.json \
-    package-lock.json \
+    pnpm-lock.yaml \
     postcss.config.js \
     tailwind.config.js \
     svelte.config.js \
@@ -27,15 +30,15 @@ COPY package.json \
     vite.config.ts \
     .npmrc \
     ./
-RUN npm run build
+RUN pnpm run build
 
 # Production image, copy all the files and run
 FROM base AS runner
 
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml ./
 COPY --from=builder /app/build ./server
-RUN npm ci --omit dev
+RUN pnpm install --prod --frozen-lockfile
 
 ENV HOST=0.0.0.0
 ENV PORT=80
