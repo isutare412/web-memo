@@ -41,5 +41,8 @@
   "dependencies": {
     "isomorphic-dompurify": "^2.3.0",
     "lodash-es": "^4.17.21"
+  },
+  "volta": {
+    "node": "24.13.0"
   }
 }
