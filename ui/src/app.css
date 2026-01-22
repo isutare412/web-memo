@@ -2,8 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Remove bullet points from checkbox list items only */
+/* Remove bullet points from checkbox list items and fix text wrapping alignment */
 .prose li:has(> input[type='checkbox']) {
   list-style: none;
+  position: relative;
+  padding-left: 1.9rem;
   margin-left: -1.5rem; /* Compensate for ul padding to align checkbox to left edge */
+}
+
+.prose li:has(> input[type='checkbox']) > input[type='checkbox'] {
+  position: absolute;
+  left: 0.2rem;
+  top: 0.1875rem;
 }
