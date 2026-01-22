@@ -2,11 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Remove bullet points and indentation from checkbox list items */
+/* Remove bullet points from checkbox list items only */
 .prose li:has(> input[type='checkbox']) {
   list-style: none;
-}
-
-.prose ul:has(> li > input[type='checkbox']) {
-  padding-left: 0;
+  margin-left: -1.5rem; /* Compensate for ul padding to align checkbox to left edge */
 }
