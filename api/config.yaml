@@ -5,6 +5,7 @@ log:
   format: text # text / json
   level: debug # debug / info / warn / error
   caller: true
+  component: webmemo-api
 http:
   port: 8412
 postgres:

@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
-
-	"github.com/isutare412/web-memo/api/internal/log"
 )
 
 type contextBagKey struct{}
@@ -48,7 +46,7 @@ func logRequests(next http.Handler) http.Handler {
 		elapsedTime := time.Since(beforeServing)
 		ww := w.(middleware.WrapResponseWriter)
 
-		var statusCode = http.StatusOK
+		statusCode := http.StatusOK
 		if sc := ww.Status(); sc != 0 {
 			statusCode = sc
 		}
@@ -80,7 +78,7 @@ func logRequests(next http.Handler) http.Handler {
 			}
 		}
 
-		accessLog.Log(r.Context(), log.SlogLevelAccess, "HTTP request handled")
+		accessLog.InfoContext(r.Context(), "HTTP request handled")
 	}
 
 	return http.HandlerFunc(fn)

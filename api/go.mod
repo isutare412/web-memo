@@ -24,6 +24,7 @@ require (
 	github.com/onsi/gomega v1.34.1
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/samber/lo v1.51.0
+	github.com/samber/slog-multi v1.4.1
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sync v0.19.0
 	google.golang.org/grpc v1.65.0
@@ -61,6 +62,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/zclconf/go-cty v1.14.1 // indirect
 	go.uber.org/mock v0.5.2 // indirect

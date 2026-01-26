@@ -85,6 +85,7 @@ config:
     format: text # text / json
     level: debug # debug / info / warn / error
     caller: false
+    component: webmemo-api
   http:
     port: 80
   postgres:
