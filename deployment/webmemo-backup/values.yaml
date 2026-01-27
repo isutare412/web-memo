@@ -68,6 +68,7 @@ config:
   log:
     format: text # text / json
     level: debug # debug / info / warn / error
+    component: webmemo-backup
   aws:
     access-key: <access_key>
     secret: <secret_access_key>
