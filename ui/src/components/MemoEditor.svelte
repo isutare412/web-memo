@@ -43,6 +43,8 @@
 
   let isDraggingOver = false
   let uploadingImages = new Map<string, string>()
+  let isImageUploadBlocking = false
+  let uploadUnblockTimeoutId: ReturnType<typeof setTimeout> | undefined
 
   let editorMode: 'write' | 'preview' = 'write'
 
@@ -468,6 +470,16 @@
       onPlaceholder: (imageId: string, placeholder: string) => {
         uploadingImages.set(imageId, placeholder)
         insertTextAtCursor(placeholder)
+
+        // Block submit while uploading, with 30-second safety timeout
+        isImageUploadBlocking = true
+        if (uploadUnblockTimeoutId !== undefined) {
+          clearTimeout(uploadUnblockTimeoutId)
+        }
+        uploadUnblockTimeoutId = setTimeout(() => {
+          isImageUploadBlocking = false
+          uploadUnblockTimeoutId = undefined
+        }, 30000)
       },
       onComplete: (imageId: string, displayUrl: string, originalUrl: string) => {
         const placeholder = uploadingImages.get(imageId)
@@ -479,6 +491,15 @@
               : `![image](${displayUrl})`
           content = content.replace(placeholder, markdown)
           uploadingImages.delete(imageId)
+
+          // Re-enable submit if all uploads complete
+          if (uploadingImages.size === 0) {
+            isImageUploadBlocking = false
+            if (uploadUnblockTimeoutId !== undefined) {
+              clearTimeout(uploadUnblockTimeoutId)
+              uploadUnblockTimeoutId = undefined
+            }
+          }
         }
       },
       onError: (imageId: string, error: Error) => {
@@ -488,6 +509,15 @@
           if (placeholder) {
             content = content.replace(placeholder, `![Upload failed](error)`)
             uploadingImages.delete(imageId)
+
+            // Re-enable submit if all uploads complete
+            if (uploadingImages.size === 0) {
+              isImageUploadBlocking = false
+              if (uploadUnblockTimeoutId !== undefined) {
+                clearTimeout(uploadUnblockTimeoutId)
+                uploadUnblockTimeoutId = undefined
+              }
+            }
           }
         }
       },
@@ -778,10 +808,10 @@
     on:touchstart={onSubmitTouchStart}
     on:touchend={clearIsPressingSubmit}
     on:click={onSubmit}
-    disabled={isSubmitting}
+    disabled={isSubmitting || isImageUploadBlocking}
     class="btn btn-primary"
   >
-    {#if isSubmitting}
+    {#if isSubmitting || isImageUploadBlocking}
       <span class="loading loading-spinner" />
     {:else}
       Submit
