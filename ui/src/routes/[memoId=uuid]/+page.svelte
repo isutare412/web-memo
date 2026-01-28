@@ -5,7 +5,6 @@
   import CollaborationApproveTable from '$components/CollaborationApproveTable.svelte'
   import LinkCopyButton from '$components/LinkCopyButton.svelte'
   import LinkShareButton from '$components/LinkShareButton.svelte'
-  import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import Markdown from '$components/Markdown.svelte'
   import SubscribeButton from '$components/SubscribeButton.svelte'
   import Tag from '$components/Tag.svelte'
@@ -30,6 +29,7 @@
     type Collaborator,
   } from '$lib/apis/backend/memo'
   import { authStore, signInGoogle, syncUserData } from '$lib/auth'
+  import { loading } from '$lib/stores/loading'
   import { mapToMemo, toggleCheckboxInMarkdown } from '$lib/memo'
   import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
   import { ToastTimeout, addToast } from '$lib/toast'
@@ -53,6 +53,9 @@
   $: isOwner = (user && memo && user.id === memo.ownerId) ?? false
   $: canEdit = isOwner || isMemoCollaborateApproved
   $: ogImage = memo ? extractFirstImageFromMarkdown(memo.content) : undefined
+
+  $: if (memo === undefined) loading.start()
+  $: if (memo !== undefined) loading.stop()
 
   let subscriberCount: number | undefined = undefined
   let subscribeConfirmModal: HTMLDialogElement
@@ -353,9 +356,7 @@
   {/if}
 </svelte:head>
 
-{#if memo === undefined}
-  <LoadingSpinner />
-{:else}
+{#if memo !== undefined}
   {#if isOwner}
     <div class="flex justify-end gap-x-2">
       <div>

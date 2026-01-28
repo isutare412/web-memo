@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { navigating } from '$app/stores'
   import Avatar from '$components/Avatar.svelte'
-  import LoadingSpinner from '$components/LoadingSpinner.svelte'
+  import LoadingProgressBar from '$components/LoadingProgressBar.svelte'
   import ThemeToggle from '$components/ThemeToggle.svelte'
   import ToastContainer from '$components/ToastContainer.svelte'
   import {
@@ -27,6 +26,8 @@
   }
 </script>
 
+<LoadingProgressBar />
+
 <div class="flex min-h-screen flex-col">
   <nav class="border-b border-base-300 shadow md:mb-4">
     <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
@@ -41,11 +42,7 @@
   <main
     class="mx-auto mb-6 w-full max-w-3xl p-6 md:rounded-xl md:border md:border-base-300 md:shadow-md"
   >
-    {#if $navigating !== null}
-      <LoadingSpinner />
-    {:else}
-      <slot />
-    {/if}
+    <slot />
   </main>
   <ToastContainer />
 </div>

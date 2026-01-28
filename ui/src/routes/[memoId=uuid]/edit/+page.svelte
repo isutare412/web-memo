@@ -1,15 +1,18 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
-  import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import MemoEditor from '$components/MemoEditor.svelte'
   import { StatusError } from '$lib/apis/backend/error'
   import { getMemo, replaceMemo } from '$lib/apis/backend/memo'
   import { syncUserData } from '$lib/auth'
   import { mapToMemo, type Memo } from '$lib/memo'
   import { addToast } from '$lib/toast'
+  import { loading } from '$lib/stores/loading'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
+
+  $: if (memo === undefined) loading.start()
+  $: if (memo !== undefined) loading.stop()
 
   $: memoId = $page.params.memoId!
   let memo: Memo | undefined
@@ -72,9 +75,7 @@
   }
 </script>
 
-{#if memo === undefined}
-  <LoadingSpinner />
-{:else}
+{#if memo !== undefined}
   <MemoEditor
     title={memo.title}
     content={memo.content}

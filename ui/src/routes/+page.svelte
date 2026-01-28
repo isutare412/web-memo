@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
-  import LoadingSpinner from '$components/LoadingSpinner.svelte'
   import MemoList from '$components/MemoList.svelte'
   import PageNavigator from '$components/PageNavigator.svelte'
   import PageSizeSelector from '$components/PageSizeSelector.svelte'
@@ -26,9 +25,13 @@
     setPageSizeOfSearchParams,
     setSortOrderOfSearchParams,
   } from '$lib/searchParams'
+  import { loading } from '$lib/stores/loading'
   import { addToast } from '$lib/toast'
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
+
+  $: if (user && listData === undefined) loading.start()
+  $: if (!user || listData !== undefined) loading.stop()
 
   $: user = $authStore.user
   $: tags = $page.url.searchParams.getAll('tag')
@@ -126,9 +129,7 @@
 
 {#if !user}
   <SignInStack />
-{:else if listData === undefined}
-  <LoadingSpinner />
-{:else}
+{:else if listData !== undefined}
   <div class="space-y-2">
     <TagFilter>
       <div class="flex gap-2">
