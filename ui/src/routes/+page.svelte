@@ -67,12 +67,14 @@
   onMount(async () => {
     try {
       await syncUserData()
-      await fetchMemos()
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       return
     }
   })
+
+  // Re-fetch memos when user logs in or search params change
+  $: user, searchParams, fetchMemos()
 
   function onRefreshButtonClick() {
     fetchMemos()
