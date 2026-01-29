@@ -30,9 +30,6 @@
   import { getErrorMessage } from '$lib/utils/error'
   import { onMount } from 'svelte'
 
-  $: if (user && listData === undefined) loading.start()
-  $: if (!user || listData !== undefined) loading.stop()
-
   $: user = $authStore.user
   $: tags = $page.url.searchParams.getAll('tag')
   $: searchParams = $page.url.searchParams
@@ -108,8 +105,7 @@
       return
     }
 
-    listData = undefined
-
+    loading.start()
     try {
       const response = await listMemos(currentPage, pageSize, sortOrder, tags)
       listData = {
@@ -121,6 +117,8 @@
       }
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
+    } finally {
+      loading.stop()
     }
   }
 </script>
