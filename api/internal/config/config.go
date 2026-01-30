@@ -26,7 +26,6 @@ type Config struct {
 	OAuth    OAuthConfig     `koanf:"oauth"`
 	Cron     CronConfig      `koanf:"cron"`
 	Imageer  ImageerConfig   `koanf:"imageer"`
-	Metrics  MetricsConfig   `koanf:"metrics"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
@@ -37,7 +36,6 @@ func (c *Config) ToHTTPConfig() http.Config {
 	return http.Config{
 		Port:                  c.HTTP.Port,
 		CookieTokenExpiration: c.JWT.Expiration,
-		ShowMetrics:           c.Metrics.Enabled,
 	}
 }
 
@@ -130,8 +128,4 @@ type ImageerConfig struct {
 	APIKey              string `koanf:"api-key" validate:"required"`
 	ProjectID           string `koanf:"project-id" validate:"required"`
 	DownscalePresetName string `koanf:"downscale-preset-name"`
-}
-
-type MetricsConfig struct {
-	Enabled bool `koanf:"enabled"`
 }

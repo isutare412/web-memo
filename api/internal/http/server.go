@@ -37,12 +37,10 @@ func NewServer(
 
 	r := chi.NewRouter()
 
-	if cfg.ShowMetrics {
-		r.Handle("/metrics", promhttp.HandlerFor(
-			metric.Gatherer(),
-			promhttp.HandlerOpts{},
-		))
-	}
+	r.Handle("/metrics", promhttp.HandlerFor(
+		metric.Gatherer(),
+		promhttp.HandlerOpts{},
+	))
 
 	r.Mount("/health", healthHandler.router())
 

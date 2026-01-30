@@ -25,9 +25,7 @@ func main() {
 	}
 
 	log.Init(cfg.ToLogConfig())
-	if cfg.Metrics.Enabled {
-		metric.Init()
-	}
+	metric.Init()
 
 	slog.Debug("loaded config", "config", cfg)
 

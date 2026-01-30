@@ -86,8 +86,6 @@ config:
     level: debug # debug / info / warn / error
     caller: false
     component: webmemo-api
-  metrics:
-    enabled: true
   http:
     port: 80
   postgres:
