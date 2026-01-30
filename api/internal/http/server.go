@@ -9,8 +9,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
+	"github.com/isutare412/web-memo/api/internal/metric"
 )
 
 type Server struct {
@@ -34,6 +36,14 @@ func NewServer(
 	imi := newImmigration(authService)
 
 	r := chi.NewRouter()
+
+	if cfg.ShowMetrics {
+		r.Handle("/metrics", promhttp.HandlerFor(
+			metric.Gatherer(),
+			promhttp.HandlerOpts{},
+		))
+	}
+
 	r.Mount("/health", healthHandler.router())
 
 	r.Route("/api/v1", func(r chi.Router) {
@@ -42,6 +52,7 @@ func NewServer(
 			middleware.RealIP,
 			wrapResponseWriter,
 			logRequests,
+			observeMetrics,
 			recoverPanic,
 		)
 

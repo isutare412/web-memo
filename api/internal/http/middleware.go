@@ -7,7 +7,10 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/isutare412/web-memo/api/internal/metric"
 )
 
 type contextBagKey struct{}
@@ -96,5 +99,26 @@ func recoverPanic(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	}
 
+	return http.HandlerFunc(fn)
+}
+
+func observeMetrics(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		elapsed := time.Since(start)
+
+		ww := w.(middleware.WrapResponseWriter)
+		statusCode := ww.Status()
+		if statusCode == 0 {
+			statusCode = http.StatusOK
+		}
+
+		// NOTE: We use route pattern instead of r.URL.Path to reduce cardinality
+		path := chi.RouteContext(ctx).RoutePattern()
+		metric.ObserveHTTPRequest(r.Method, path, statusCode, elapsed)
+	}
 	return http.HandlerFunc(fn)
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/isutare412/web-memo/api/internal/config"
 	"github.com/isutare412/web-memo/api/internal/log"
+	"github.com/isutare412/web-memo/api/internal/metric"
 	"github.com/isutare412/web-memo/api/internal/wire"
 )
 
@@ -22,7 +23,11 @@ func main() {
 		slog.Error("failed to load config", "error", err)
 		os.Exit(1)
 	}
+
 	log.Init(cfg.ToLogConfig())
+	if cfg.Metrics.Enabled {
+		metric.Init()
+	}
 
 	slog.Debug("loaded config", "config", cfg)
 

@@ -6,6 +6,8 @@ log:
   level: debug # debug / info / warn / error
   caller: true
   component: webmemo-api
+metrics:
+  enabled: true
 http:
   port: 8412
 postgres:
