@@ -18,6 +18,9 @@ type attrContext struct {
 // context can be used to collect attributes that will be added to log records.
 // Check [AddAttrs] to add attributes to the context.
 func WithAttrContext(ctx context.Context) context.Context {
+	if _, ok := ctx.Value(attrContextKey{}).(*attrContext); ok {
+		return ctx
+	}
 	return context.WithValue(ctx, attrContextKey{}, &attrContext{})
 }
 

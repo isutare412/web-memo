@@ -57,6 +57,7 @@ func logRequests(next http.Handler) http.Handler {
 		}
 
 		accessLog := slog.With(
+			slog.String("logType", "accessLog"),
 			slog.String("method", r.Method),
 			slog.String("url", r.URL.String()),
 			slog.String("addr", r.RemoteAddr),
@@ -142,12 +143,6 @@ func withTrace(next http.Handler) http.Handler {
 
 		ctx, span := tracing.StartSpan(ctx, "http.middleware.withTrace")
 		defer span.End()
-
-		// NOTE: If sampling decision is "not sampled", trace id will be zero-value.
-		spanCtx := span.SpanContext()
-		if traceID := spanCtx.TraceID().String(); traceID != "" {
-			log.AddAttrs(ctx, slog.String("traceId", traceID))
-		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
