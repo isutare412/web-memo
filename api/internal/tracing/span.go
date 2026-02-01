@@ -25,6 +25,24 @@ func StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption,
 	return createSpan(ctx, name, opts...)
 }
 
+// StartSpanNonSampled generates a non-sampled span with given name. This is
+// useful for cases where you want to disable all descendent spans.
+func StartSpanNonSampled(ctx context.Context, name string, opts ...trace.SpanStartOption,
+) (context.Context, trace.Span) {
+	// Create a remote SpanContext with sampled=false to indicate not sampled.
+	spanCtx := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID:    trace.TraceID{1}, // fake non-zero TraceID
+		SpanID:     trace.SpanID{1},  // fake non-zero SpanID
+		TraceFlags: trace.FlagsSampled.WithSampled(false),
+		Remote:     true,
+	})
+
+	ctxNoSample := trace.ContextWithSpanContext(ctx, spanCtx)
+
+	opts = append(opts, trace.WithSpanKind(trace.SpanKindInternal))
+	return createSpan(ctxNoSample, name, opts...)
+}
+
 func createSpan(ctx context.Context, name string, opts ...trace.SpanStartOption,
 ) (context.Context, trace.Span) {
 	return getTracer().Start(ctx, name, opts...)

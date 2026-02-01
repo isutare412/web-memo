@@ -71,7 +71,7 @@ func (s *Scheduler) runCleanUpTags() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	ctx, span := tracing.StartSpan(ctx, "cron.Scheduler.runCleanUpTags")
+	ctx, span := tracing.StartSpanNonSampled(ctx, "cron.Scheduler.runCleanUpTags")
 	defer span.End()
 
 	deleteCount, err := s.memoService.DeleteOrphanTags(ctx)
