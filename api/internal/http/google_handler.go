@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
+	"github.com/isutare412/web-memo/api/internal/trace"
 )
 
 type googleHandler struct {
@@ -31,7 +32,8 @@ func (h *googleHandler) router() *chi.Mux {
 }
 
 func (h *googleHandler) googleSignIn(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.googleHandler.googleSignIn")
+	defer span.End()
 
 	redirectURL, err := h.authService.StartGoogleSignIn(ctx, r)
 	if err != nil {
@@ -44,7 +46,8 @@ func (h *googleHandler) googleSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *googleHandler) googleSignInFinish(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.googleHandler.googleSignInFinish")
+	defer span.End()
 
 	redirectURL, appToken, err := h.authService.FinishGoogleSignIn(ctx, r)
 	if err != nil {

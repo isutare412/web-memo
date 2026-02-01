@@ -17,6 +17,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
+	"github.com/isutare412/web-memo/api/internal/trace"
 	"github.com/isutare412/web-memo/api/internal/validate"
 )
 
@@ -54,7 +55,8 @@ func (h *memoHandler) router() *chi.Mux {
 }
 
 func (h *memoHandler) getMemo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.getMemo")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -79,7 +81,8 @@ func (h *memoHandler) getMemo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.listMemos")
+	defer span.End()
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
@@ -133,7 +136,8 @@ func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) createMemo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.createMemo")
+	defer span.End()
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
@@ -171,7 +175,8 @@ func (h *memoHandler) createMemo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) replaceMemo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.replaceMemo")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -220,7 +225,8 @@ func (h *memoHandler) replaceMemo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) publishMemo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.publishMemo")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -260,7 +266,8 @@ func (h *memoHandler) publishMemo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) deleteMemo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.deleteMemo")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -283,7 +290,8 @@ func (h *memoHandler) deleteMemo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) replaceMemoTags(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.replaceMemoTags")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -318,7 +326,8 @@ func (h *memoHandler) replaceMemoTags(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) listMemoTags(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.listMemoTags")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -342,7 +351,8 @@ func (h *memoHandler) listMemoTags(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) getSubscriber(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.getSubscriber")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -388,7 +398,8 @@ func (h *memoHandler) getSubscriber(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) listSubscribers(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.listSubscribers")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -426,7 +437,8 @@ func (h *memoHandler) listSubscribers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) subscribeMemo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.subscribeMemo")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -462,7 +474,8 @@ func (h *memoHandler) subscribeMemo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) unsubscribeMemo(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.unsubscribeMemo")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -498,7 +511,8 @@ func (h *memoHandler) unsubscribeMemo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) getCollaborator(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.getCollaborator")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -558,7 +572,8 @@ func (h *memoHandler) getCollaborator(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *memoHandler) listCollaborators(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.listCollaborators")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -605,7 +620,8 @@ func (h *memoHandler) listCollaborators(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *memoHandler) requestCollaboration(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.requestCollaboration")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -641,7 +657,8 @@ func (h *memoHandler) requestCollaboration(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *memoHandler) authorizeCollaboration(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.authorizeCollaboration")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {
@@ -684,7 +701,8 @@ func (h *memoHandler) authorizeCollaboration(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *memoHandler) cancelCollaboration(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.memoHandler.cancelCollaboration")
+	defer span.End()
 
 	memoID, err := getMemoID(r)
 	if err != nil {

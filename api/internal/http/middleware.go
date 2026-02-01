@@ -137,7 +137,10 @@ func withLogAttrContext(next http.Handler) http.Handler {
 
 func withTrace(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		ctx, span := trace.StartSpan(r.Context(), "http.middleware.withTrace")
+		ctx := r.Context()
+		ctx = trace.ExtractFromHTTPHeader(ctx, r.Header)
+
+		ctx, span := trace.StartSpan(ctx, "http.middleware.withTrace")
 		defer span.End()
 
 		// NOTE: If sampling decision is "not sampled", trace id will be zero-value.

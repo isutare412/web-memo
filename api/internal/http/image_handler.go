@@ -10,6 +10,7 @@ import (
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
+	"github.com/isutare412/web-memo/api/internal/trace"
 	"github.com/isutare412/web-memo/api/internal/validate"
 )
 
@@ -32,7 +33,8 @@ func (h *imageHandler) router() *chi.Mux {
 }
 
 func (h *imageHandler) createUploadURL(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.imageHandler.createUploadURL")
+	defer span.End()
 
 	var req createUploadURLRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -60,7 +62,8 @@ func (h *imageHandler) createUploadURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *imageHandler) getImageStatus(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.imageHandler.getImageStatus")
+	defer span.End()
 
 	imageIDStr := chi.URLParam(r, "imageID")
 	if imageIDStr == "" {

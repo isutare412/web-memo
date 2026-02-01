@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
+	"github.com/isutare412/web-memo/api/internal/trace"
 )
 
 type userHandler struct {
@@ -31,7 +32,8 @@ func (h *userHandler) router() *chi.Mux {
 }
 
 func (h *userHandler) getSelfUser(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.userHandler.getSelfUser")
+	defer span.End()
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
@@ -45,7 +47,8 @@ func (h *userHandler) getSelfUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) refreshUserToken(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "http.userHandler.refreshUserToken")
+	defer span.End()
 
 	passport, ok := extractPassport(ctx)
 	if !ok {
@@ -66,6 +69,9 @@ func (h *userHandler) refreshUserToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) signOutUser(w http.ResponseWriter, r *http.Request) {
+	_, span := trace.StartSpan(r.Context(), "http.userHandler.signOutUser")
+	defer span.End()
+
 	http.SetCookie(w, &http.Cookie{
 		Name:    cookieNameWebMemoToken,
 		Value:   "",
