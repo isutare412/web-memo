@@ -37,7 +37,7 @@ func (s *Service) CreateUploadURL(ctx context.Context, fileName string, format i
 		reqBody.PresetNames = []string{s.downscalePresetName}
 	}
 
-	resp, err := s.createUploadURL(ctx, s.projectID, reqBody)
+	resp, err := s.createUploadURL(ctx, reqBody)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +94,7 @@ func (s *Service) GetImage(ctx context.Context, imageID string, waitUntilProcess
 	return img, nil
 }
 
-func (s *Service) createUploadURL(ctx context.Context, projectID string,
-	req gateway.CreateUploadURLJSONRequestBody,
+func (s *Service) createUploadURL(ctx context.Context, req gateway.CreateUploadURLJSONRequestBody,
 ) (*gateway.CreateUploadURLResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "image.Service.createUploadURL")
 	defer span.End()

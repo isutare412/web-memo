@@ -12,7 +12,9 @@ type errorResponse struct {
 	Msg string `json:"msg"`
 }
 
-func responseError(w http.ResponseWriter, _ *http.Request, err error) {
+func responseError(w http.ResponseWriter, r *http.Request, err error) {
+	ctx := r.Context()
+
 	var (
 		statusCode = http.StatusInternalServerError
 		body       errorResponse
@@ -22,16 +24,18 @@ func responseError(w http.ResponseWriter, _ *http.Request, err error) {
 		statusCode = kerr.Code.ToHTTPStatusCode()
 		switch {
 		case statusCode >= http.StatusInternalServerError:
-			slog.Error("5xx error occurred", "error", err, "code", kerr.Code, "httpStatusCode", statusCode)
+			slog.ErrorContext(ctx, "5xx error occurred", "error", err, "code", kerr.Code,
+				"httpStatusCode", statusCode)
 		case statusCode >= http.StatusBadRequest:
-			slog.Info("4xx error occurred", "error", err, "code", kerr.Code, "httpStatusCode", statusCode)
+			slog.InfoContext(ctx, "4xx error occurred", "error", err, "code", kerr.Code,
+				"httpStatusCode", statusCode)
 		}
 
 		if kerr.ClientMsg != "" {
 			body.Msg = kerr.ClientMsg
 		}
 	} else {
-		slog.Error("unknown error occurred", "error", err, "httpStatusCode", statusCode)
+		slog.ErrorContext(ctx, "unknown error occurred", "error", err, "httpStatusCode", statusCode)
 	}
 
 	if body.Msg == "" {
@@ -40,7 +44,7 @@ func responseError(w http.ResponseWriter, _ *http.Request, err error) {
 
 	bodyBytes, marhsalErr := json.Marshal(&body)
 	if marhsalErr != nil {
-		slog.Error("failed to marshap error response", "error", marhsalErr)
+		slog.ErrorContext(ctx, "failed to marshap error response", "error", marhsalErr)
 	}
 
 	header := w.Header()
@@ -48,7 +52,7 @@ func responseError(w http.ResponseWriter, _ *http.Request, err error) {
 	w.WriteHeader(statusCode)
 
 	if _, err := w.Write(bodyBytes); err != nil {
-		slog.Error("failed to write error response as HTTP response", "error", err)
+		slog.ErrorContext(ctx, "failed to write error response as HTTP response", "error", err)
 		return
 	}
 }
