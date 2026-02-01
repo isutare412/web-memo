@@ -8,6 +8,7 @@ import (
 	"github.com/isutare412/imageer/pkg/gateway"
 	"github.com/isutare412/imageer/pkg/images"
 	"github.com/samber/lo"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/tracing"
@@ -96,7 +97,8 @@ func (s *Service) GetImage(ctx context.Context, imageID string, waitUntilProcess
 
 func (s *Service) createUploadURL(ctx context.Context, req gateway.CreateUploadURLJSONRequestBody,
 ) (*gateway.CreateUploadURLResponse, error) {
-	ctx, span := tracing.StartSpan(ctx, "image.Service.createUploadURL")
+	ctx, span := tracing.StartSpan(ctx, "image.Service.createUploadURL",
+		trace.WithSpanKind(trace.SpanKindClient))
 	defer span.End()
 
 	resp, err := s.imageerClient.CreateUploadURLWithResponse(ctx, s.projectID, req, injectTraceContext)
@@ -108,7 +110,8 @@ func (s *Service) createUploadURL(ctx context.Context, req gateway.CreateUploadU
 
 func (s *Service) getImage(ctx context.Context, imageID string, params *gateway.GetImageParams,
 ) (*gateway.GetImageResponse, error) {
-	ctx, span := tracing.StartSpan(ctx, "image.Service.getImage")
+	ctx, span := tracing.StartSpan(ctx, "image.Service.getImage",
+		trace.WithSpanKind(trace.SpanKindClient))
 	defer span.End()
 
 	resp, err := s.imageerClient.GetImageWithResponse(ctx, s.projectID, imageID, params, injectTraceContext)

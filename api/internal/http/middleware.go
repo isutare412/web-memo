@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/metric"
@@ -141,7 +142,15 @@ func withTrace(next http.Handler) http.Handler {
 		ctx := r.Context()
 		ctx = tracing.ExtractFromHTTPHeader(ctx, r.Header)
 
-		ctx, span := tracing.StartSpan(ctx, "http.middleware.withTrace")
+		spanOpts := []trace.SpanStartOption{
+			trace.WithSpanKind(trace.SpanKindServer),
+		}
+		spanCtx := trace.SpanContextFromContext(ctx)
+		if !spanCtx.IsValid() || !spanCtx.IsRemote() {
+			spanOpts = append(spanOpts, trace.WithAttributes(tracing.PeerServiceInternet))
+		}
+
+		ctx, span := tracing.StartSpan(ctx, "http.middleware.WithTrace", spanOpts...)
 		defer span.End()
 
 		next.ServeHTTP(w, r.WithContext(ctx))

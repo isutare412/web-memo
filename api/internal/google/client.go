@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"strings"
 
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/tracing"
 )
@@ -35,7 +37,9 @@ func NewClient(cfg ClientConfig) *Client {
 }
 
 func (c *Client) ExchangeAuthCode(ctx context.Context, code, redirectURI string) (model.GoogleTokenResponse, error) {
-	ctx, span := tracing.StartSpan(ctx, "google.Client.ExchangeAuthCode")
+	ctx, span := tracing.StartSpan(ctx, "google.Client.ExchangeAuthCode",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceGoogleOIDC))
 	defer span.End()
 
 	body := url.Values{}

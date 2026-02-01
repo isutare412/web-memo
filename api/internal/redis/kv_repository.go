@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 	"github.com/isutare412/web-memo/api/internal/tracing"
@@ -23,7 +24,9 @@ func NewKVRepository(client *Client) *KVRepository {
 }
 
 func (r *KVRepository) Get(ctx context.Context, key string) (string, error) {
-	ctx, span := tracing.StartSpan(ctx, "redis.KVRepository.Get")
+	ctx, span := tracing.StartSpan(ctx, "redis.KVRepository.Get",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceRedis))
 	defer span.End()
 
 	val, err := r.client.Get(ctx, key).Result()
@@ -42,7 +45,9 @@ func (r *KVRepository) Get(ctx context.Context, key string) (string, error) {
 }
 
 func (r *KVRepository) GetThenDelete(ctx context.Context, key string) (string, error) {
-	ctx, span := tracing.StartSpan(ctx, "redis.KVRepository.GetThenDelete")
+	ctx, span := tracing.StartSpan(ctx, "redis.KVRepository.GetThenDelete",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceRedis))
 	defer span.End()
 
 	val, err := r.client.GetDel(ctx, key).Result()
@@ -61,7 +66,9 @@ func (r *KVRepository) GetThenDelete(ctx context.Context, key string) (string, e
 }
 
 func (r *KVRepository) Set(ctx context.Context, key, val string, exp time.Duration) error {
-	ctx, span := tracing.StartSpan(ctx, "redis.KVRepository.Set")
+	ctx, span := tracing.StartSpan(ctx, "redis.KVRepository.Set",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceRedis))
 	defer span.End()
 
 	_, err := r.client.Set(ctx, key, val, exp).Result()
@@ -72,7 +79,9 @@ func (r *KVRepository) Set(ctx context.Context, key, val string, exp time.Durati
 }
 
 func (r *KVRepository) Delete(ctx context.Context, keys ...string) (delCount int64, err error) {
-	ctx, span := tracing.StartSpan(ctx, "redis.KVRepository.Delete")
+	ctx, span := tracing.StartSpan(ctx, "redis.KVRepository.Delete",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceRedis))
 	defer span.End()
 
 	count, err := r.client.Del(ctx, keys...).Result()

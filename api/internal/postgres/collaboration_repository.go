@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
@@ -23,7 +24,9 @@ func NewCollaborationRepository(client *Client) *CollaborationRepository {
 }
 
 func (r *CollaborationRepository) Find(ctx context.Context, memoID, userID uuid.UUID) (*ent.Collaboration, error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.Find")
+	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.Find",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -51,7 +54,9 @@ func (r *CollaborationRepository) Find(ctx context.Context, memoID, userID uuid.
 }
 
 func (r *CollaborationRepository) Create(ctx context.Context, memoID, userID uuid.UUID) (*ent.Collaboration, error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.Create")
+	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.Create",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -72,7 +77,9 @@ func (r *CollaborationRepository) Create(ctx context.Context, memoID, userID uui
 func (r *CollaborationRepository) UpdateApprovedStatus(
 	ctx context.Context, memoID, userID uuid.UUID, approve bool,
 ) (*ent.Collaboration, error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.UpdateApprovedStatus")
+	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.UpdateApprovedStatus",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -121,7 +128,9 @@ func (r *CollaborationRepository) UpdateApprovedStatus(
 }
 
 func (r *CollaborationRepository) Delete(ctx context.Context, memoID, userID uuid.UUID) error {
-	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.Delete")
+	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.Delete",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -152,7 +161,9 @@ func (r *CollaborationRepository) DeleteAllByMemoID(
 	ctx context.Context,
 	memoID uuid.UUID,
 ) (count int, err error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.DeleteAllByMemoID")
+	ctx, span := tracing.StartSpan(ctx, "postgres.CollaborationRepository.DeleteAllByMemoID",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
@@ -25,7 +26,9 @@ func NewTagRepository(client *Client) *TagRepository {
 }
 
 func (r *TagRepository) FindAllByMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.Tag, error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.FindAllByMemoID")
+	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.FindAllByMemoID",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -48,7 +51,9 @@ func (r *TagRepository) FindAllByUserIDAndNameContains(
 	userID uuid.UUID,
 	name string,
 ) ([]*ent.Tag, error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.FindAllByUserIDAndNameContains")
+	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.FindAllByUserIDAndNameContains",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -74,7 +79,9 @@ func (r *TagRepository) FindAllByUserIDAndNameContains(
 }
 
 func (r *TagRepository) CreateIfNotExist(ctx context.Context, tagName string) (*ent.Tag, error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.CreateIfNotExist")
+	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.CreateIfNotExist",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -99,7 +106,9 @@ func (r *TagRepository) CreateIfNotExist(ctx context.Context, tagName string) (*
 }
 
 func (r *TagRepository) DeleteAllWithoutMemo(ctx context.Context, excludes []string) (count int, err error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.DeleteAllWithoutMemo")
+	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.DeleteAllWithoutMemo",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
