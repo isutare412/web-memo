@@ -20,6 +20,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
+	"github.com/isutare412/web-memo/api/internal/trace"
 )
 
 type MemoRepository struct {
@@ -33,6 +34,9 @@ func NewMemoRepository(client *Client) *MemoRepository {
 }
 
 func (r *MemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.FindByID")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	memo, err := client.Memo.
@@ -60,6 +64,9 @@ func (r *MemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.M
 }
 
 func (r *MemoRepository) FindByIDWithEdges(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.FindByIDWithEdges")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	memo, err := client.Memo.
@@ -96,6 +103,9 @@ func (r *MemoRepository) FindAllByUserIDWithEdges(
 	sortParams model.MemoSortParams,
 	pageParams model.PaginationParams,
 ) ([]*ent.Memo, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.FindAllByUserIDWithEdges")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	query := client.Memo.
@@ -137,6 +147,9 @@ func (r *MemoRepository) FindAllByUserIDAndTagNamesWithEdges(
 	sortParams model.MemoSortParams,
 	pageParams model.PaginationParams,
 ) ([]*ent.Memo, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.FindAllByUserIDAndTagNamesWithEdges")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	query := client.Memo.
@@ -179,6 +192,9 @@ func (r *MemoRepository) FindAllByUserIDAndTagNamesWithEdges(
 }
 
 func (r *MemoRepository) CountByUserIDAndTagNames(ctx context.Context, userID uuid.UUID, tags []string) (int, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.CountByUserIDAndTagNames")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	query := client.Memo.
@@ -210,6 +226,9 @@ func (r *MemoRepository) Create(
 	userID uuid.UUID,
 	tagIDs []int,
 ) (*ent.Memo, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.Create")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	memoCreated, err := client.Memo.
@@ -234,6 +253,9 @@ func (r *MemoRepository) Create(
 }
 
 func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.Update")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	memoUpdated, err := client.Memo.
@@ -265,6 +287,9 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 }
 
 func (r *MemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.UUID, isPublish bool) (*ent.Memo, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.UpdateIsPublish")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	// we do not update UpdateTime when published state changes.
@@ -293,6 +318,9 @@ func (r *MemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.UUID, 
 }
 
 func (r *MemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.Delete")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	err := client.Memo.
@@ -313,6 +341,9 @@ func (r *MemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {
 }
 
 func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int, updateTime bool) error {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.ReplaceTags")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	query := client.Memo.
@@ -339,6 +370,9 @@ func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagI
 }
 
 func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.RegisterSubscriber")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	err := client.Subscription.
@@ -354,6 +388,9 @@ func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID 
 }
 
 func (r *MemoRepository) UnregisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.UnregisterSubscriber")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	count, err := client.Subscription.Delete().
@@ -378,6 +415,9 @@ func (r *MemoRepository) UnregisterSubscriber(ctx context.Context, memoID, userI
 }
 
 func (r *MemoRepository) ClearSubscribers(ctx context.Context, memoID uuid.UUID) error {
+	ctx, span := trace.StartSpan(ctx, "postgres.MemoRepository.ClearSubscribers")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	_, err := client.Subscription.

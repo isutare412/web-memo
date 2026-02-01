@@ -6,6 +6,11 @@ log:
   level: debug # debug / info / warn / error
   caller: true
   component: webmemo-api
+trace:
+  enabled: false
+  service-name: webmemo-api
+  sampling-ratio: 0.1
+  otlp-grpc-endpoint: localhost:4317
 http:
   port: 8412
 postgres:

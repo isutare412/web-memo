@@ -46,6 +46,8 @@ func NewServer(
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(
+			withLogAttrContext,
+			withTrace,
 			withContextBag,
 			middleware.RealIP,
 			wrapResponseWriter,

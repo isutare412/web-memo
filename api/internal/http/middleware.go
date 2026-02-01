@@ -10,7 +10,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/metric"
+	"github.com/isutare412/web-memo/api/internal/trace"
 )
 
 type contextBagKey struct{}
@@ -120,5 +122,32 @@ func observeMetrics(next http.Handler) http.Handler {
 		path := chi.RouteContext(ctx).RoutePattern()
 		metric.ObserveHTTPRequest(r.Method, path, statusCode, elapsed)
 	}
+	return http.HandlerFunc(fn)
+}
+
+func withLogAttrContext(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		ctx = log.WithAttrContext(ctx)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func withTrace(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := trace.StartSpan(r.Context(), "http.middleware.withTrace")
+		defer span.End()
+
+		// NOTE: If sampling decision is "not sampled", trace id will be zero-value.
+		spanCtx := span.SpanContext()
+		if traceID := spanCtx.TraceID().String(); traceID != "" {
+			log.AddAttrs(ctx, slog.String("traceId", traceID))
+		}
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+
 	return http.HandlerFunc(fn)
 }

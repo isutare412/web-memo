@@ -14,6 +14,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
+	"github.com/isutare412/web-memo/api/internal/trace"
 )
 
 type UserRepository struct {
@@ -27,6 +28,9 @@ func NewUserRepository(client *Client) *UserRepository {
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*ent.User, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.FindByID")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	userFound, err := client.User.Get(ctx, id)
@@ -45,6 +49,9 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*ent.User,
 }
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*ent.User, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.FindByEmail")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	userFound, err := client.User.
@@ -66,6 +73,9 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*ent.Us
 }
 
 func (r *UserRepository) FindAllBySubscribingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.FindAllBySubscribingMemoID")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	users, err := client.User.
@@ -98,6 +108,9 @@ func (r *UserRepository) FindAllByCollaboratingMemoIDWithEdges(
 	ctx context.Context,
 	memoID uuid.UUID,
 ) ([]*ent.User, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.FindAllByCollaboratingMemoIDWithEdges")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	users, err := client.User.
@@ -127,6 +140,9 @@ func (r *UserRepository) FindAllByCollaboratingMemoIDWithEdges(
 }
 
 func (r *UserRepository) Upsert(ctx context.Context, usr *ent.User) (*ent.User, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.Upsert")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	idUpserted, err := client.User.

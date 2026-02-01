@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/isutare412/web-memo/api/internal/core/model"
+	"github.com/isutare412/web-memo/api/internal/trace"
 )
 
 type Client struct {
@@ -34,6 +35,9 @@ func NewClient(cfg ClientConfig) *Client {
 }
 
 func (c *Client) ExchangeAuthCode(ctx context.Context, code, redirectURI string) (model.GoogleTokenResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "google.Client.ExchangeAuthCode")
+	defer span.End()
+
 	body := url.Values{}
 	body.Add("client_id", c.oauthClientID)
 	body.Add("client_secret", c.oauthClientSecret)

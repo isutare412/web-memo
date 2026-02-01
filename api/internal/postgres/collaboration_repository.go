@@ -9,6 +9,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/ent/collaboration"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
+	"github.com/isutare412/web-memo/api/internal/trace"
 )
 
 type CollaborationRepository struct {
@@ -22,6 +23,9 @@ func NewCollaborationRepository(client *Client) *CollaborationRepository {
 }
 
 func (r *CollaborationRepository) Find(ctx context.Context, memoID, userID uuid.UUID) (*ent.Collaboration, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.CollaborationRepository.Find")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	collabo, err := client.Collaboration.
@@ -47,6 +51,9 @@ func (r *CollaborationRepository) Find(ctx context.Context, memoID, userID uuid.
 }
 
 func (r *CollaborationRepository) Create(ctx context.Context, memoID, userID uuid.UUID) (*ent.Collaboration, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.CollaborationRepository.Create")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	clb, err := client.Collaboration.
@@ -65,6 +72,9 @@ func (r *CollaborationRepository) Create(ctx context.Context, memoID, userID uui
 func (r *CollaborationRepository) UpdateApprovedStatus(
 	ctx context.Context, memoID, userID uuid.UUID, approve bool,
 ) (*ent.Collaboration, error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.CollaborationRepository.UpdateApprovedStatus")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	count, err := client.Collaboration.
@@ -111,6 +121,9 @@ func (r *CollaborationRepository) UpdateApprovedStatus(
 }
 
 func (r *CollaborationRepository) Delete(ctx context.Context, memoID, userID uuid.UUID) error {
+	ctx, span := trace.StartSpan(ctx, "postgres.CollaborationRepository.Delete")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	count, err := client.Collaboration.
@@ -139,6 +152,9 @@ func (r *CollaborationRepository) DeleteAllByMemoID(
 	ctx context.Context,
 	memoID uuid.UUID,
 ) (count int, err error) {
+	ctx, span := trace.StartSpan(ctx, "postgres.CollaborationRepository.DeleteAllByMemoID")
+	defer span.End()
+
 	client := transactionClient(ctx, r.client)
 
 	count, err = client.Collaboration.
