@@ -8,7 +8,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/config"
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/metric"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 	"github.com/isutare412/web-memo/api/internal/wire"
 )
 
@@ -28,9 +28,9 @@ func main() {
 	log.Init(cfg.ToLogConfig())
 	metric.Init()
 
-	trace.Init(cfg.ToTraceConfig())
+	tracing.Init(cfg.ToTracingConfig())
 	defer func() {
-		if err := trace.Shutdown(); err != nil {
+		if err := tracing.Shutdown(); err != nil {
 			slog.Error("failed to shutdown tracer", "error", err)
 		}
 	}()

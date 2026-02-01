@@ -10,7 +10,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/model"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 type Service struct {
@@ -96,7 +96,7 @@ func (s *Service) GetImage(ctx context.Context, imageID string, waitUntilProcess
 
 func (s *Service) createUploadURL(ctx context.Context, req gateway.CreateUploadURLJSONRequestBody,
 ) (*gateway.CreateUploadURLResponse, error) {
-	ctx, span := trace.StartSpan(ctx, "image.Service.createUploadURL")
+	ctx, span := tracing.StartSpan(ctx, "image.Service.createUploadURL")
 	defer span.End()
 
 	resp, err := s.imageerClient.CreateUploadURLWithResponse(ctx, s.projectID, req, injectTraceContext)
@@ -108,7 +108,7 @@ func (s *Service) createUploadURL(ctx context.Context, req gateway.CreateUploadU
 
 func (s *Service) getImage(ctx context.Context, imageID string, params *gateway.GetImageParams,
 ) (*gateway.GetImageResponse, error) {
-	ctx, span := trace.StartSpan(ctx, "image.Service.getImage")
+	ctx, span := tracing.StartSpan(ctx, "image.Service.getImage")
 	defer span.End()
 
 	resp, err := s.imageerClient.GetImageWithResponse(ctx, s.projectID, imageID, params, injectTraceContext)
@@ -119,6 +119,6 @@ func (s *Service) getImage(ctx context.Context, imageID string, params *gateway.
 }
 
 func injectTraceContext(ctx context.Context, req *http.Request) error {
-	trace.InjectToHeader(ctx, req.Header)
+	tracing.InjectToHeader(ctx, req.Header)
 	return nil
 }

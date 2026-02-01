@@ -12,7 +12,7 @@ import (
 
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/metric"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 type contextBagKey struct{}
@@ -138,9 +138,9 @@ func withLogAttrContext(next http.Handler) http.Handler {
 func withTrace(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = trace.ExtractFromHTTPHeader(ctx, r.Header)
+		ctx = tracing.ExtractFromHTTPHeader(ctx, r.Header)
 
-		ctx, span := trace.StartSpan(ctx, "http.middleware.withTrace")
+		ctx, span := tracing.StartSpan(ctx, "http.middleware.withTrace")
 		defer span.End()
 
 		// NOTE: If sampling decision is "not sampled", trace id will be zero-value.

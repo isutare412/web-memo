@@ -9,7 +9,7 @@ import (
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
 	"github.com/isutare412/web-memo/api/internal/core/port"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 type tagHandler struct {
@@ -30,7 +30,7 @@ func (h *tagHandler) router() *chi.Mux {
 }
 
 func (h *tagHandler) listTags(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "http.tagHandler.listTags")
+	ctx, span := tracing.StartSpan(r.Context(), "http.tagHandler.listTags")
 	defer span.End()
 
 	passport, ok := extractPassport(ctx)

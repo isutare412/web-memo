@@ -10,7 +10,7 @@ import (
 	"github.com/go-co-op/gocron/v2"
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 type Scheduler struct {
@@ -71,7 +71,7 @@ func (s *Scheduler) runCleanUpTags() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	ctx, span := trace.StartSpan(ctx, "cron.Scheduler.runCleanUpTags")
+	ctx, span := tracing.StartSpan(ctx, "cron.Scheduler.runCleanUpTags")
 	defer span.End()
 
 	deleteCount, err := s.memoService.DeleteOrphanTags(ctx)

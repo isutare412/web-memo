@@ -11,7 +11,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 type TagRepository struct {
@@ -25,7 +25,7 @@ func NewTagRepository(client *Client) *TagRepository {
 }
 
 func (r *TagRepository) FindAllByMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.Tag, error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.TagRepository.FindAllByMemoID")
+	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.FindAllByMemoID")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -48,7 +48,7 @@ func (r *TagRepository) FindAllByUserIDAndNameContains(
 	userID uuid.UUID,
 	name string,
 ) ([]*ent.Tag, error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.TagRepository.FindAllByUserIDAndNameContains")
+	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.FindAllByUserIDAndNameContains")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -74,7 +74,7 @@ func (r *TagRepository) FindAllByUserIDAndNameContains(
 }
 
 func (r *TagRepository) CreateIfNotExist(ctx context.Context, tagName string) (*ent.Tag, error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.TagRepository.CreateIfNotExist")
+	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.CreateIfNotExist")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -99,7 +99,7 @@ func (r *TagRepository) CreateIfNotExist(ctx context.Context, tagName string) (*
 }
 
 func (r *TagRepository) DeleteAllWithoutMemo(ctx context.Context, excludes []string) (count int, err error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.TagRepository.DeleteAllWithoutMemo")
+	ctx, span := tracing.StartSpan(ctx, "postgres.TagRepository.DeleteAllWithoutMemo")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)

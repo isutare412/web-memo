@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/isutare412/web-memo/api/internal/core/port"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 type userHandler struct {
@@ -32,7 +32,7 @@ func (h *userHandler) router() *chi.Mux {
 }
 
 func (h *userHandler) getSelfUser(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "http.userHandler.getSelfUser")
+	ctx, span := tracing.StartSpan(r.Context(), "http.userHandler.getSelfUser")
 	defer span.End()
 
 	passport, ok := extractPassport(ctx)
@@ -47,7 +47,7 @@ func (h *userHandler) getSelfUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) refreshUserToken(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "http.userHandler.refreshUserToken")
+	ctx, span := tracing.StartSpan(r.Context(), "http.userHandler.refreshUserToken")
 	defer span.End()
 
 	passport, ok := extractPassport(ctx)
@@ -69,7 +69,7 @@ func (h *userHandler) refreshUserToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) signOutUser(w http.ResponseWriter, r *http.Request) {
-	_, span := trace.StartSpan(r.Context(), "http.userHandler.signOutUser")
+	_, span := tracing.StartSpan(r.Context(), "http.userHandler.signOutUser")
 	defer span.End()
 
 	http.SetCookie(w, &http.Cookie{

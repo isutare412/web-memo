@@ -14,7 +14,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 type UserRepository struct {
@@ -28,7 +28,7 @@ func NewUserRepository(client *Client) *UserRepository {
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*ent.User, error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.FindByID")
+	ctx, span := tracing.StartSpan(ctx, "postgres.UserRepository.FindByID")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -49,7 +49,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*ent.User,
 }
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*ent.User, error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.FindByEmail")
+	ctx, span := tracing.StartSpan(ctx, "postgres.UserRepository.FindByEmail")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -73,7 +73,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*ent.Us
 }
 
 func (r *UserRepository) FindAllBySubscribingMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.User, error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.FindAllBySubscribingMemoID")
+	ctx, span := tracing.StartSpan(ctx, "postgres.UserRepository.FindAllBySubscribingMemoID")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -108,7 +108,7 @@ func (r *UserRepository) FindAllByCollaboratingMemoIDWithEdges(
 	ctx context.Context,
 	memoID uuid.UUID,
 ) ([]*ent.User, error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.FindAllByCollaboratingMemoIDWithEdges")
+	ctx, span := tracing.StartSpan(ctx, "postgres.UserRepository.FindAllByCollaboratingMemoIDWithEdges")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
@@ -140,7 +140,7 @@ func (r *UserRepository) FindAllByCollaboratingMemoIDWithEdges(
 }
 
 func (r *UserRepository) Upsert(ctx context.Context, usr *ent.User) (*ent.User, error) {
-	ctx, span := trace.StartSpan(ctx, "postgres.UserRepository.Upsert")
+	ctx, span := tracing.StartSpan(ctx, "postgres.UserRepository.Upsert")
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)

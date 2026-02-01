@@ -1,4 +1,4 @@
-package trace
+package tracing
 
 type Config struct {
 	Enabled          bool    `koanf:"enabled"`

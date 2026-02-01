@@ -13,13 +13,13 @@ import (
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
-	"github.com/isutare412/web-memo/api/internal/trace"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 type Config struct {
 	Wire     WireConfig      `koanf:"wire"`
 	Log      log.Config      `koanf:"log"`
-	Trace    trace.Config    `koanf:"trace"`
+	Trace    tracing.Config  `koanf:"trace"`
 	HTTP     HTTPConfig      `koanf:"http"`
 	Postgres postgres.Config `koanf:"postgres"`
 	Redis    redis.Config    `koanf:"redis"`
@@ -34,7 +34,7 @@ func (c *Config) ToLogConfig() log.Config {
 	return c.Log
 }
 
-func (c *Config) ToTraceConfig() trace.Config {
+func (c *Config) ToTracingConfig() tracing.Config {
 	return c.Trace
 }
 

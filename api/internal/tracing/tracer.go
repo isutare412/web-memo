@@ -1,4 +1,4 @@
-package trace
+package tracing
 
 import (
 	"context"
@@ -68,5 +68,5 @@ func Shutdown() error {
 }
 
 func getTracer() trace.Tracer {
-	return otel.GetTracerProvider().Tracer("github.com/isutare412/web-memo/api/internal/trace")
+	return otel.GetTracerProvider().Tracer("github.com/isutare412/web-memo/api/internal/tracing")
 }
