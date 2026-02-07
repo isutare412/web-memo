@@ -47,7 +47,7 @@ type listMemosResponse struct {
 
 type createMemoRequest struct {
 	Title   string   `json:"title" validate:"required"`
-	Content string   `json:"content"`
+	Content string   `json:"content" validate:"max=12000"`
 	Tags    []string `json:"tags"`
 }
 
@@ -70,7 +70,7 @@ func (r *createMemoRequest) toMemo() *ent.Memo {
 
 type replaceMemoRequest struct {
 	Title   string   `json:"title" validate:"required"`
-	Content string   `json:"content"`
+	Content string   `json:"content" validate:"max=12000"`
 	Tags    []string `json:"tags"`
 	Version *int     `json:"version" validate:"required"`
 }
