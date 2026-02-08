@@ -45,6 +45,7 @@
 
   let searchInputValue = ''
   let searchInput: HTMLInputElement
+  let navigateAfterComposition = false
 
   afterNavigate(() => {
     searchInputValue = searchParams.get('q') ?? ''
@@ -119,9 +120,42 @@
     }
   }
 
-  function onSearchKeyUp(event: KeyboardEvent) {
-    if (event.key === 'Enter' && searchInputValue.trim() !== '') {
+  // Korean (and other CJK) IME search navigation
+  //
+  // A naive on:keyup handler for Enter would cause a duplicate browser history
+  // entry when pressing Enter while the IME is composing (e.g. typing "한글"
+  // then Enter in Chrome). This happens because compositionend fires before
+  // keyup, making event.isComposing already false — so a keyup handler cannot
+  // distinguish the IME-triggered Enter from a real one, and goto() gets
+  // called twice, pushing a duplicate history entry. The symptom is that the
+  // browser back button appears to do nothing the first time.
+  //
+  // To fix this, we use on:keydown (where isComposing is reliably true during
+  // composition) combined with on:compositionend:
+  //   - Non-IME Enter: keydown fires with isComposing=false → navigate immediately.
+  //   - IME Enter: keydown fires with isComposing=true → set a flag, then
+  //     compositionend fires → navigate once via setTimeout(0) to ensure the
+  //     input value reflects the finalized text.
+
+  function navigateToSearch() {
+    if (searchInputValue.trim() !== '') {
       goto(`/?q=${encodeURIComponent(searchInputValue.trim())}`)
+    }
+  }
+
+  function onSearchKeyDown(event: KeyboardEvent) {
+    if (event.key !== 'Enter') return
+    if (event.isComposing) {
+      navigateAfterComposition = true
+    } else {
+      navigateToSearch()
+    }
+  }
+
+  function onSearchCompositionEnd() {
+    if (navigateAfterComposition) {
+      navigateAfterComposition = false
+      setTimeout(() => navigateToSearch(), 0)
     }
   }
 
@@ -246,7 +280,8 @@
             placeholder="Search memos..."
             bind:this={searchInput}
             bind:value={searchInputValue}
-            on:keyup={onSearchKeyUp}
+            on:keydown={onSearchKeyDown}
+            on:compositionend={onSearchCompositionEnd}
             class="input input-sm input-bordered w-full text-base focus:border-primary focus:outline-none"
           />
         </div>
