@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math"
 	"net/http"
 	"sort"
 
@@ -339,7 +338,7 @@ func (c *Client) Search(ctx context.Context, query string, ownerIDFilter *uuid.U
 			GroupBy:        "memo_id",
 			GroupSize:      qdrant.PtrOf(uint64(1)),
 			Limit:          qdrant.PtrOf(uint64(limit)),
-			ScoreThreshold: qdrant.PtrOf(float32(math.SmallestNonzeroFloat32)),
+			ScoreThreshold: qdrant.PtrOf(float32(0.1)), // hard threshold to reduce noise
 			Filter:         filter,
 		})
 		if err != nil {
