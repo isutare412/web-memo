@@ -205,7 +205,11 @@ func (c *Client) Search(ctx context.Context, query string, ownerIDFilter *uuid.U
 		trace.WithAttributes(tracing.PeerServiceQdrant))
 	defer span.End()
 
-	embeddings, err := c.Embed(ctx, []string{query})
+	// Qwen3-Embedding models produce better retrieval vectors when queries
+	// include an instruction prefix. Documents are embedded without it.
+	// See https://huggingface.co/Qwen/Qwen3-Embedding-0.6B
+	instructQuery := "Instruct: Given a search query, retrieve relevant memos that match the query\nQuery:" + query
+	embeddings, err := c.Embed(ctx, []string{instructQuery})
 	if err != nil {
 		return nil, fmt.Errorf("embedding query: %w", err)
 	}
