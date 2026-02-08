@@ -189,28 +189,6 @@ func (c *Client) UpsertChunks(ctx context.Context, memoID, ownerID uuid.UUID, em
 	return nil
 }
 
-func (c *Client) ExistsByMemoID(ctx context.Context, memoID uuid.UUID) (bool, error) {
-	ctx, span := tracing.StartSpan(ctx, "embedding.Client.ExistsByMemoID",
-		trace.WithSpanKind(trace.SpanKindClient),
-		trace.WithAttributes(tracing.PeerServiceQdrant))
-	defer span.End()
-
-	count, err := c.qdrantClient.Count(ctx, &qdrant.CountPoints{
-		CollectionName: c.collectionName,
-		Filter: &qdrant.Filter{
-			Must: []*qdrant.Condition{
-				qdrant.NewMatch("memo_id", memoID.String()),
-			},
-		},
-		Exact: qdrant.PtrOf(true),
-	})
-	if err != nil {
-		return false, fmt.Errorf("counting points: %w", err)
-	}
-
-	return count > 0, nil
-}
-
 func (c *Client) Close() error {
 	return c.qdrantClient.Close()
 }

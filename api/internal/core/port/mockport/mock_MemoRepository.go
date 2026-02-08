@@ -422,6 +422,65 @@ func (_c *MockMemoRepository_FindAllByUserIDWithEdges_Call) RunAndReturn(run fun
 	return _c
 }
 
+// FindAllNotEmbedded provides a mock function with given fields: ctx, pageParams
+func (_m *MockMemoRepository) FindAllNotEmbedded(ctx context.Context, pageParams model.PaginationParams) ([]*ent.Memo, error) {
+	ret := _m.Called(ctx, pageParams)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindAllNotEmbedded")
+	}
+
+	var r0 []*ent.Memo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, model.PaginationParams) ([]*ent.Memo, error)); ok {
+		return rf(ctx, pageParams)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, model.PaginationParams) []*ent.Memo); ok {
+		r0 = rf(ctx, pageParams)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*ent.Memo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, model.PaginationParams) error); ok {
+		r1 = rf(ctx, pageParams)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockMemoRepository_FindAllNotEmbedded_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindAllNotEmbedded'
+type MockMemoRepository_FindAllNotEmbedded_Call struct {
+	*mock.Call
+}
+
+// FindAllNotEmbedded is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pageParams model.PaginationParams
+func (_e *MockMemoRepository_Expecter) FindAllNotEmbedded(ctx interface{}, pageParams interface{}) *MockMemoRepository_FindAllNotEmbedded_Call {
+	return &MockMemoRepository_FindAllNotEmbedded_Call{Call: _e.mock.On("FindAllNotEmbedded", ctx, pageParams)}
+}
+
+func (_c *MockMemoRepository_FindAllNotEmbedded_Call) Run(run func(ctx context.Context, pageParams model.PaginationParams)) *MockMemoRepository_FindAllNotEmbedded_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(model.PaginationParams))
+	})
+	return _c
+}
+
+func (_c *MockMemoRepository_FindAllNotEmbedded_Call) Return(_a0 []*ent.Memo, _a1 error) *MockMemoRepository_FindAllNotEmbedded_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockMemoRepository_FindAllNotEmbedded_Call) RunAndReturn(run func(context.Context, model.PaginationParams) ([]*ent.Memo, error)) *MockMemoRepository_FindAllNotEmbedded_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindByID provides a mock function with given fields: ctx, memoID
 func (_m *MockMemoRepository) FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error) {
 	ret := _m.Called(ctx, memoID)
@@ -740,6 +799,54 @@ func (_c *MockMemoRepository_Update_Call) Return(_a0 *ent.Memo, _a1 error) *Mock
 }
 
 func (_c *MockMemoRepository_Update_Call) RunAndReturn(run func(context.Context, *ent.Memo) (*ent.Memo, error)) *MockMemoRepository_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateIsEmbedded provides a mock function with given fields: ctx, memoID, isEmbedded
+func (_m *MockMemoRepository) UpdateIsEmbedded(ctx context.Context, memoID uuid.UUID, isEmbedded bool) error {
+	ret := _m.Called(ctx, memoID, isEmbedded)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateIsEmbedded")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, bool) error); ok {
+		r0 = rf(ctx, memoID, isEmbedded)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockMemoRepository_UpdateIsEmbedded_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateIsEmbedded'
+type MockMemoRepository_UpdateIsEmbedded_Call struct {
+	*mock.Call
+}
+
+// UpdateIsEmbedded is a helper method to define mock.On call
+//   - ctx context.Context
+//   - memoID uuid.UUID
+//   - isEmbedded bool
+func (_e *MockMemoRepository_Expecter) UpdateIsEmbedded(ctx interface{}, memoID interface{}, isEmbedded interface{}) *MockMemoRepository_UpdateIsEmbedded_Call {
+	return &MockMemoRepository_UpdateIsEmbedded_Call{Call: _e.mock.On("UpdateIsEmbedded", ctx, memoID, isEmbedded)}
+}
+
+func (_c *MockMemoRepository_UpdateIsEmbedded_Call) Run(run func(ctx context.Context, memoID uuid.UUID, isEmbedded bool)) *MockMemoRepository_UpdateIsEmbedded_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(bool))
+	})
+	return _c
+}
+
+func (_c *MockMemoRepository_UpdateIsEmbedded_Call) Return(_a0 error) *MockMemoRepository_UpdateIsEmbedded_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockMemoRepository_UpdateIsEmbedded_Call) RunAndReturn(run func(context.Context, uuid.UUID, bool) error) *MockMemoRepository_UpdateIsEmbedded_Call {
 	_c.Call.Return(run)
 	return _c
 }

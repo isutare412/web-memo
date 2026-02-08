@@ -26,6 +26,7 @@ type UserRepository interface {
 type MemoRepository interface {
 	FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
 	FindByIDWithEdges(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
+	FindAllNotEmbedded(ctx context.Context, pageParams model.PaginationParams) ([]*ent.Memo, error)
 	FindAll(ctx context.Context, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error)
 	FindAllByUserIDWithEdges(
 		ctx context.Context, userID uuid.UUID,
@@ -37,6 +38,7 @@ type MemoRepository interface {
 	Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error)
 	Update(context.Context, *ent.Memo) (*ent.Memo, error)
 	UpdateIsPublish(ctx context.Context, memoID uuid.UUID, isPublish bool) (*ent.Memo, error)
+	UpdateIsEmbedded(ctx context.Context, memoID uuid.UUID, isEmbedded bool) error
 	Delete(ctx context.Context, memoID uuid.UUID) error
 
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int, updateTime bool) error

@@ -25,17 +25,19 @@ type job struct {
 }
 
 type Worker struct {
-	client *Client
-	jobs   chan job
-	wg     sync.WaitGroup
-	errs   chan error
+	client  *Client
+	jobs    chan job
+	results chan uuid.UUID
+	wg      sync.WaitGroup
+	errs    chan error
 }
 
 func NewWorker(cfg Config, client *Client) *Worker {
 	return &Worker{
-		client: client,
-		jobs:   make(chan job, cfg.JobBufferSize),
-		errs:   make(chan error, 1),
+		client:  client,
+		jobs:    make(chan job, cfg.JobBufferSize),
+		results: make(chan uuid.UUID, cfg.JobBufferSize),
+		errs:    make(chan error, 1),
 	}
 }
 
@@ -64,6 +66,10 @@ func (w *Worker) Run() <-chan error {
 	return w.errs
 }
 
+func (w *Worker) Results() <-chan uuid.UUID {
+	return w.results
+}
+
 func (w *Worker) Shutdown(ctx context.Context) error {
 	close(w.jobs)
 
@@ -78,6 +84,8 @@ func (w *Worker) Shutdown(ctx context.Context) error {
 		return ctx.Err()
 	case <-done:
 	}
+
+	close(w.results)
 
 	if err := w.client.Close(); err != nil {
 		return fmt.Errorf("closing embedding client: %w", err)
@@ -125,6 +133,8 @@ func (w *Worker) processEmbed(ctx context.Context, ej model.EmbeddingJob) {
 		slog.Error("failed to upsert embeddings", "memoId", ej.MemoID, "error", err)
 		return
 	}
+
+	w.results <- ej.MemoID
 
 	slog.Info("embedded memo", "memoId", ej.MemoID, "chunks", len(chunks))
 }

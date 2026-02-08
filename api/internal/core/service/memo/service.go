@@ -3,8 +3,10 @@ package memo
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
@@ -32,7 +34,8 @@ type Service struct {
 	userRepository          port.UserRepository
 	collaborationRepository port.CollaborationRepository
 	embeddingEnqueuer       port.EmbeddingEnqueuer
-	embeddingRepository     port.EmbeddingRepository
+
+	wg sync.WaitGroup
 }
 
 func NewService(
@@ -42,7 +45,6 @@ func NewService(
 	userReposiotry port.UserRepository,
 	collaborationRepository port.CollaborationRepository,
 	embeddingEnqueuer port.EmbeddingEnqueuer,
-	embeddingRepository port.EmbeddingRepository,
 ) *Service {
 	return &Service{
 		transactionManager:      transactionManager,
@@ -51,8 +53,27 @@ func NewService(
 		userRepository:          userReposiotry,
 		collaborationRepository: collaborationRepository,
 		embeddingEnqueuer:       embeddingEnqueuer,
-		embeddingRepository:     embeddingRepository,
 	}
+}
+
+func (s *Service) Run() {
+	results := s.embeddingEnqueuer.Results()
+	if results == nil {
+		return
+	}
+
+	s.wg.Go(func() {
+		ctx := context.Background()
+		for memoID := range results {
+			if err := s.memoRepository.UpdateIsEmbedded(ctx, memoID, true); err != nil {
+				slog.ErrorContext(ctx, "failed to mark memo as embedded", "memoId", memoID, "error", err)
+			}
+		}
+	})
+}
+
+func (s *Service) Shutdown() {
+	s.wg.Wait()
 }
 
 func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error) {
@@ -429,24 +450,14 @@ func (s *Service) DeleteOrphanTags(ctx context.Context) (count int, err error) {
 }
 
 func (s *Service) EnqueueMissingEmbeddings(ctx context.Context) (enqueued int, err error) {
-	sortParams := model.MemoSortParams{}
 	for page := 1; ; page++ {
 		pageParams := model.PaginationParams{PageOffset: page, PageSize: embeddingSyncPageSize}
-		memos, err := s.memoRepository.FindAll(ctx, sortParams, pageParams)
+		memos, err := s.memoRepository.FindAllNotEmbedded(ctx, pageParams)
 		if err != nil {
-			return enqueued, fmt.Errorf("listing memos (page=%d): %w", page, err)
+			return enqueued, fmt.Errorf("listing not-embedded memos (page=%d): %w", page, err)
 		}
 
-		// TODO: we should consider save embedding existence in memo table to reduce queries.
 		for _, m := range memos {
-			exists, err := s.embeddingRepository.ExistsByMemoID(ctx, m.ID)
-			if err != nil {
-				return enqueued, fmt.Errorf("checking embedding existence for memo(%s): %w", m.ID, err)
-			}
-			if exists {
-				continue
-			}
-
 			s.embeddingEnqueuer.Enqueue(model.EmbeddingJob{
 				MemoID:  m.ID,
 				OwnerID: m.OwnerID,

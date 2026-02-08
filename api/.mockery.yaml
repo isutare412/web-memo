@@ -15,7 +15,6 @@ packages:
       CollaborationRepository:
       KVRepository:
       EmbeddingEnqueuer:
-      EmbeddingRepository:
       AuthService:
       MemoService:
 

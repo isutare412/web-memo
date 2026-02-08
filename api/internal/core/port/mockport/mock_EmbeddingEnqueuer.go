@@ -88,6 +88,53 @@ func (_c *MockEmbeddingEnqueuer_EnqueueDelete_Call) RunAndReturn(run func(uuid.U
 	return _c
 }
 
+// Results provides a mock function with no fields
+func (_m *MockEmbeddingEnqueuer) Results() <-chan uuid.UUID {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Results")
+	}
+
+	var r0 <-chan uuid.UUID
+	if rf, ok := ret.Get(0).(func() <-chan uuid.UUID); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(<-chan uuid.UUID)
+		}
+	}
+
+	return r0
+}
+
+// MockEmbeddingEnqueuer_Results_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Results'
+type MockEmbeddingEnqueuer_Results_Call struct {
+	*mock.Call
+}
+
+// Results is a helper method to define mock.On call
+func (_e *MockEmbeddingEnqueuer_Expecter) Results() *MockEmbeddingEnqueuer_Results_Call {
+	return &MockEmbeddingEnqueuer_Results_Call{Call: _e.mock.On("Results")}
+}
+
+func (_c *MockEmbeddingEnqueuer_Results_Call) Run(run func()) *MockEmbeddingEnqueuer_Results_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEmbeddingEnqueuer_Results_Call) Return(_a0 <-chan uuid.UUID) *MockEmbeddingEnqueuer_Results_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockEmbeddingEnqueuer_Results_Call) RunAndReturn(run func() <-chan uuid.UUID) *MockEmbeddingEnqueuer_Results_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockEmbeddingEnqueuer creates a new instance of MockEmbeddingEnqueuer. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockEmbeddingEnqueuer(t interface {

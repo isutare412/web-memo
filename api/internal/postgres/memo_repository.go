@@ -102,6 +102,41 @@ func (r *MemoRepository) FindByIDWithEdges(ctx context.Context, memoID uuid.UUID
 	return memo, nil
 }
 
+func (r *MemoRepository) FindAllNotEmbedded(
+	ctx context.Context,
+	pageParams model.PaginationParams,
+) ([]*ent.Memo, error) {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.FindAllNotEmbedded",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	page, pageSize := pageParams.GetOrDefault()
+	offset := (page - 1) * pageSize
+
+	memos, err := client.Memo.
+		Query().
+		Where(memo.IsEmbedded(false)).
+		Offset(offset).
+		Limit(pageSize).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range memos {
+		contentDecoded, err := base64Decode(m.Content)
+		if err != nil {
+			return nil, err
+		}
+		m.Content = contentDecoded
+	}
+
+	return memos, nil
+}
+
 func (r *MemoRepository) FindAll(
 	ctx context.Context,
 	sortParams model.MemoSortParams,
@@ -315,6 +350,7 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 		SetContent(base64Encode(memo.Content)).
 		SetIsPublished(memo.IsPublished).
 		SetVersion(memo.Version).
+		SetIsEmbedded(false).
 		SetUpdateTime(lo.Ternary(memo.UpdateTime.IsZero(), time.Now(), memo.UpdateTime)).
 		Save(ctx)
 	switch {
@@ -368,6 +404,32 @@ func (r *MemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.UUID, 
 	memoUpdated.Content = contentDecoded
 
 	return memoUpdated, nil
+}
+
+func (r *MemoRepository) UpdateIsEmbedded(ctx context.Context, memoID uuid.UUID, isEmbedded bool) error {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.UpdateIsEmbedded",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	err := client.Memo.
+		UpdateOneID(memoID).
+		SetIsEmbedded(isEmbedded).
+		Exec(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: fmt.Sprintf("memo with id(%s) not found", memoID.String()),
+		}
+	case err != nil:
+		return err
+	}
+
+	return nil
 }
 
 func (r *MemoRepository) Delete(ctx context.Context, memoID uuid.UUID) error {

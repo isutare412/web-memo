@@ -32,6 +32,7 @@ type App struct {
 	httpServer      *http.Server
 	cronScheduler   *cron.Scheduler
 	embeddingWorker *embedding.Worker
+	memoService     *memo.Service
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -61,7 +62,6 @@ func NewApp(cfg *config.Config) (*App, error) {
 	}
 
 	var embeddingEnqueuer port.EmbeddingEnqueuer
-	var embeddingRepository port.EmbeddingRepository
 	var embeddingWorker *embedding.Worker
 	if cfg.Embedding.Enabled {
 		embeddingClient, err := embedding.NewClient(cfg.ToEmbeddingConfig())
@@ -71,17 +71,15 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 		embeddingWorker = embedding.NewWorker(cfg.ToEmbeddingConfig(), embeddingClient)
 		embeddingEnqueuer = embeddingWorker
-		embeddingRepository = embeddingClient
 	} else {
 		embeddingEnqueuer = embedding.NoopEnqueuer{}
-		embeddingRepository = embedding.NoopRepository{}
 	}
 
 	authService := auth.NewService(
 		cfg.ToAuthServiceConfig(), postgresClient, kvRepository, userRepository, googleClient, jwtClient)
 	memoService := memo.NewService(
 		postgresClient, memoRepository, tagRepository, userRepository, collaborationRepository,
-		embeddingEnqueuer, embeddingRepository)
+		embeddingEnqueuer)
 	imageService := image.NewService(cfg.ToImageServiceConfig(), imageerClient)
 
 	pingers := []port.Pinger{
@@ -104,6 +102,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 		httpServer:      httpServer,
 		cronScheduler:   cronScheduler,
 		embeddingWorker: embeddingWorker,
+		memoService:     memoService,
 	}, nil
 }
 
@@ -140,6 +139,8 @@ func (a *App) Run() {
 	if a.embeddingWorker != nil {
 		embeddingWorkerErrs = a.embeddingWorker.Run()
 	}
+
+	a.memoService.Run()
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -182,6 +183,9 @@ func (a *App) Shutdown() {
 			slog.Error("failed to shutdown embeddingWorker", "error", err)
 		}
 	}
+
+	slog.Info("shutdown memoService")
+	a.memoService.Shutdown()
 
 	slog.Info("shutdown redisClient")
 	if err := a.redisClient.Shutdown(ctx); err != nil {
