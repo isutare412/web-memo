@@ -12,9 +12,30 @@ help: ## Display this help.
 run: ## Run server locally.
 	go run ./cmd/...
 
+.PHONY: check
+check: format lint test ## Run format, lint, and tests
+
 .PHONY: test
 test: ginkgo ## Run tests.
 	$(GINKGO) --coverprofile coverage.out ./... && go tool cover -func coverage.out > coverage-report.txt
+
+.PHONY: format
+format: ## Check Go code formatting
+	@echo "🔍 Checking Go code formatting..." && \
+	OUTPUT=$$(gofmt -d $$(find . -name '*.go' -not -path './vendor/*')); \
+	if [ "$$OUTPUT" ]; then \
+		echo "$$OUTPUT"; \
+		echo "❌ Code is not properly formatted. Run 'go fmt ./...' to fix."; \
+		exit 1; \
+	else \
+		echo "✅ All Go files are properly formatted."; \
+	fi
+
+.PHONY: lint
+lint: golangci-lint ## Run golangci-lint
+	@echo "🔍 Running golangci-lint..." && \
+		$(GOLANGCI_LINT) run && \
+		echo "✅ Linting complete."
 
 .PHONY: mocks
 mocks: mockery ## Generate mock implementations.
@@ -47,6 +68,7 @@ $(LOCALBIN):
 ## Tool Binaries
 MOCKERY ?= $(LOCALBIN)/mockery
 GINKGO ?= $(LOCALBIN)/ginkgo
+GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 
 .PHONY: mockery
 mockery: $(MOCKERY) ## Install mockery if necessary.
@@ -58,3 +80,15 @@ $(MOCKERY): $(LOCALBIN)
 ginkgo: $(GINKGO) ## Install ginkgo.
 $(GINKGO): $(LOCALBIN)
 	@test -s $(GINKGO) || GOBIN=$(LOCALBIN) go install github.com/onsi/ginkgo/v2/ginkgo@v2.20.2
+
+
+.PHONY: golangci-lint
+golangci-lint: ## Check and install golangci-lint if needed
+	@GOPATH_BIN=$$(go env GOPATH)/bin; \
+	if [ ! -f "$(GOLANGCI_LINT)" ]; then \
+		echo "⚠️ golangci-lint not found in $$LOCALBIN. Installing..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(LOCALBIN) v2.8.0 && \
+		echo "✅ golangci-lint installed successfully."; \
+	else \
+		echo "✅ golangci-lint is already installed."; \
+	fi

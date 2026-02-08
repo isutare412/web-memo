@@ -2,6 +2,7 @@ name: web-memo
 
 volumes:
   postgres-storage:
+  qdrant-storage:
 
 networks:
   app-tier:
@@ -31,3 +32,14 @@ services:
     ports:
       - ${REDIS_PORT}:6379
     restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.16
+    networks:
+      app-tier:
+    ports:
+      - ${QDRANT_HTTP_PORT}:6333
+      - ${QDRANT_GRPC_PORT}:6334
+    restart: unless-stopped
+    volumes:
+      - qdrant-storage:/qdrant/storage

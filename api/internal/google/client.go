@@ -63,7 +63,7 @@ func (c *Client) ExchangeAuthCode(ctx context.Context, code, redirectURI string)
 	case rawResp.StatusCode >= 400:
 		return model.GoogleTokenResponse{}, fmt.Errorf("got error from Google token API; statusCode(%d)", rawResp.StatusCode)
 	}
-	defer rawResp.Body.Close()
+	defer func() { _ = rawResp.Body.Close() }()
 
 	var resp googleOAuthTokens
 	if err := json.NewDecoder(rawResp.Body).Decode(&resp); err != nil {

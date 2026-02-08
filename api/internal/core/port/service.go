@@ -35,6 +35,7 @@ type MemoService interface {
 	SearchTags(ctx context.Context, keyword string, requester *model.AppIDToken) ([]*ent.Tag, error)
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagNames []string, requester *model.AppIDToken) ([]*ent.Tag, error)
 	DeleteOrphanTags(context.Context) (count int, err error)
+	EnqueueMissingEmbeddings(context.Context) (enqueued int, err error)
 
 	ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListSubscribersResponse, error)
 	SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error

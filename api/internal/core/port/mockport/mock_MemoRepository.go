@@ -239,6 +239,66 @@ func (_c *MockMemoRepository_Delete_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
+// FindAll provides a mock function with given fields: ctx, sortParams, pageParams
+func (_m *MockMemoRepository) FindAll(ctx context.Context, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error) {
+	ret := _m.Called(ctx, sortParams, pageParams)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindAll")
+	}
+
+	var r0 []*ent.Memo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, model.MemoSortParams, model.PaginationParams) ([]*ent.Memo, error)); ok {
+		return rf(ctx, sortParams, pageParams)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, model.MemoSortParams, model.PaginationParams) []*ent.Memo); ok {
+		r0 = rf(ctx, sortParams, pageParams)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*ent.Memo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, model.MemoSortParams, model.PaginationParams) error); ok {
+		r1 = rf(ctx, sortParams, pageParams)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockMemoRepository_FindAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindAll'
+type MockMemoRepository_FindAll_Call struct {
+	*mock.Call
+}
+
+// FindAll is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sortParams model.MemoSortParams
+//   - pageParams model.PaginationParams
+func (_e *MockMemoRepository_Expecter) FindAll(ctx interface{}, sortParams interface{}, pageParams interface{}) *MockMemoRepository_FindAll_Call {
+	return &MockMemoRepository_FindAll_Call{Call: _e.mock.On("FindAll", ctx, sortParams, pageParams)}
+}
+
+func (_c *MockMemoRepository_FindAll_Call) Run(run func(ctx context.Context, sortParams model.MemoSortParams, pageParams model.PaginationParams)) *MockMemoRepository_FindAll_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(model.MemoSortParams), args[2].(model.PaginationParams))
+	})
+	return _c
+}
+
+func (_c *MockMemoRepository_FindAll_Call) Return(_a0 []*ent.Memo, _a1 error) *MockMemoRepository_FindAll_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockMemoRepository_FindAll_Call) RunAndReturn(run func(context.Context, model.MemoSortParams, model.PaginationParams) ([]*ent.Memo, error)) *MockMemoRepository_FindAll_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindAllByUserIDAndTagNamesWithEdges provides a mock function with given fields: ctx, userID, tags, sortParams, pageParams
 func (_m *MockMemoRepository) FindAllByUserIDAndTagNamesWithEdges(ctx context.Context, userID uuid.UUID, tags []string, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error) {
 	ret := _m.Called(ctx, userID, tags, sortParams, pageParams)

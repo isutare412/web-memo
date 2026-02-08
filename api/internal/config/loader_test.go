@@ -13,6 +13,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/log"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 var _ = Describe("Loader", func() {
@@ -26,6 +27,11 @@ log:
   format: text
   level: debug
   caller: true
+trace:
+  enabled: false
+  service-name: webmemo-api-test
+  sampling-ratio: 0.5
+  otlp-grpc-endpoint: localhost:4317
 http:
   port: 8412
 postgres:
@@ -118,6 +124,11 @@ imageer:
 						Level:  log.LevelDebug,
 						Caller: true,
 					},
+					Trace: tracing.Config{
+						ServiceName:      "webmemo-api-test",
+						SamplingRatio:    0.5,
+						OTLPGRPCEndpoint: "localhost:4317",
+					},
 					HTTP: config.HTTPConfig{
 						Port: 8412,
 					},
@@ -189,6 +200,11 @@ imageer:
 						Format: log.FormatText,
 						Level:  log.LevelDebug,
 						Caller: true,
+					},
+					Trace: tracing.Config{
+						ServiceName:      "webmemo-api-test",
+						SamplingRatio:    0.5,
+						OTLPGRPCEndpoint: "localhost:4317",
 					},
 					HTTP: config.HTTPConfig{
 						Port: 8412,
@@ -265,6 +281,11 @@ oauth:
 						Format: log.FormatText,
 						Level:  log.LevelDebug,
 						Caller: true,
+					},
+					Trace: tracing.Config{
+						ServiceName:      "webmemo-api-test",
+						SamplingRatio:    0.5,
+						OTLPGRPCEndpoint: "localhost:4317",
 					},
 					HTTP: config.HTTPConfig{
 						Port: 12345,

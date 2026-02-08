@@ -1,4 +1,4 @@
-package pkgerr_test
+package embedding
 
 import (
 	"testing"
@@ -9,9 +9,9 @@ import (
 	"github.com/isutare412/web-memo/api/internal/log"
 )
 
-func TestPkgerr(t *testing.T) {
+func TestEmbedding(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Pkgerr Suite")
+	RunSpecs(t, "Embedding Suite")
 }
 
 var _ = BeforeSuite(func() {

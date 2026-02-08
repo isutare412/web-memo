@@ -15,6 +15,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/service/image"
 	"github.com/isutare412/web-memo/api/internal/core/service/memo"
 	"github.com/isutare412/web-memo/api/internal/cron"
+	"github.com/isutare412/web-memo/api/internal/embedding"
 	"github.com/isutare412/web-memo/api/internal/google"
 	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/imageer"
@@ -26,10 +27,11 @@ import (
 type App struct {
 	cfg *config.Config
 
-	postgresClient *postgres.Client
-	redisClient    *redis.Client
-	httpServer     *http.Server
-	cronScheduler  *cron.Scheduler
+	postgresClient  *postgres.Client
+	redisClient     *redis.Client
+	httpServer      *http.Server
+	cronScheduler   *cron.Scheduler
+	embeddingWorker *embedding.Worker
 }
 
 func NewApp(cfg *config.Config) (*App, error) {
@@ -58,10 +60,28 @@ func NewApp(cfg *config.Config) (*App, error) {
 		return nil, fmt.Errorf("creating Imageer client: %w", err)
 	}
 
+	var embeddingEnqueuer port.EmbeddingEnqueuer
+	var embeddingRepository port.EmbeddingRepository
+	var embeddingWorker *embedding.Worker
+	if cfg.Embedding.Enabled {
+		embeddingClient, err := embedding.NewClient(cfg.ToEmbeddingConfig())
+		if err != nil {
+			return nil, fmt.Errorf("creating embedding client: %w", err)
+		}
+
+		embeddingWorker = embedding.NewWorker(cfg.ToEmbeddingConfig(), embeddingClient)
+		embeddingEnqueuer = embeddingWorker
+		embeddingRepository = embeddingClient
+	} else {
+		embeddingEnqueuer = embedding.NoopEnqueuer{}
+		embeddingRepository = embedding.NoopRepository{}
+	}
+
 	authService := auth.NewService(
 		cfg.ToAuthServiceConfig(), postgresClient, kvRepository, userRepository, googleClient, jwtClient)
 	memoService := memo.NewService(
-		postgresClient, memoRepository, tagRepository, userRepository, collaborationRepository)
+		postgresClient, memoRepository, tagRepository, userRepository, collaborationRepository,
+		embeddingEnqueuer, embeddingRepository)
 	imageService := image.NewService(cfg.ToImageServiceConfig(), imageerClient)
 
 	pingers := []port.Pinger{
@@ -79,10 +99,11 @@ func NewApp(cfg *config.Config) (*App, error) {
 	return &App{
 		cfg: cfg,
 
-		postgresClient: postgresClient,
-		redisClient:    redisClient,
-		httpServer:     httpServer,
-		cronScheduler:  cronScheduler,
+		postgresClient:  postgresClient,
+		redisClient:     redisClient,
+		httpServer:      httpServer,
+		cronScheduler:   cronScheduler,
+		embeddingWorker: embeddingWorker,
 	}, nil
 }
 
@@ -101,12 +122,24 @@ func (a *App) Initialize() (err error) {
 		return fmt.Errorf("migrating schemas: %w", err)
 	}
 
+	if a.embeddingWorker != nil {
+		slog.Info("ensure qdrant collection")
+		if err := a.embeddingWorker.EnsureCollection(ctx); err != nil {
+			return fmt.Errorf("ensuring qdrant collection: %w", err)
+		}
+	}
+
 	return nil
 }
 
 func (a *App) Run() {
 	httpServerErrs := a.httpServer.Run()
 	cronSchedulerErrs := a.cronScheduler.Run()
+
+	var embeddingWorkerErrs <-chan error
+	if a.embeddingWorker != nil {
+		embeddingWorkerErrs = a.embeddingWorker.Run()
+	}
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -118,6 +151,8 @@ func (a *App) Run() {
 		slog.Error("fatal error from http server", "error", err)
 	case err := <-cronSchedulerErrs:
 		slog.Error("fatal error from cron scheduler", "error", err)
+	case err := <-embeddingWorkerErrs:
+		slog.Error("fatal error from embedding worker", "error", err)
 	}
 }
 
@@ -131,14 +166,21 @@ func (a *App) Shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), a.cfg.Wire.ShutdownTimeout)
 	defer cancel()
 
+	slog.Info("shutdown httpServer")
+	if err := a.httpServer.Shutdown(ctx); err != nil {
+		slog.Error("failed to shutdown httpServer", "error", err)
+	}
+
 	slog.Info("shutdown cronScheduler")
 	if err := a.cronScheduler.Shutdown(ctx); err != nil {
 		slog.Error("failed to shutdown cronScheduler", "error", err)
 	}
 
-	slog.Info("shutdown httpServer")
-	if err := a.httpServer.Shutdown(ctx); err != nil {
-		slog.Error("failed to shutdown httpServer", "error", err)
+	if a.embeddingWorker != nil {
+		slog.Info("shutdown embeddingWorker")
+		if err := a.embeddingWorker.Shutdown(ctx); err != nil {
+			slog.Error("failed to shutdown embeddingWorker", "error", err)
+		}
 	}
 
 	slog.Info("shutdown redisClient")

@@ -6,6 +6,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/core/service/image"
 	"github.com/isutare412/web-memo/api/internal/cron"
+	"github.com/isutare412/web-memo/api/internal/embedding"
 	"github.com/isutare412/web-memo/api/internal/google"
 	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/imageer"
@@ -17,17 +18,18 @@ import (
 )
 
 type Config struct {
-	Wire     WireConfig      `koanf:"wire"`
-	Log      log.Config      `koanf:"log"`
-	Trace    tracing.Config  `koanf:"trace"`
-	HTTP     HTTPConfig      `koanf:"http"`
-	Postgres postgres.Config `koanf:"postgres"`
-	Redis    redis.Config    `koanf:"redis"`
-	Google   GoogleConfig    `koanf:"google"`
-	JWT      jwt.Config      `koanf:"jwt"`
-	OAuth    OAuthConfig     `koanf:"oauth"`
-	Cron     CronConfig      `koanf:"cron"`
-	Imageer  ImageerConfig   `koanf:"imageer"`
+	Wire      WireConfig      `koanf:"wire"`
+	Log       log.Config      `koanf:"log"`
+	Trace     tracing.Config  `koanf:"trace"`
+	HTTP      HTTPConfig      `koanf:"http"`
+	Postgres  postgres.Config `koanf:"postgres"`
+	Redis     redis.Config    `koanf:"redis"`
+	Google    GoogleConfig    `koanf:"google"`
+	JWT       jwt.Config      `koanf:"jwt"`
+	OAuth     OAuthConfig     `koanf:"oauth"`
+	Cron      CronConfig      `koanf:"cron"`
+	Imageer   ImageerConfig   `koanf:"imageer"`
+	Embedding EmbeddingConfig `koanf:"embedding"`
 }
 
 func (c *Config) ToLogConfig() log.Config {
@@ -67,7 +69,9 @@ func (c *Config) ToJWTConfig() jwt.Config {
 
 func (c *Config) ToCronConfig() cron.Config {
 	return cron.Config{
-		TagCleanupInterval: c.Cron.TagCleanupInterval,
+		TagCleanupInterval:    c.Cron.TagCleanupInterval,
+		EmbeddingSyncInterval: c.Cron.EmbeddingSyncInterval,
+		EmbeddingSyncEnabled:  c.Embedding.Enabled,
 	}
 }
 
@@ -93,6 +97,16 @@ func (c *Config) ToImageServiceConfig() image.Config {
 	return image.Config{
 		ProjectID:           c.Imageer.ProjectID,
 		DownscalePresetName: c.Imageer.DownscalePresetName,
+	}
+}
+
+func (c *Config) ToEmbeddingConfig() embedding.Config {
+	return embedding.Config{
+		TEIBaseURL:           c.Embedding.TEIBaseURL,
+		QdrantHost:           c.Embedding.QdrantHost,
+		QdrantPort:           c.Embedding.QdrantPort,
+		QdrantCollectionName: c.Embedding.QdrantCollectionName,
+		JobBufferSize:        c.Embedding.JobBufferSize,
 	}
 }
 
@@ -126,7 +140,8 @@ type OAuthConfig struct {
 }
 
 type CronConfig struct {
-	TagCleanupInterval time.Duration `koanf:"tag-cleanup-interval" validate:"required,min=1m"`
+	TagCleanupInterval    time.Duration `koanf:"tag-cleanup-interval" validate:"required,min=1m"`
+	EmbeddingSyncInterval time.Duration `koanf:"embedding-sync-interval"`
 }
 
 type ImageerConfig struct {
@@ -134,4 +149,13 @@ type ImageerConfig struct {
 	APIKey              string `koanf:"api-key" validate:"required"`
 	ProjectID           string `koanf:"project-id" validate:"required"`
 	DownscalePresetName string `koanf:"downscale-preset-name"`
+}
+
+type EmbeddingConfig struct {
+	Enabled              bool   `koanf:"enabled"`
+	TEIBaseURL           string `koanf:"tei-base-url"`
+	QdrantHost           string `koanf:"qdrant-host"`
+	QdrantPort           int    `koanf:"qdrant-port"`
+	QdrantCollectionName string `koanf:"qdrant-collection-name"`
+	JobBufferSize        int    `koanf:"job-buffer-size"`
 }

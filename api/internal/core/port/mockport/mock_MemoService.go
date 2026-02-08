@@ -290,6 +290,62 @@ func (_c *MockMemoService_DeleteOrphanTags_Call) RunAndReturn(run func(context.C
 	return _c
 }
 
+// EnqueueMissingEmbeddings provides a mock function with given fields: _a0
+func (_m *MockMemoService) EnqueueMissingEmbeddings(_a0 context.Context) (int, error) {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnqueueMissingEmbeddings")
+	}
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (int, error)); ok {
+		return rf(_a0)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) int); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockMemoService_EnqueueMissingEmbeddings_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnqueueMissingEmbeddings'
+type MockMemoService_EnqueueMissingEmbeddings_Call struct {
+	*mock.Call
+}
+
+// EnqueueMissingEmbeddings is a helper method to define mock.On call
+//   - _a0 context.Context
+func (_e *MockMemoService_Expecter) EnqueueMissingEmbeddings(_a0 interface{}) *MockMemoService_EnqueueMissingEmbeddings_Call {
+	return &MockMemoService_EnqueueMissingEmbeddings_Call{Call: _e.mock.On("EnqueueMissingEmbeddings", _a0)}
+}
+
+func (_c *MockMemoService_EnqueueMissingEmbeddings_Call) Run(run func(_a0 context.Context)) *MockMemoService_EnqueueMissingEmbeddings_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockMemoService_EnqueueMissingEmbeddings_Call) Return(enqueued int, err error) *MockMemoService_EnqueueMissingEmbeddings_Call {
+	_c.Call.Return(enqueued, err)
+	return _c
+}
+
+func (_c *MockMemoService_EnqueueMissingEmbeddings_Call) RunAndReturn(run func(context.Context) (int, error)) *MockMemoService_EnqueueMissingEmbeddings_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetMemo provides a mock function with given fields: ctx, memoID, requester
 func (_m *MockMemoService) GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error) {
 	ret := _m.Called(ctx, memoID, requester)

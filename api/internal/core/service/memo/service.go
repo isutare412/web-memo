@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	tagPublished = "published"
+	tagPublished          = "published"
+	embeddingSyncPageSize = 100
 )
 
 var reservedTags = []string{
@@ -30,6 +31,8 @@ type Service struct {
 	tagRepository           port.TagRepository
 	userRepository          port.UserRepository
 	collaborationRepository port.CollaborationRepository
+	embeddingEnqueuer       port.EmbeddingEnqueuer
+	embeddingRepository     port.EmbeddingRepository
 }
 
 func NewService(
@@ -38,6 +41,8 @@ func NewService(
 	tagRepository port.TagRepository,
 	userReposiotry port.UserRepository,
 	collaborationRepository port.CollaborationRepository,
+	embeddingEnqueuer port.EmbeddingEnqueuer,
+	embeddingRepository port.EmbeddingRepository,
 ) *Service {
 	return &Service{
 		transactionManager:      transactionManager,
@@ -45,6 +50,8 @@ func NewService(
 		tagRepository:           tagRepository,
 		userRepository:          userReposiotry,
 		collaborationRepository: collaborationRepository,
+		embeddingEnqueuer:       embeddingEnqueuer,
+		embeddingRepository:     embeddingRepository,
 	}
 }
 
@@ -124,6 +131,13 @@ func (s *Service) CreateMemo(ctx context.Context, memo *ent.Memo, tagNames []str
 		return nil, fmt.Errorf("during transaction: %w", err)
 	}
 
+	s.embeddingEnqueuer.Enqueue(model.EmbeddingJob{
+		MemoID:  memoCreated.ID,
+		OwnerID: userID,
+		Title:   memoCreated.Title,
+		Content: memoCreated.Content,
+	})
+
 	return memoCreated, nil
 }
 
@@ -197,6 +211,13 @@ func (s *Service) UpdateMemo(
 	if err != nil {
 		return nil, fmt.Errorf("during transaction: %w", err)
 	}
+
+	s.embeddingEnqueuer.Enqueue(model.EmbeddingJob{
+		MemoID:  memoUpdated.ID,
+		OwnerID: memoUpdated.OwnerID,
+		Title:   memoUpdated.Title,
+		Content: memoUpdated.Content,
+	})
 
 	return memoUpdated, nil
 }
@@ -298,6 +319,8 @@ func (s *Service) DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *m
 	if err != nil {
 		return fmt.Errorf("during transaction: %w", err)
 	}
+
+	s.embeddingEnqueuer.EnqueueDelete(memoID)
 
 	return nil
 }
@@ -403,6 +426,42 @@ func (s *Service) DeleteOrphanTags(ctx context.Context) (count int, err error) {
 	}
 
 	return count, nil
+}
+
+func (s *Service) EnqueueMissingEmbeddings(ctx context.Context) (enqueued int, err error) {
+	sortParams := model.MemoSortParams{}
+	for page := 1; ; page++ {
+		pageParams := model.PaginationParams{PageOffset: page, PageSize: embeddingSyncPageSize}
+		memos, err := s.memoRepository.FindAll(ctx, sortParams, pageParams)
+		if err != nil {
+			return enqueued, fmt.Errorf("listing memos (page=%d): %w", page, err)
+		}
+
+		// TODO: we should consider save embedding existence in memo table to reduce queries.
+		for _, m := range memos {
+			exists, err := s.embeddingRepository.ExistsByMemoID(ctx, m.ID)
+			if err != nil {
+				return enqueued, fmt.Errorf("checking embedding existence for memo(%s): %w", m.ID, err)
+			}
+			if exists {
+				continue
+			}
+
+			s.embeddingEnqueuer.Enqueue(model.EmbeddingJob{
+				MemoID:  m.ID,
+				OwnerID: m.OwnerID,
+				Title:   m.Title,
+				Content: m.Content,
+			})
+			enqueued++
+		}
+
+		if len(memos) < embeddingSyncPageSize {
+			break
+		}
+	}
+
+	return enqueued, nil
 }
 
 func (s *Service) ListSubscribers(

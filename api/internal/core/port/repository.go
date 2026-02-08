@@ -26,6 +26,7 @@ type UserRepository interface {
 type MemoRepository interface {
 	FindByID(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
 	FindByIDWithEdges(ctx context.Context, memoID uuid.UUID) (*ent.Memo, error)
+	FindAll(ctx context.Context, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error)
 	FindAllByUserIDWithEdges(
 		ctx context.Context, userID uuid.UUID,
 		sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error)

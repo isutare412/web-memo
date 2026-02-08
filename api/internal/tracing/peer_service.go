@@ -7,4 +7,6 @@ var (
 	PeerServicePostgres   = semconv.PeerService("postgres")
 	PeerServiceRedis      = semconv.PeerService("redis")
 	PeerServiceInternet   = semconv.PeerService("internet")
+	PeerServiceTEI        = semconv.PeerService("huggingface-tei-qwen3-embedding")
+	PeerServiceQdrant     = semconv.PeerService("qdrant")
 )

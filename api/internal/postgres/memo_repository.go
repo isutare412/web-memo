@@ -102,6 +102,42 @@ func (r *MemoRepository) FindByIDWithEdges(ctx context.Context, memoID uuid.UUID
 	return memo, nil
 }
 
+func (r *MemoRepository) FindAll(
+	ctx context.Context,
+	sortParams model.MemoSortParams,
+	pageParams model.PaginationParams,
+) ([]*ent.Memo, error) {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.FindAll",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	page, pageSize := pageParams.GetOrDefault()
+	offset := (page - 1) * pageSize
+
+	memos, err := client.Memo.
+		Query().
+		Order(buildMemoOrderOption(sortParams)).
+		Offset(offset).
+		Limit(pageSize).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range memos {
+		contentDecoded, err := base64Decode(m.Content)
+		if err != nil {
+			return nil, err
+		}
+		m.Content = contentDecoded
+	}
+
+	return memos, nil
+}
+
 func (r *MemoRepository) FindAllByUserIDWithEdges(
 	ctx context.Context,
 	userID uuid.UUID,

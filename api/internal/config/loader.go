@@ -42,7 +42,7 @@ func LoadValidated(dir string) (*Config, error) {
 
 	// APP_FOO_BAR=baz -> foo.bar=baz
 	if err := k.Load(env.Provider("APP_", ".", func(s string) string {
-		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, "APP_")), "_", ".", -1)
+		return strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, "APP_")), "_", ".")
 	}), nil); err != nil {
 		return nil, fmt.Errorf("loading from env: %w", err)
 	}

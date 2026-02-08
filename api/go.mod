@@ -23,6 +23,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.1
 	github.com/prometheus/client_golang v1.23.2
+	github.com/qdrant/go-client v1.16.2
 	github.com/redis/go-redis/v9 v9.4.0
 	github.com/samber/lo v1.51.0
 	github.com/samber/slog-multi v1.4.1

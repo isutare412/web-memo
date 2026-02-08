@@ -104,7 +104,7 @@ var _ = Describe("MemoRepository", func() {
 				Expect(err).NotTo(HaveOccurred())
 				fakeMemos[i] = memoCreated
 
-				memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID)
+				err = memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = collaborationRepository.Create(ctx, memoCreated.ID, fakeUsers[2].ID)

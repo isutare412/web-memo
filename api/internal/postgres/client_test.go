@@ -95,6 +95,7 @@ var _ = Describe("Client", func() {
 				userCreated = user
 				return nil
 			})
+			Expect(err).NotTo(HaveOccurred())
 
 			userFound, err := userRepository.FindByEmail(ctx, givenEmail)
 			Expect(err).NotTo(HaveOccurred())
@@ -117,6 +118,7 @@ var _ = Describe("Client", func() {
 
 				return fmt.Errorf("some unexpected error")
 			})
+			Expect(err).To(HaveOccurred())
 
 			_, err = userRepository.FindByEmail(ctx, givenEmail)
 			Expect(pkgerr.IsErrNotFound(err)).To(BeTrue())
