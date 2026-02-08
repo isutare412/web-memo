@@ -1,0 +1,95 @@
+# Default values for webmemo-bm25.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: redshoore/webmemo-bm25
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  periodSeconds: 5
+  failureThreshold: 60 # 5s * 60 = 300s max for model download
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 512Mi
+
+autoscaling:
+  horizontal:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80 # 0 to disable
+    targetMemoryUtilizationPercentage: 0 # 0 to disable
+  vertical:
+    enabled: false
+    updatePolicy:
+      updateMode: InPlaceOrRecreate
+      minReplicas: 2
+    resourcePolicy:
+      containerPolicies:
+        - containerName: '*'
+          controlledResources:
+            - memory
+            # - cpu
+          minAllowed:
+            memory: 100Mi
+            # cpu: 100m
+          maxAllowed:
+            memory: 1Gi
+            # cpu: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,32 @@
+{{- if .Values.autoscaling.horizontal.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "webmemo-bm25.fullname" . }}
+  labels:
+    {{- include "webmemo-bm25.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "webmemo-bm25.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.horizontal.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.horizontal.maxReplicas }}
+  metrics:
+    {{- if .Values.autoscaling.horizontal.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.horizontal.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.autoscaling.horizontal.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.horizontal.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
