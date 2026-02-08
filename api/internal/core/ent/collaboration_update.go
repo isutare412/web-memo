@@ -149,10 +149,10 @@ func (cu *CollaborationUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cu *CollaborationUpdate) check() error {
-	if _, ok := cu.mutation.CollaboratorID(); cu.mutation.CollaboratorCleared() && !ok {
+	if cu.mutation.CollaboratorCleared() && len(cu.mutation.CollaboratorIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Collaboration.collaborator"`)
 	}
-	if _, ok := cu.mutation.MemoID(); cu.mutation.MemoCleared() && !ok {
+	if cu.mutation.MemoCleared() && len(cu.mutation.MemoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Collaboration.memo"`)
 	}
 	return nil
@@ -385,10 +385,10 @@ func (cuo *CollaborationUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (cuo *CollaborationUpdateOne) check() error {
-	if _, ok := cuo.mutation.CollaboratorID(); cuo.mutation.CollaboratorCleared() && !ok {
+	if cuo.mutation.CollaboratorCleared() && len(cuo.mutation.CollaboratorIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Collaboration.collaborator"`)
 	}
-	if _, ok := cuo.mutation.MemoID(); cuo.mutation.MemoCleared() && !ok {
+	if cuo.mutation.MemoCleared() && len(cuo.mutation.MemoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Collaboration.memo"`)
 	}
 	return nil

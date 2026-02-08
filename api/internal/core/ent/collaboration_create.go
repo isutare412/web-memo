@@ -161,10 +161,10 @@ func (cc *CollaborationCreate) check() error {
 	if _, ok := cc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Collaboration.update_time"`)}
 	}
-	if _, ok := cc.mutation.CollaboratorID(); !ok {
+	if len(cc.mutation.CollaboratorIDs()) == 0 {
 		return &ValidationError{Name: "collaborator", err: errors.New(`ent: missing required edge "Collaboration.collaborator"`)}
 	}
-	if _, ok := cc.mutation.MemoID(); !ok {
+	if len(cc.mutation.MemoIDs()) == 0 {
 		return &ValidationError{Name: "memo", err: errors.New(`ent: missing required edge "Collaboration.memo"`)}
 	}
 	return nil

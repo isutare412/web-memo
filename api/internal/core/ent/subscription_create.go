@@ -119,10 +119,10 @@ func (sc *SubscriptionCreate) check() error {
 	if _, ok := sc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Subscription.create_time"`)}
 	}
-	if _, ok := sc.mutation.SubscriberID(); !ok {
+	if len(sc.mutation.SubscriberIDs()) == 0 {
 		return &ValidationError{Name: "subscriber", err: errors.New(`ent: missing required edge "Subscription.subscriber"`)}
 	}
-	if _, ok := sc.mutation.MemoID(); !ok {
+	if len(sc.mutation.MemoIDs()) == 0 {
 		return &ValidationError{Name: "memo", err: errors.New(`ent: missing required edge "Subscription.memo"`)}
 	}
 	return nil

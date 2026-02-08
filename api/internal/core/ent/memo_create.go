@@ -286,7 +286,7 @@ func (mc *MemoCreate) check() error {
 	if _, ok := mc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Memo.update_time"`)}
 	}
-	if _, ok := mc.mutation.OwnerID(); !ok {
+	if len(mc.mutation.OwnerIDs()) == 0 {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Memo.owner"`)}
 	}
 	return nil

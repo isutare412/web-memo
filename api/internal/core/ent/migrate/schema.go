@@ -53,7 +53,7 @@ var (
 	MemosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "title", Type: field.TypeString, Size: 512},
-		{Name: "content", Type: field.TypeString, Size: 20000},
+		{Name: "content", Type: field.TypeString, Size: 60000},
 		{Name: "is_published", Type: field.TypeBool, Default: false},
 		{Name: "version", Type: field.TypeInt, Default: 0},
 		{Name: "create_time", Type: field.TypeTime},

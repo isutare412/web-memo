@@ -120,10 +120,10 @@ func (su *SubscriptionUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (su *SubscriptionUpdate) check() error {
-	if _, ok := su.mutation.SubscriberID(); su.mutation.SubscriberCleared() && !ok {
+	if su.mutation.SubscriberCleared() && len(su.mutation.SubscriberIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Subscription.subscriber"`)
 	}
-	if _, ok := su.mutation.MemoID(); su.mutation.MemoCleared() && !ok {
+	if su.mutation.MemoCleared() && len(su.mutation.MemoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Subscription.memo"`)
 	}
 	return nil
@@ -322,10 +322,10 @@ func (suo *SubscriptionUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (suo *SubscriptionUpdateOne) check() error {
-	if _, ok := suo.mutation.SubscriberID(); suo.mutation.SubscriberCleared() && !ok {
+	if suo.mutation.SubscriberCleared() && len(suo.mutation.SubscriberIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Subscription.subscriber"`)
 	}
-	if _, ok := suo.mutation.MemoID(); suo.mutation.MemoCleared() && !ok {
+	if suo.mutation.MemoCleared() && len(suo.mutation.MemoIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Subscription.memo"`)
 	}
 	return nil

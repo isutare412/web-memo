@@ -359,7 +359,7 @@ func (mu *MemoUpdate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Memo.content": %w`, err)}
 		}
 	}
-	if _, ok := mu.mutation.OwnerID(); mu.mutation.OwnerCleared() && !ok {
+	if mu.mutation.OwnerCleared() && len(mu.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Memo.owner"`)
 	}
 	return nil
@@ -1032,7 +1032,7 @@ func (muo *MemoUpdateOne) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Memo.content": %w`, err)}
 		}
 	}
-	if _, ok := muo.mutation.OwnerID(); muo.mutation.OwnerCleared() && !ok {
+	if muo.mutation.OwnerCleared() && len(muo.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Memo.owner"`)
 	}
 	return nil

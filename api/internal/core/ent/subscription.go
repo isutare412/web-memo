@@ -46,12 +46,10 @@ type SubscriptionEdges struct {
 // SubscriberOrErr returns the Subscriber value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e SubscriptionEdges) SubscriberOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.Subscriber == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
+	if e.Subscriber != nil {
 		return e.Subscriber, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "subscriber"}
 }
@@ -59,12 +57,10 @@ func (e SubscriptionEdges) SubscriberOrErr() (*User, error) {
 // MemoOrErr returns the Memo value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e SubscriptionEdges) MemoOrErr() (*Memo, error) {
-	if e.loadedTypes[1] {
-		if e.Memo == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: memo.Label}
-		}
+	if e.Memo != nil {
 		return e.Memo, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: memo.Label}
 	}
 	return nil, &NotLoadedError{edge: "memo"}
 }

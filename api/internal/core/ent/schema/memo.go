@@ -25,7 +25,7 @@ func (Memo) Fields() []ent.Field {
 			NotEmpty().
 			MaxLen(512),
 		field.String("content").
-			MaxLen(20_000),
+			MaxLen(60_000),
 		field.Bool("is_published").
 			Default(false),
 		field.Int("version").
