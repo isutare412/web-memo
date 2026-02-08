@@ -320,37 +320,14 @@ func (c *Client) Search(ctx context.Context, query string, ownerIDFilter *uuid.U
 
 	eg2, egCtx2 := errgroup.WithContext(ctx)
 	eg2.Go(func() error {
-		groups, err := c.qdrantClient.QueryGroups(egCtx2, &qdrant.QueryPointGroups{
-			CollectionName: c.collectionName,
-			Query:          qdrant.NewQueryDense(denseEmbeddings[0]),
-			Using:          qdrant.PtrOf("dense"),
-			GroupBy:        "memo_id",
-			GroupSize:      qdrant.PtrOf(uint64(1)),
-			Limit:          qdrant.PtrOf(uint64(limit)),
-			Filter:         filter,
-		})
-		if err != nil {
-			return fmt.Errorf("semantic search: %w", err)
-		}
-		semanticGroups = groups
-		return nil
+		var err error
+		semanticGroups, err = c.searchDenseGroups(egCtx2, denseEmbeddings[0], filter, limit)
+		return err
 	})
 	eg2.Go(func() error {
-		groups, err := c.qdrantClient.QueryGroups(egCtx2, &qdrant.QueryPointGroups{
-			CollectionName: c.collectionName,
-			Query:          qdrant.NewQuerySparse(sparseEmbeddings[0].Indices, sparseEmbeddings[0].Values),
-			Using:          qdrant.PtrOf("sparse"),
-			GroupBy:        "memo_id",
-			GroupSize:      qdrant.PtrOf(uint64(1)),
-			Limit:          qdrant.PtrOf(uint64(limit)),
-			ScoreThreshold: qdrant.PtrOf(float32(0.1)), // hard threshold to reduce noise
-			Filter:         filter,
-		})
-		if err != nil {
-			return fmt.Errorf("bm25 search: %w", err)
-		}
-		bm25Groups = groups
-		return nil
+		var err error
+		bm25Groups, err = c.searchSparseGroups(egCtx2, sparseEmbeddings[0], filter, limit)
+		return err
 	})
 	if err := eg2.Wait(); err != nil {
 		return nil, fmt.Errorf("searching groups: %w", err)
@@ -443,4 +420,47 @@ func (c *Client) Search(ctx context.Context, query string, ownerIDFilter *uuid.U
 	}
 
 	return results, nil
+}
+
+func (c *Client) searchDenseGroups(ctx context.Context, denseVector []float32, filter *qdrant.Filter, limit int) ([]*qdrant.PointGroup, error) {
+	ctx, span := tracing.StartSpan(ctx, "embedding.Client.searchDenseGroups",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceQdrant))
+	defer span.End()
+
+	groups, err := c.qdrantClient.QueryGroups(ctx, &qdrant.QueryPointGroups{
+		CollectionName: c.collectionName,
+		Query:          qdrant.NewQueryDense(denseVector),
+		Using:          qdrant.PtrOf("dense"),
+		GroupBy:        "memo_id",
+		GroupSize:      qdrant.PtrOf(uint64(1)),
+		Limit:          qdrant.PtrOf(uint64(limit)),
+		Filter:         filter,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("semantic search: %w", err)
+	}
+	return groups, nil
+}
+
+func (c *Client) searchSparseGroups(ctx context.Context, sparse sparseVector, filter *qdrant.Filter, limit int) ([]*qdrant.PointGroup, error) {
+	ctx, span := tracing.StartSpan(ctx, "embedding.Client.searchSparseGroups",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceQdrant))
+	defer span.End()
+
+	groups, err := c.qdrantClient.QueryGroups(ctx, &qdrant.QueryPointGroups{
+		CollectionName: c.collectionName,
+		Query:          qdrant.NewQuerySparse(sparse.Indices, sparse.Values),
+		Using:          qdrant.PtrOf("sparse"),
+		GroupBy:        "memo_id",
+		GroupSize:      qdrant.PtrOf(uint64(1)),
+		Limit:          qdrant.PtrOf(uint64(limit)),
+		ScoreThreshold: qdrant.PtrOf(float32(0.1)),
+		Filter:         filter,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("bm25 search: %w", err)
+	}
+	return groups, nil
 }

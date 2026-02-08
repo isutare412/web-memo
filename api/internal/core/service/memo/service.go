@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
+	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 const (
@@ -75,17 +77,26 @@ func (s *Service) Run() {
 	}
 
 	s.wg.Go(func() {
-		ctx := context.Background()
 		for memoID := range results {
-			if err := s.memoRepository.UpdateIsEmbedded(ctx, memoID, true); err != nil {
-				slog.ErrorContext(ctx, "failed to mark memo as embedded", "memoId", memoID, "error", err)
-			}
+			s.markMemoAsEmbedded(memoID)
 		}
 	})
 }
 
 func (s *Service) Shutdown() {
 	s.wg.Wait()
+}
+
+func (s *Service) markMemoAsEmbedded(memoID uuid.UUID) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	ctx, span := tracing.StartSpan(ctx, "memo.Service.markMemoAsEmbedded")
+	defer span.End()
+
+	if err := s.memoRepository.UpdateIsEmbedded(ctx, memoID, true); err != nil {
+		slog.ErrorContext(ctx, "failed to mark memo as embedded", "memoId", memoID, "error", err)
+	}
 }
 
 func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error) {
