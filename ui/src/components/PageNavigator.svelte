@@ -8,7 +8,7 @@
 
   $: enablePrev = Number(currentPage) > 1
   $: enableNext = Number(currentPage) < Number(lastPage)
-  let pageInput = currentPage
+  $: pageInput = currentPage
 
   const dispatch = createEventDispatcher()
 
