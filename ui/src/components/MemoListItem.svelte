@@ -6,7 +6,11 @@
   import WebPublishIcon from '$components/icons/WebPublishIcon.svelte'
   import type { User } from '$lib/auth'
   import type { Memo } from '$lib/memo'
-  import { addTagToSearchParams, setPageOfSearchParams } from '$lib/searchParams'
+  import {
+    addTagToSearchParams,
+    clearSearchQueryFromParams,
+    setPageOfSearchParams,
+  } from '$lib/searchParams'
   import { formatDate } from '$lib/utils/date'
   import { map } from 'lodash-es'
   import { get } from 'svelte/store'
@@ -22,6 +26,7 @@
 
   function selectTag(event: CustomEvent<{ name: string }>) {
     const searchParams = get(page).url.searchParams
+    clearSearchQueryFromParams(searchParams)
     if (!addTagToSearchParams(searchParams, event.detail.name)) return
 
     setPageOfSearchParams(searchParams, 1)
