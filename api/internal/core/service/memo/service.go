@@ -1,7 +1,6 @@
 package memo
 
 import (
-	"cmp"
 	"context"
 	"fmt"
 	"log/slog"
@@ -106,43 +105,19 @@ func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *mode
 }
 
 func (s *Service) SearchMemos(ctx context.Context, userID uuid.UUID, query string) ([]*model.MemoSearchResult, error) {
-	// Search own memos.
-	ownResults, err := s.embeddingSearcher.Search(
-		ctx, query, &userID, nil,
-		s.cfg.MinSearchScoreThreshold, s.cfg.MaxSearchResults)
-	if err != nil {
-		return nil, fmt.Errorf("searching own memos: %w", err)
-	}
-
-	// Get subscribed memo IDs and search them.
+	// Get subscribed memo IDs for the user.
 	subscribedIDs, err := s.memoRepository.FindSubscribedMemoIDs(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("finding subscribed memo IDs: %w", err)
 	}
 
-	var subResults []model.SearchResult
-	if len(subscribedIDs) > 0 {
-		subResults, err = s.embeddingSearcher.Search(
-			ctx, query, nil, subscribedIDs,
-			s.cfg.MinSearchScoreThreshold, s.cfg.MaxSearchResults)
-		if err != nil {
-			return nil, fmt.Errorf("searching subscribed memos: %w", err)
-		}
-	}
-
-	// Merge and sort by RRF > Semantic > BM25 score descending, truncate.
-	merged := append(ownResults, subResults...)
-	slices.SortFunc(merged, func(a, b model.SearchResult) int {
-		if a.RRFScore != b.RRFScore {
-			return cmp.Compare(b.RRFScore, a.RRFScore)
-		}
-		if a.SemanticScore != b.SemanticScore {
-			return cmp.Compare(b.SemanticScore, a.SemanticScore)
-		}
-		return cmp.Compare(b.BM25Score, a.BM25Score)
-	})
-	if len(merged) > s.cfg.MaxSearchResults {
-		merged = merged[:s.cfg.MaxSearchResults]
+	// Search own memos and subscribed memos together so that RRF ranks
+	// are computed in a single, globally consistent rank space.
+	merged, err := s.embeddingSearcher.Search(
+		ctx, query, &userID, subscribedIDs,
+		s.cfg.MinSearchScoreThreshold, s.cfg.MaxSearchResults)
+	if err != nil {
+		return nil, fmt.Errorf("searching memos: %w", err)
 	}
 
 	if len(merged) == 0 {

@@ -306,8 +306,13 @@ func (c *Client) Search(ctx context.Context, query string, ownerIDFilter *uuid.U
 		conditions = append(conditions, qdrant.NewMatchKeywords("memo_id", keywords...))
 	}
 
-	filter := &qdrant.Filter{
-		Must: conditions,
+	// Use OR when both filters are present (own memos + subscribed memos),
+	// AND when only one filter is present.
+	filter := &qdrant.Filter{}
+	if len(conditions) > 1 {
+		filter.Should = conditions
+	} else {
+		filter.Must = conditions
 	}
 
 	// Run semantic and BM25 searches concurrently.
