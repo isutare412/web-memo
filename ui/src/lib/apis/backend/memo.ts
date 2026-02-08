@@ -11,6 +11,7 @@ export interface RawMemo {
   content: string
   isPublished: boolean
   tags: string[]
+  memoScore: number | null
 }
 
 export interface Subscriber {
@@ -25,10 +26,10 @@ export interface Collaborator {
 }
 
 interface ListMemosResponse {
-  page: number
-  pageSize: number
-  lastPage: number
-  totalMemoCount: number
+  page: number | null
+  pageSize: number | null
+  lastPage: number | null
+  totalMemoCount: number | null
   memos: RawMemo[]
 }
 
@@ -131,6 +132,19 @@ export async function listMemos(
   tags.forEach((tag) => {
     searchParams.append('tag', tag)
   })
+
+  const response = await fetch(`/api/v1/memos?${searchParams.toString()}`)
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw new StatusError(response.status, errorResponse.msg)
+  }
+
+  return response.json()
+}
+
+export async function searchMemos(query: string): Promise<ListMemosResponse> {
+  const searchParams = new URLSearchParams()
+  searchParams.append('q', query)
 
   const response = await fetch(`/api/v1/memos?${searchParams.toString()}`)
   if (!response.ok) {

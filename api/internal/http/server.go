@@ -29,7 +29,7 @@ func NewServer(
 	healthHandler := newHealthHandler(pingers)
 	googleHandler := newGoogleHandler(cfg, authService)
 	userHandler := newUserHandler(cfg, authService)
-	memoHandler := newMemoHandler(memoService)
+	memoHandler := newMemoHandler(memoService, cfg.EmbeddingEnabled)
 	tagHandler := newTagHandler(memoService)
 	imageHandler := newImageHandler(imageService)
 

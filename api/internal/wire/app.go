@@ -62,6 +62,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 	}
 
 	var embeddingEnqueuer port.EmbeddingEnqueuer
+	var embeddingSearcher port.EmbeddingSearcher
 	var embeddingWorker *embedding.Worker
 	if cfg.Embedding.Enabled {
 		embeddingClient, err := embedding.NewClient(cfg.ToEmbeddingConfig())
@@ -71,15 +72,23 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 		embeddingWorker = embedding.NewWorker(cfg.ToEmbeddingConfig(), embeddingClient)
 		embeddingEnqueuer = embeddingWorker
+		embeddingSearcher = embeddingClient
 	} else {
 		embeddingEnqueuer = embedding.NoopEnqueuer{}
+		embeddingSearcher = embedding.NoopSearcher{}
+	}
+
+	memoServiceCfg := memo.Config{
+		MinSearchScoreThreshold: cfg.Embedding.MinSearchScoreThreshold,
+		MaxSearchResults:        cfg.Embedding.MaxSearchResults,
 	}
 
 	authService := auth.NewService(
 		cfg.ToAuthServiceConfig(), postgresClient, kvRepository, userRepository, googleClient, jwtClient)
 	memoService := memo.NewService(
+		memoServiceCfg,
 		postgresClient, memoRepository, tagRepository, userRepository, collaborationRepository,
-		embeddingEnqueuer)
+		embeddingEnqueuer, embeddingSearcher)
 	imageService := image.NewService(cfg.ToImageServiceConfig(), imageerClient)
 
 	pingers := []port.Pinger{

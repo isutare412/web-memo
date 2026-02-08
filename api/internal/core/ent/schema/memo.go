@@ -30,6 +30,8 @@ func (Memo) Fields() []ent.Field {
 			Default(false),
 		field.Int("version").
 			Default(0),
+		field.Bool("is_embedded").
+			Default(false),
 		field.Time("create_time").
 			Default(time.Now).
 			Immutable(),
@@ -42,6 +44,7 @@ func (Memo) Fields() []ent.Field {
 func (Memo) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("owner_id"),
+		index.Fields("is_embedded"),
 	}
 }
 

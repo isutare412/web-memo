@@ -24,6 +24,11 @@ type MemoSortParams struct {
 	Order enum.SortOrder
 }
 
+type MemoSearchResult struct {
+	Memo  *ent.Memo
+	Score float32
+}
+
 type ListSubscribersResponse struct {
 	MemoOwnerID uuid.UUID
 	Subscribers []*ent.User

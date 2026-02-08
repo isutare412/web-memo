@@ -66,3 +66,5 @@ embedding:
   qdrant-port: 28400
   qdrant-collection-name: memo_chunks
   job-buffer-size: 10
+  min-search-score-threshold: 0.5
+  max-search-results: 20

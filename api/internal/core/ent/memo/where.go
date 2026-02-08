@@ -81,6 +81,11 @@ func Version(v int) predicate.Memo {
 	return predicate.Memo(sql.FieldEQ(FieldVersion, v))
 }
 
+// IsEmbedded applies equality check predicate on the "is_embedded" field. It's identical to IsEmbeddedEQ.
+func IsEmbedded(v bool) predicate.Memo {
+	return predicate.Memo(sql.FieldEQ(FieldIsEmbedded, v))
+}
+
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Memo {
 	return predicate.Memo(sql.FieldEQ(FieldCreateTime, v))
@@ -289,6 +294,16 @@ func VersionLT(v int) predicate.Memo {
 // VersionLTE applies the LTE predicate on the "version" field.
 func VersionLTE(v int) predicate.Memo {
 	return predicate.Memo(sql.FieldLTE(FieldVersion, v))
+}
+
+// IsEmbeddedEQ applies the EQ predicate on the "is_embedded" field.
+func IsEmbeddedEQ(v bool) predicate.Memo {
+	return predicate.Memo(sql.FieldEQ(FieldIsEmbedded, v))
+}
+
+// IsEmbeddedNEQ applies the NEQ predicate on the "is_embedded" field.
+func IsEmbeddedNEQ(v bool) predicate.Memo {
+	return predicate.Memo(sql.FieldNEQ(FieldIsEmbedded, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.

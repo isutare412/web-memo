@@ -21,6 +21,7 @@ type memo struct {
 	IsPublished bool      `json:"isPublished"`
 	Version     int       `json:"version"`
 	Tags        []string  `json:"tags"`
+	Score       *float32  `json:"memoScore"`
 }
 
 func (m *memo) fromMemo(memo *ent.Memo) {
@@ -38,10 +39,10 @@ func (m *memo) fromMemo(memo *ent.Memo) {
 }
 
 type listMemosResponse struct {
-	Page           int     `json:"page"`
-	PageSize       int     `json:"pageSize"`
-	LastPage       int     `json:"lastPage"`
-	TotalMemoCount int     `json:"totalMemoCount"`
+	Page           *int    `json:"page"`
+	PageSize       *int    `json:"pageSize"`
+	LastPage       *int    `json:"lastPage"`
+	TotalMemoCount *int    `json:"totalMemoCount"`
 	Memos          []*memo `json:"memos"`
 }
 

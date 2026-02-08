@@ -27,32 +27,44 @@ var reservedTags = []string{
 	tagPublished,
 }
 
+type Config struct {
+	MinSearchScoreThreshold float32
+	MaxSearchResults        int
+}
+
 type Service struct {
+	cfg Config
+
 	transactionManager      port.TransactionManager
 	memoRepository          port.MemoRepository
 	tagRepository           port.TagRepository
 	userRepository          port.UserRepository
 	collaborationRepository port.CollaborationRepository
 	embeddingEnqueuer       port.EmbeddingEnqueuer
+	embeddingSearcher       port.EmbeddingSearcher
 
 	wg sync.WaitGroup
 }
 
 func NewService(
+	cfg Config,
 	transactionManager port.TransactionManager,
 	memoRepository port.MemoRepository,
 	tagRepository port.TagRepository,
 	userReposiotry port.UserRepository,
 	collaborationRepository port.CollaborationRepository,
 	embeddingEnqueuer port.EmbeddingEnqueuer,
+	embeddingSearcher port.EmbeddingSearcher,
 ) *Service {
 	return &Service{
+		cfg:                     cfg,
 		transactionManager:      transactionManager,
 		memoRepository:          memoRepository,
 		tagRepository:           tagRepository,
 		userRepository:          userReposiotry,
 		collaborationRepository: collaborationRepository,
 		embeddingEnqueuer:       embeddingEnqueuer,
+		embeddingSearcher:       embeddingSearcher,
 	}
 }
 
@@ -90,6 +102,85 @@ func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *mode
 	}
 
 	return memo, nil
+}
+
+func (s *Service) SearchMemos(ctx context.Context, userID uuid.UUID, query string) ([]*model.MemoSearchResult, error) {
+	// Search own memos.
+	ownResults, err := s.embeddingSearcher.Search(
+		ctx, query, &userID, nil,
+		s.cfg.MinSearchScoreThreshold, s.cfg.MaxSearchResults)
+	if err != nil {
+		return nil, fmt.Errorf("searching own memos: %w", err)
+	}
+
+	// Get subscribed memo IDs and search them.
+	subscribedIDs, err := s.memoRepository.FindSubscribedMemoIDs(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("finding subscribed memo IDs: %w", err)
+	}
+
+	var subResults []model.SearchResult
+	if len(subscribedIDs) > 0 {
+		subResults, err = s.embeddingSearcher.Search(
+			ctx, query, nil, subscribedIDs,
+			s.cfg.MinSearchScoreThreshold, s.cfg.MaxSearchResults)
+		if err != nil {
+			return nil, fmt.Errorf("searching subscribed memos: %w", err)
+		}
+	}
+
+	// Merge and sort by score descending, truncate.
+	merged := append(ownResults, subResults...)
+	slices.SortFunc(merged, func(a, b model.SearchResult) int {
+		if a.Score > b.Score {
+			return -1
+		}
+		if a.Score < b.Score {
+			return 1
+		}
+		return 0
+	})
+	if len(merged) > s.cfg.MaxSearchResults {
+		merged = merged[:s.cfg.MaxSearchResults]
+	}
+
+	if len(merged) == 0 {
+		return nil, nil
+	}
+
+	// Build score map and collect memo IDs.
+	scoreMap := make(map[uuid.UUID]float32, len(merged))
+	memoIDs := make([]uuid.UUID, len(merged))
+	for i, r := range merged {
+		scoreMap[r.MemoID] = r.Score
+		memoIDs[i] = r.MemoID
+	}
+
+	// Fetch full memo data.
+	memos, err := s.memoRepository.FindAllByIDsWithEdges(ctx, memoIDs)
+	if err != nil {
+		return nil, fmt.Errorf("finding memos by IDs: %w", err)
+	}
+
+	// Build results preserving score order.
+	memoMap := make(map[uuid.UUID]*ent.Memo, len(memos))
+	for _, m := range memos {
+		memoMap[m.ID] = m
+	}
+
+	results := make([]*model.MemoSearchResult, 0, len(merged))
+	for _, r := range merged {
+		m, ok := memoMap[r.MemoID]
+		if !ok {
+			continue
+		}
+		results = append(results, &model.MemoSearchResult{
+			Memo:  m,
+			Score: r.Score,
+		})
+	}
+
+	return results, nil
 }
 
 func (s *Service) ListMemos(

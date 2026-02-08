@@ -22,12 +22,14 @@ import (
 )
 
 type memoHandler struct {
-	memoService port.MemoService
+	memoService      port.MemoService
+	embeddingEnabled bool
 }
 
-func newMemoHandler(memoService port.MemoService) *memoHandler {
+func newMemoHandler(memoService port.MemoService, embeddingEnabled bool) *memoHandler {
 	return &memoHandler{
-		memoService: memoService,
+		memoService:      memoService,
+		embeddingEnabled: embeddingEnabled,
 	}
 }
 
@@ -90,6 +92,12 @@ func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	query := r.URL.Query().Get("q")
+	if query != "" {
+		h.searchMemos(w, r, passport, query)
+		return
+	}
+
 	page, pageSize, err := getPageQuery(r.URL.Query())
 	if err != nil {
 		responseError(w, r, fmt.Errorf("getting page query: %w", err))
@@ -122,15 +130,47 @@ func (h *memoHandler) listMemos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := listMemosResponse{
-		Page:           page,
-		PageSize:       pageSize,
-		LastPage:       lastPage,
-		TotalMemoCount: totalCount,
+		Page:           &page,
+		PageSize:       &pageSize,
+		LastPage:       &lastPage,
+		TotalMemoCount: &totalCount,
 		Memos: lo.Map(memos, func(m *ent.Memo, _ int) *memo {
 			var dto memo
 			dto.fromMemo(m)
 			return &dto
 		}),
+	}
+	responseJSON(w, &resp)
+}
+
+func (h *memoHandler) searchMemos(w http.ResponseWriter, r *http.Request, passport *passport, query string) {
+	ctx := r.Context()
+
+	if !h.embeddingEnabled {
+		responseError(w, r, pkgerr.Known{
+			Code:      pkgerr.CodeBadRequest,
+			ClientMsg: "search feature is not enabled",
+		})
+		return
+	}
+
+	results, err := h.memoService.SearchMemos(ctx, passport.token.UserID, query)
+	if err != nil {
+		responseError(w, r, fmt.Errorf("searching memos: %w", err))
+		return
+	}
+
+	memos := make([]*memo, 0, len(results))
+	for _, result := range results {
+		var dto memo
+		dto.fromMemo(result.Memo)
+		score := result.Score
+		dto.Score = &score
+		memos = append(memos, &dto)
+	}
+
+	resp := listMemosResponse{
+		Memos: memos,
 	}
 	responseJSON(w, &resp)
 }

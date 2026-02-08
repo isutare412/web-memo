@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
+  import { afterNavigate, goto } from '$app/navigation'
   import { page } from '$app/stores'
   import MemoList from '$components/MemoList.svelte'
   import PageNavigator from '$components/PageNavigator.svelte'
@@ -9,7 +9,8 @@
   import TagFilter from '$components/TagFilter.svelte'
   import Plus from '$components/icons/Plus.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
-  import { listMemos } from '$lib/apis/backend/memo'
+  import SearchIcon from '$components/icons/SearchIcon.svelte'
+  import { listMemos, searchMemos } from '$lib/apis/backend/memo'
   import { authStore, syncUserData } from '$lib/auth'
   import {
     SortOrder,
@@ -38,6 +39,19 @@
   let pageSize = defaultPageSize
   let sortOrder = defaultSortOrder
   let listData: MemoListPageData | undefined
+
+  $: isSearchMode = searchParams.has('q')
+  $: searchQuery = searchParams.get('q') ?? ''
+
+  let searchInputValue = ''
+  let searchInput: HTMLInputElement
+
+  afterNavigate(() => {
+    searchInputValue = searchParams.get('q') ?? ''
+    if (isSearchMode) {
+      setTimeout(() => searchInput?.focus(), 0)
+    }
+  })
 
   $: {
     const rawPageStr = searchParams.get('p') ?? '1'
@@ -70,11 +84,45 @@
     }
   })
 
-  // Re-fetch memos when user logs in or search params change
-  $: user, searchParams, fetchMemos()
+  // Re-fetch memos when user logs in or search params change (browse mode only)
+  $: if (!isSearchMode) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    user, searchParams, fetchMemos()
+  }
+
+  // Fetch search results when query changes (search mode only)
+  $: if (isSearchMode && searchQuery.trim() !== '') {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    user, searchQuery, fetchSearchResults()
+  }
+
+  // Clear results when entering search mode with empty query
+  $: if (isSearchMode && searchQuery.trim() === '') {
+    listData = undefined
+  }
+
+  function enterSearchMode() {
+    goto('/?q=')
+  }
+
+  function enterBrowseMode() {
+    goto('/')
+  }
 
   function onRefreshButtonClick() {
-    fetchMemos()
+    if (isSearchMode) {
+      if (searchQuery.trim() !== '') {
+        fetchSearchResults()
+      }
+    } else {
+      fetchMemos()
+    }
+  }
+
+  function onSearchKeyUp(event: KeyboardEvent) {
+    if (event.key === 'Enter' && searchInputValue.trim() !== '') {
+      goto(`/?q=${encodeURIComponent(searchInputValue.trim())}`)
+    }
   }
 
   function onNavigateEvent(event: CustomEvent<{ page: number }>) {
@@ -121,6 +169,28 @@
       loading.stop()
     }
   }
+
+  async function fetchSearchResults() {
+    if (user === undefined) {
+      return
+    }
+
+    loading.start()
+    try {
+      const response = await searchMemos(searchQuery)
+      listData = {
+        page: null,
+        pageSize: null,
+        lastPage: null,
+        totalMemoCount: null,
+        memos: response.memos.map(mapToMemo),
+      }
+    } catch (error) {
+      addToast(getErrorMessage(error), 'error')
+    } finally {
+      loading.stop()
+    }
+  }
 </script>
 
 <svelte:head>
@@ -129,9 +199,29 @@
 
 {#if !user}
   <SignInStack />
-{:else if listData !== undefined}
+{:else}
   <div class="space-y-2">
-    <TagFilter>
+    <div class="flex justify-between gap-3">
+      <div role="tablist" class="tabs-boxed tabs tabs-sm bg-base-200">
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          class:tab-active={!isSearchMode}
+          on:click={enterBrowseMode}
+        >
+          Browse
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          class:tab-active={isSearchMode}
+          on:click={enterSearchMode}
+        >
+          Search
+        </button>
+      </div>
       <div class="flex gap-2">
         <div>
           <a href="/new" class="btn btn-circle btn-primary btn-sm">
@@ -144,20 +234,48 @@
           </button>
         </div>
       </div>
-    </TagFilter>
-    <div class="flex justify-end">
-      <SortKeySelector sortKey={sortOrder} on:change={onSortOrderChange} />
     </div>
-    <MemoList {user} memos={listData.memos} showUpdateTime={sortOrder === SortOrder.UPDATE_TIME} />
-    <div class="flex justify-center">
-      <PageNavigator
-        currentPage={listData.page.toString()}
-        lastPage={listData.lastPage.toString()}
-        on:navigate={onNavigateEvent}
-      />
-    </div>
-    <div class="flex justify-end">
-      <PageSizeSelector currentSize={pageSize} on:change={onPageSizeSelectChange} />
-    </div>
+    {#if isSearchMode}
+      <div class="flex items-center gap-2">
+        <div class="w-4 text-primary">
+          <SearchIcon />
+        </div>
+        <div class="w-full max-w-xs">
+          <input
+            type="text"
+            placeholder="Search memos..."
+            bind:this={searchInput}
+            bind:value={searchInputValue}
+            on:keyup={onSearchKeyUp}
+            class="input input-sm input-bordered w-full text-base focus:border-primary focus:outline-none"
+          />
+        </div>
+      </div>
+      {#if listData !== undefined}
+        <MemoList {user} memos={listData.memos} showUpdateTime={false} />
+      {/if}
+    {:else}
+      <TagFilter />
+      <div class="flex justify-end">
+        <SortKeySelector sortKey={sortOrder} on:change={onSortOrderChange} />
+      </div>
+      {#if listData !== undefined}
+        <MemoList
+          {user}
+          memos={listData.memos}
+          showUpdateTime={sortOrder === SortOrder.UPDATE_TIME}
+        />
+        <div class="flex justify-center">
+          <PageNavigator
+            currentPage={(listData.page ?? 1).toString()}
+            lastPage={(listData.lastPage ?? 1).toString()}
+            on:navigate={onNavigateEvent}
+          />
+        </div>
+        <div class="flex justify-end">
+          <PageSizeSelector currentSize={pageSize} on:change={onPageSizeSelectChange} />
+        </div>
+      {/if}
+    {/if}
   </div>
 {/if}

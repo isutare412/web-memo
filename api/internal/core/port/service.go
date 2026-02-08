@@ -20,6 +20,7 @@ type AuthService interface {
 
 type MemoService interface {
 	GetMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Memo, error)
+	SearchMemos(ctx context.Context, userID uuid.UUID, query string) ([]*model.MemoSearchResult, error)
 	ListMemos(
 		ctx context.Context, userID uuid.UUID, tags []string,
 		sortParams model.MemoSortParams, pageParams model.PaginationParams) (memos []*ent.Memo, totalCount int, err error)

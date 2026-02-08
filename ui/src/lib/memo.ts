@@ -23,13 +23,14 @@ export interface Memo {
   content: string
   isPublished: boolean
   tags: string[]
+  memoScore: number | null
 }
 
 export interface MemoListPageData {
-  page: number
-  pageSize: number
-  lastPage: number
-  totalMemoCount: number
+  page: number | null
+  pageSize: number | null
+  lastPage: number | null
+  totalMemoCount: number | null
   memos: Memo[]
 }
 
@@ -44,6 +45,7 @@ export function mapToMemo(memo: RawMemo): Memo {
     content: memo.content,
     isPublished: memo.isPublished,
     tags: memo.tags,
+    memoScore: memo.memoScore,
   } satisfies Memo
 }
 

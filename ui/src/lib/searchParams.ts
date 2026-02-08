@@ -63,6 +63,13 @@ export function addTagToSearchParams(params: URLSearchParams, tag: string): bool
   return true
 }
 
+export function clearSearchQueryFromParams(params: URLSearchParams): boolean {
+  if (!params.has('q')) return false
+  params.delete('q')
+  params.sort()
+  return true
+}
+
 export function deleteTagFromSearchParams(params: URLSearchParams, tag: string): boolean {
   if (!params.getAll('tag').includes(tag)) return false
 

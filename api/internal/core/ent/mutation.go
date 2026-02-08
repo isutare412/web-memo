@@ -703,6 +703,7 @@ type MemoMutation struct {
 	is_published          *bool
 	version               *int
 	addversion            *int
+	is_embedded           *bool
 	create_time           *time.Time
 	update_time           *time.Time
 	clearedFields         map[string]struct{}
@@ -1030,6 +1031,42 @@ func (m *MemoMutation) AddedVersion() (r int, exists bool) {
 func (m *MemoMutation) ResetVersion() {
 	m.version = nil
 	m.addversion = nil
+}
+
+// SetIsEmbedded sets the "is_embedded" field.
+func (m *MemoMutation) SetIsEmbedded(b bool) {
+	m.is_embedded = &b
+}
+
+// IsEmbedded returns the value of the "is_embedded" field in the mutation.
+func (m *MemoMutation) IsEmbedded() (r bool, exists bool) {
+	v := m.is_embedded
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsEmbedded returns the old "is_embedded" field's value of the Memo entity.
+// If the Memo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoMutation) OldIsEmbedded(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsEmbedded is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsEmbedded requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsEmbedded: %w", err)
+	}
+	return oldValue.IsEmbedded, nil
+}
+
+// ResetIsEmbedded resets all changes to the "is_embedded" field.
+func (m *MemoMutation) ResetIsEmbedded() {
+	m.is_embedded = nil
 }
 
 // SetCreateTime sets the "create_time" field.
@@ -1435,7 +1472,7 @@ func (m *MemoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemoMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.owner != nil {
 		fields = append(fields, memo.FieldOwnerID)
 	}
@@ -1450,6 +1487,9 @@ func (m *MemoMutation) Fields() []string {
 	}
 	if m.version != nil {
 		fields = append(fields, memo.FieldVersion)
+	}
+	if m.is_embedded != nil {
+		fields = append(fields, memo.FieldIsEmbedded)
 	}
 	if m.create_time != nil {
 		fields = append(fields, memo.FieldCreateTime)
@@ -1475,6 +1515,8 @@ func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 		return m.IsPublished()
 	case memo.FieldVersion:
 		return m.Version()
+	case memo.FieldIsEmbedded:
+		return m.IsEmbedded()
 	case memo.FieldCreateTime:
 		return m.CreateTime()
 	case memo.FieldUpdateTime:
@@ -1498,6 +1540,8 @@ func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldIsPublished(ctx)
 	case memo.FieldVersion:
 		return m.OldVersion(ctx)
+	case memo.FieldIsEmbedded:
+		return m.OldIsEmbedded(ctx)
 	case memo.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	case memo.FieldUpdateTime:
@@ -1545,6 +1589,13 @@ func (m *MemoMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetVersion(v)
+		return nil
+	case memo.FieldIsEmbedded:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsEmbedded(v)
 		return nil
 	case memo.FieldCreateTime:
 		v, ok := value.(time.Time)
@@ -1638,6 +1689,9 @@ func (m *MemoMutation) ResetField(name string) error {
 		return nil
 	case memo.FieldVersion:
 		m.ResetVersion()
+		return nil
+	case memo.FieldIsEmbedded:
+		m.ResetIsEmbedded()
 		return nil
 	case memo.FieldCreateTime:
 		m.ResetCreateTime()

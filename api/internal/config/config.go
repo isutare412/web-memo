@@ -44,6 +44,7 @@ func (c *Config) ToHTTPConfig() http.Config {
 	return http.Config{
 		Port:                  c.HTTP.Port,
 		CookieTokenExpiration: c.JWT.Expiration,
+		EmbeddingEnabled:      c.Embedding.Enabled,
 	}
 }
 
@@ -102,11 +103,13 @@ func (c *Config) ToImageServiceConfig() image.Config {
 
 func (c *Config) ToEmbeddingConfig() embedding.Config {
 	return embedding.Config{
-		TEIBaseURL:           c.Embedding.TEIBaseURL,
-		QdrantHost:           c.Embedding.QdrantHost,
-		QdrantPort:           c.Embedding.QdrantPort,
-		QdrantCollectionName: c.Embedding.QdrantCollectionName,
-		JobBufferSize:        c.Embedding.JobBufferSize,
+		TEIBaseURL:              c.Embedding.TEIBaseURL,
+		QdrantHost:              c.Embedding.QdrantHost,
+		QdrantPort:              c.Embedding.QdrantPort,
+		QdrantCollectionName:    c.Embedding.QdrantCollectionName,
+		JobBufferSize:           c.Embedding.JobBufferSize,
+		MinSearchScoreThreshold: c.Embedding.MinSearchScoreThreshold,
+		MaxSearchResults:        c.Embedding.MaxSearchResults,
 	}
 }
 
@@ -152,10 +155,12 @@ type ImageerConfig struct {
 }
 
 type EmbeddingConfig struct {
-	Enabled              bool   `koanf:"enabled"`
-	TEIBaseURL           string `koanf:"tei-base-url"`
-	QdrantHost           string `koanf:"qdrant-host"`
-	QdrantPort           int    `koanf:"qdrant-port"`
-	QdrantCollectionName string `koanf:"qdrant-collection-name"`
-	JobBufferSize        int    `koanf:"job-buffer-size"`
+	Enabled                 bool    `koanf:"enabled"`
+	TEIBaseURL              string  `koanf:"tei-base-url"`
+	QdrantHost              string  `koanf:"qdrant-host"`
+	QdrantPort              int     `koanf:"qdrant-port"`
+	QdrantCollectionName    string  `koanf:"qdrant-collection-name"`
+	JobBufferSize           int     `koanf:"job-buffer-size"`
+	MinSearchScoreThreshold float32 `koanf:"min-search-score-threshold"`
+	MaxSearchResults        int     `koanf:"max-search-results"`
 }

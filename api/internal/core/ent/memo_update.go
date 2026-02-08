@@ -110,6 +110,20 @@ func (mu *MemoUpdate) AddVersion(i int) *MemoUpdate {
 	return mu
 }
 
+// SetIsEmbedded sets the "is_embedded" field.
+func (mu *MemoUpdate) SetIsEmbedded(b bool) *MemoUpdate {
+	mu.mutation.SetIsEmbedded(b)
+	return mu
+}
+
+// SetNillableIsEmbedded sets the "is_embedded" field if the given value is not nil.
+func (mu *MemoUpdate) SetNillableIsEmbedded(b *bool) *MemoUpdate {
+	if b != nil {
+		mu.SetIsEmbedded(*b)
+	}
+	return mu
+}
+
 // SetUpdateTime sets the "update_time" field.
 func (mu *MemoUpdate) SetUpdateTime(t time.Time) *MemoUpdate {
 	mu.mutation.SetUpdateTime(t)
@@ -391,6 +405,9 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := mu.mutation.AddedVersion(); ok {
 		_spec.AddField(memo.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := mu.mutation.IsEmbedded(); ok {
+		_spec.SetField(memo.FieldIsEmbedded, field.TypeBool, value)
 	}
 	if value, ok := mu.mutation.UpdateTime(); ok {
 		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)
@@ -770,6 +787,20 @@ func (muo *MemoUpdateOne) AddVersion(i int) *MemoUpdateOne {
 	return muo
 }
 
+// SetIsEmbedded sets the "is_embedded" field.
+func (muo *MemoUpdateOne) SetIsEmbedded(b bool) *MemoUpdateOne {
+	muo.mutation.SetIsEmbedded(b)
+	return muo
+}
+
+// SetNillableIsEmbedded sets the "is_embedded" field if the given value is not nil.
+func (muo *MemoUpdateOne) SetNillableIsEmbedded(b *bool) *MemoUpdateOne {
+	if b != nil {
+		muo.SetIsEmbedded(*b)
+	}
+	return muo
+}
+
 // SetUpdateTime sets the "update_time" field.
 func (muo *MemoUpdateOne) SetUpdateTime(t time.Time) *MemoUpdateOne {
 	muo.mutation.SetUpdateTime(t)
@@ -1081,6 +1112,9 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 	}
 	if value, ok := muo.mutation.AddedVersion(); ok {
 		_spec.AddField(memo.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := muo.mutation.IsEmbedded(); ok {
+		_spec.SetField(memo.FieldIsEmbedded, field.TypeBool, value)
 	}
 	if value, ok := muo.mutation.UpdateTime(); ok {
 		_spec.SetField(memo.FieldUpdateTime, field.TypeTime, value)

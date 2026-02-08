@@ -74,6 +74,20 @@ func (mc *MemoCreate) SetNillableVersion(i *int) *MemoCreate {
 	return mc
 }
 
+// SetIsEmbedded sets the "is_embedded" field.
+func (mc *MemoCreate) SetIsEmbedded(b bool) *MemoCreate {
+	mc.mutation.SetIsEmbedded(b)
+	return mc
+}
+
+// SetNillableIsEmbedded sets the "is_embedded" field if the given value is not nil.
+func (mc *MemoCreate) SetNillableIsEmbedded(b *bool) *MemoCreate {
+	if b != nil {
+		mc.SetIsEmbedded(*b)
+	}
+	return mc
+}
+
 // SetCreateTime sets the "create_time" field.
 func (mc *MemoCreate) SetCreateTime(t time.Time) *MemoCreate {
 	mc.mutation.SetCreateTime(t)
@@ -239,6 +253,10 @@ func (mc *MemoCreate) defaults() {
 		v := memo.DefaultVersion
 		mc.mutation.SetVersion(v)
 	}
+	if _, ok := mc.mutation.IsEmbedded(); !ok {
+		v := memo.DefaultIsEmbedded
+		mc.mutation.SetIsEmbedded(v)
+	}
 	if _, ok := mc.mutation.CreateTime(); !ok {
 		v := memo.DefaultCreateTime()
 		mc.mutation.SetCreateTime(v)
@@ -279,6 +297,9 @@ func (mc *MemoCreate) check() error {
 	}
 	if _, ok := mc.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Memo.version"`)}
+	}
+	if _, ok := mc.mutation.IsEmbedded(); !ok {
+		return &ValidationError{Name: "is_embedded", err: errors.New(`ent: missing required field "Memo.is_embedded"`)}
 	}
 	if _, ok := mc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Memo.create_time"`)}
@@ -340,6 +361,10 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 	if value, ok := mc.mutation.Version(); ok {
 		_spec.SetField(memo.FieldVersion, field.TypeInt, value)
 		_node.Version = value
+	}
+	if value, ok := mc.mutation.IsEmbedded(); ok {
+		_spec.SetField(memo.FieldIsEmbedded, field.TypeBool, value)
+		_node.IsEmbedded = value
 	}
 	if value, ok := mc.mutation.CreateTime(); ok {
 		_spec.SetField(memo.FieldCreateTime, field.TypeTime, value)
@@ -572,6 +597,18 @@ func (u *MemoUpsert) AddVersion(v int) *MemoUpsert {
 	return u
 }
 
+// SetIsEmbedded sets the "is_embedded" field.
+func (u *MemoUpsert) SetIsEmbedded(v bool) *MemoUpsert {
+	u.Set(memo.FieldIsEmbedded, v)
+	return u
+}
+
+// UpdateIsEmbedded sets the "is_embedded" field to the value that was provided on create.
+func (u *MemoUpsert) UpdateIsEmbedded() *MemoUpsert {
+	u.SetExcluded(memo.FieldIsEmbedded)
+	return u
+}
+
 // SetUpdateTime sets the "update_time" field.
 func (u *MemoUpsert) SetUpdateTime(v time.Time) *MemoUpsert {
 	u.Set(memo.FieldUpdateTime, v)
@@ -709,6 +746,20 @@ func (u *MemoUpsertOne) AddVersion(v int) *MemoUpsertOne {
 func (u *MemoUpsertOne) UpdateVersion() *MemoUpsertOne {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetIsEmbedded sets the "is_embedded" field.
+func (u *MemoUpsertOne) SetIsEmbedded(v bool) *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetIsEmbedded(v)
+	})
+}
+
+// UpdateIsEmbedded sets the "is_embedded" field to the value that was provided on create.
+func (u *MemoUpsertOne) UpdateIsEmbedded() *MemoUpsertOne {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateIsEmbedded()
 	})
 }
 
@@ -1018,6 +1069,20 @@ func (u *MemoUpsertBulk) AddVersion(v int) *MemoUpsertBulk {
 func (u *MemoUpsertBulk) UpdateVersion() *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetIsEmbedded sets the "is_embedded" field.
+func (u *MemoUpsertBulk) SetIsEmbedded(v bool) *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.SetIsEmbedded(v)
+	})
+}
+
+// UpdateIsEmbedded sets the "is_embedded" field to the value that was provided on create.
+func (u *MemoUpsertBulk) UpdateIsEmbedded() *MemoUpsertBulk {
+	return u.Update(func(s *MemoUpsert) {
+		s.UpdateIsEmbedded()
 	})
 }
 

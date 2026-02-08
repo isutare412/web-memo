@@ -299,6 +299,65 @@ func (_c *MockMemoRepository_FindAll_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
+// FindAllByIDsWithEdges provides a mock function with given fields: ctx, ids
+func (_m *MockMemoRepository) FindAllByIDsWithEdges(ctx context.Context, ids []uuid.UUID) ([]*ent.Memo, error) {
+	ret := _m.Called(ctx, ids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindAllByIDsWithEdges")
+	}
+
+	var r0 []*ent.Memo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) ([]*ent.Memo, error)); ok {
+		return rf(ctx, ids)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) []*ent.Memo); ok {
+		r0 = rf(ctx, ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*ent.Memo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []uuid.UUID) error); ok {
+		r1 = rf(ctx, ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockMemoRepository_FindAllByIDsWithEdges_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindAllByIDsWithEdges'
+type MockMemoRepository_FindAllByIDsWithEdges_Call struct {
+	*mock.Call
+}
+
+// FindAllByIDsWithEdges is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ids []uuid.UUID
+func (_e *MockMemoRepository_Expecter) FindAllByIDsWithEdges(ctx interface{}, ids interface{}) *MockMemoRepository_FindAllByIDsWithEdges_Call {
+	return &MockMemoRepository_FindAllByIDsWithEdges_Call{Call: _e.mock.On("FindAllByIDsWithEdges", ctx, ids)}
+}
+
+func (_c *MockMemoRepository_FindAllByIDsWithEdges_Call) Run(run func(ctx context.Context, ids []uuid.UUID)) *MockMemoRepository_FindAllByIDsWithEdges_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockMemoRepository_FindAllByIDsWithEdges_Call) Return(_a0 []*ent.Memo, _a1 error) *MockMemoRepository_FindAllByIDsWithEdges_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockMemoRepository_FindAllByIDsWithEdges_Call) RunAndReturn(run func(context.Context, []uuid.UUID) ([]*ent.Memo, error)) *MockMemoRepository_FindAllByIDsWithEdges_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindAllByUserIDAndTagNamesWithEdges provides a mock function with given fields: ctx, userID, tags, sortParams, pageParams
 func (_m *MockMemoRepository) FindAllByUserIDAndTagNamesWithEdges(ctx context.Context, userID uuid.UUID, tags []string, sortParams model.MemoSortParams, pageParams model.PaginationParams) ([]*ent.Memo, error) {
 	ret := _m.Called(ctx, userID, tags, sortParams, pageParams)
@@ -595,6 +654,65 @@ func (_c *MockMemoRepository_FindByIDWithEdges_Call) Return(_a0 *ent.Memo, _a1 e
 }
 
 func (_c *MockMemoRepository_FindByIDWithEdges_Call) RunAndReturn(run func(context.Context, uuid.UUID) (*ent.Memo, error)) *MockMemoRepository_FindByIDWithEdges_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindSubscribedMemoIDs provides a mock function with given fields: ctx, userID
+func (_m *MockMemoRepository) FindSubscribedMemoIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindSubscribedMemoIDs")
+	}
+
+	var r0 []uuid.UUID
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]uuid.UUID, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []uuid.UUID); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]uuid.UUID)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockMemoRepository_FindSubscribedMemoIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindSubscribedMemoIDs'
+type MockMemoRepository_FindSubscribedMemoIDs_Call struct {
+	*mock.Call
+}
+
+// FindSubscribedMemoIDs is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+func (_e *MockMemoRepository_Expecter) FindSubscribedMemoIDs(ctx interface{}, userID interface{}) *MockMemoRepository_FindSubscribedMemoIDs_Call {
+	return &MockMemoRepository_FindSubscribedMemoIDs_Call{Call: _e.mock.On("FindSubscribedMemoIDs", ctx, userID)}
+}
+
+func (_c *MockMemoRepository_FindSubscribedMemoIDs_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockMemoRepository_FindSubscribedMemoIDs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockMemoRepository_FindSubscribedMemoIDs_Call) Return(_a0 []uuid.UUID, _a1 error) *MockMemoRepository_FindSubscribedMemoIDs_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockMemoRepository_FindSubscribedMemoIDs_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]uuid.UUID, error)) *MockMemoRepository_FindSubscribedMemoIDs_Call {
 	_c.Call.Return(run)
 	return _c
 }

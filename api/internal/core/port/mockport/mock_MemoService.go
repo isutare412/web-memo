@@ -764,6 +764,66 @@ func (_c *MockMemoService_ReplaceTags_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// SearchMemos provides a mock function with given fields: ctx, userID, query
+func (_m *MockMemoService) SearchMemos(ctx context.Context, userID uuid.UUID, query string) ([]*model.MemoSearchResult, error) {
+	ret := _m.Called(ctx, userID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchMemos")
+	}
+
+	var r0 []*model.MemoSearchResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string) ([]*model.MemoSearchResult, error)); ok {
+		return rf(ctx, userID, query)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, string) []*model.MemoSearchResult); ok {
+		r0 = rf(ctx, userID, query)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.MemoSearchResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, string) error); ok {
+		r1 = rf(ctx, userID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockMemoService_SearchMemos_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchMemos'
+type MockMemoService_SearchMemos_Call struct {
+	*mock.Call
+}
+
+// SearchMemos is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+//   - query string
+func (_e *MockMemoService_Expecter) SearchMemos(ctx interface{}, userID interface{}, query interface{}) *MockMemoService_SearchMemos_Call {
+	return &MockMemoService_SearchMemos_Call{Call: _e.mock.On("SearchMemos", ctx, userID, query)}
+}
+
+func (_c *MockMemoService_SearchMemos_Call) Run(run func(ctx context.Context, userID uuid.UUID, query string)) *MockMemoService_SearchMemos_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockMemoService_SearchMemos_Call) Return(_a0 []*model.MemoSearchResult, _a1 error) *MockMemoService_SearchMemos_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockMemoService_SearchMemos_Call) RunAndReturn(run func(context.Context, uuid.UUID, string) ([]*model.MemoSearchResult, error)) *MockMemoService_SearchMemos_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SearchTags provides a mock function with given fields: ctx, keyword, requester
 func (_m *MockMemoService) SearchTags(ctx context.Context, keyword string, requester *model.AppIDToken) ([]*ent.Tag, error) {
 	ret := _m.Called(ctx, keyword, requester)

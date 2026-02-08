@@ -56,6 +56,7 @@ var (
 		{Name: "content", Type: field.TypeString, Size: 60000},
 		{Name: "is_published", Type: field.TypeBool, Default: false},
 		{Name: "version", Type: field.TypeInt, Default: 0},
+		{Name: "is_embedded", Type: field.TypeBool, Default: false},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "owner_id", Type: field.TypeUUID},
@@ -68,7 +69,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "memos_users_memos",
-				Columns:    []*schema.Column{MemosColumns[7]},
+				Columns:    []*schema.Column{MemosColumns[8]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -77,7 +78,12 @@ var (
 			{
 				Name:    "memo_owner_id",
 				Unique:  false,
-				Columns: []*schema.Column{MemosColumns[7]},
+				Columns: []*schema.Column{MemosColumns[8]},
+			},
+			{
+				Name:    "memo_is_embedded",
+				Unique:  false,
+				Columns: []*schema.Column{MemosColumns[5]},
 			},
 		},
 	}

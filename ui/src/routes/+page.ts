@@ -7,6 +7,11 @@ export const load = (async (event) => {
   const { url } = event
 
   const searchParams = url.searchParams
+
+  if (searchParams.has('q')) {
+    return
+  }
+
   let paramUpdated = false
 
   const pageSize = getPreferredPageSize()

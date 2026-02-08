@@ -29,6 +29,8 @@ type Memo struct {
 	IsPublished bool `json:"is_published,omitempty"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
+	// IsEmbedded holds the value of the "is_embedded" field.
+	IsEmbedded bool `json:"is_embedded,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -119,7 +121,7 @@ func (*Memo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case memo.FieldIsPublished:
+		case memo.FieldIsPublished, memo.FieldIsEmbedded:
 			values[i] = new(sql.NullBool)
 		case memo.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -179,6 +181,12 @@ func (m *Memo) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
 			} else if value.Valid {
 				m.Version = int(value.Int64)
+			}
+		case memo.FieldIsEmbedded:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_embedded", values[i])
+			} else if value.Valid {
+				m.IsEmbedded = value.Bool
 			}
 		case memo.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -272,6 +280,9 @@ func (m *Memo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", m.Version))
+	builder.WriteString(", ")
+	builder.WriteString("is_embedded=")
+	builder.WriteString(fmt.Sprintf("%v", m.IsEmbedded))
 	builder.WriteString(", ")
 	builder.WriteString("create_time=")
 	builder.WriteString(m.CreateTime.Format(time.ANSIC))

@@ -8,3 +8,8 @@ type EmbeddingJob struct {
 	Title   string
 	Content string
 }
+
+type SearchResult struct {
+	MemoID uuid.UUID
+	Score  float32
+}

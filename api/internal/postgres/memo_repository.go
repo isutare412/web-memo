@@ -102,6 +102,30 @@ func (r *MemoRepository) FindByIDWithEdges(ctx context.Context, memoID uuid.UUID
 	return memo, nil
 }
 
+func (r *MemoRepository) FindSubscribedMemoIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.FindSubscribedMemoIDs",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	subs, err := client.Subscription.
+		Query().
+		Where(subscription.UserID(userID)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]uuid.UUID, len(subs))
+	for i, s := range subs {
+		ids[i] = s.MemoID
+	}
+
+	return ids, nil
+}
+
 func (r *MemoRepository) FindAllNotEmbedded(
 	ctx context.Context,
 	pageParams model.PaginationParams,
@@ -201,6 +225,36 @@ func (r *MemoRepository) FindAllByUserIDWithEdges(
 	query = query.Offset(offset).Limit(pageParams.PageSize)
 
 	memos, err := query.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range memos {
+		slices.SortFunc(m.Edges.Tags, func(a, b *ent.Tag) int { return strings.Compare(a.Name, b.Name) })
+
+		contentDecoded, err := base64Decode(m.Content)
+		if err != nil {
+			return nil, err
+		}
+		m.Content = contentDecoded
+	}
+
+	return memos, nil
+}
+
+func (r *MemoRepository) FindAllByIDsWithEdges(ctx context.Context, ids []uuid.UUID) ([]*ent.Memo, error) {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.FindAllByIDsWithEdges",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	memos, err := client.Memo.
+		Query().
+		Where(memo.IDIn(ids...)).
+		WithTags().
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}

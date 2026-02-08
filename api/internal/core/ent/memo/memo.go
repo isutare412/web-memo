@@ -25,6 +25,8 @@ const (
 	FieldIsPublished = "is_published"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
+	// FieldIsEmbedded holds the string denoting the is_embedded field in the database.
+	FieldIsEmbedded = "is_embedded"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
@@ -89,6 +91,7 @@ var Columns = []string{
 	FieldContent,
 	FieldIsPublished,
 	FieldVersion,
+	FieldIsEmbedded,
 	FieldCreateTime,
 	FieldUpdateTime,
 }
@@ -124,6 +127,8 @@ var (
 	DefaultIsPublished bool
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion int
+	// DefaultIsEmbedded holds the default value on creation for the "is_embedded" field.
+	DefaultIsEmbedded bool
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
@@ -163,6 +168,11 @@ func ByIsPublished(opts ...sql.OrderTermOption) OrderOption {
 // ByVersion orders the results by the version field.
 func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
+}
+
+// ByIsEmbedded orders the results by the is_embedded field.
+func ByIsEmbedded(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsEmbedded, opts...).ToFunc()
 }
 
 // ByCreateTime orders the results by the create_time field.

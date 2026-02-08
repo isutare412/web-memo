@@ -12,6 +12,7 @@ import (
 	"github.com/qdrant/go-client/qdrant"
 	"go.opentelemetry.io/otel/trace"
 
+	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
@@ -42,6 +43,10 @@ func NewClient(cfg Config) (*Client, error) {
 		collectionName: cfg.QdrantCollectionName,
 		httpClient:     &http.Client{},
 	}, nil
+}
+
+func (c *Client) Close() error {
+	return c.qdrantClient.Close()
 }
 
 func (c *Client) EnsureCollection(ctx context.Context) error {
@@ -86,6 +91,11 @@ type embedRequest struct {
 }
 
 func (c *Client) Embed(ctx context.Context, texts []string) ([][]float32, error) {
+	ctx, span := tracing.StartSpan(ctx, "embedding.Client.Embed",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceTEI))
+	defer span.End()
+
 	var allEmbeddings [][]float32
 	for i := 0; i < len(texts); i += teiBatchSize {
 		end := min(i+teiBatchSize, len(texts))
@@ -189,6 +199,60 @@ func (c *Client) UpsertChunks(ctx context.Context, memoID, ownerID uuid.UUID, em
 	return nil
 }
 
-func (c *Client) Close() error {
-	return c.qdrantClient.Close()
+func (c *Client) Search(ctx context.Context, query string, ownerIDFilter *uuid.UUID, memoIDFilter []uuid.UUID, scoreThreshold float32, limit int) ([]model.SearchResult, error) {
+	ctx, span := tracing.StartSpan(ctx, "embedding.Client.Search",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServiceQdrant))
+	defer span.End()
+
+	embeddings, err := c.Embed(ctx, []string{query})
+	if err != nil {
+		return nil, fmt.Errorf("embedding query: %w", err)
+	}
+
+	var conditions []*qdrant.Condition
+	if ownerIDFilter != nil {
+		conditions = append(conditions, qdrant.NewMatch("owner_id", ownerIDFilter.String()))
+	}
+	if len(memoIDFilter) > 0 {
+		keywords := make([]string, len(memoIDFilter))
+		for i, id := range memoIDFilter {
+			keywords[i] = id.String()
+		}
+		conditions = append(conditions, qdrant.NewMatchKeywords("memo_id", keywords...))
+	}
+
+	groups, err := c.qdrantClient.QueryGroups(ctx, &qdrant.QueryPointGroups{
+		CollectionName: c.collectionName,
+		Query:          qdrant.NewQueryDense(embeddings[0]),
+		GroupBy:        "memo_id",
+		GroupSize:      qdrant.PtrOf(uint64(1)),
+		Limit:          qdrant.PtrOf(uint64(limit)),
+		ScoreThreshold: &scoreThreshold,
+		Filter: &qdrant.Filter{
+			Must: conditions,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("searching groups: %w", err)
+	}
+
+	var results []model.SearchResult
+	for _, group := range groups {
+		memoIDStr := group.GetId().GetStringValue()
+		memoID, err := uuid.Parse(memoIDStr)
+		if err != nil {
+			return nil, fmt.Errorf("parsing memo_id %q: %w", memoIDStr, err)
+		}
+		var score float32
+		if hits := group.GetHits(); len(hits) > 0 {
+			score = hits[0].GetScore()
+		}
+		results = append(results, model.SearchResult{
+			MemoID: memoID,
+			Score:  score,
+		})
+	}
+
+	return results, nil
 }

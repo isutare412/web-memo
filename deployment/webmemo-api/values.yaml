@@ -122,8 +122,18 @@ config:
     callback-path: /api/v1/google/sign-in/finish
   cron:
     tag-cleanup-interval: 1h
+    embedding-sync-interval: 1h
   imageer:
     base-url: <imageer_base_url>
     api-key: <imageer_api_key>
     project-id: <imageer_project_id>
     downscale-preset-name: downscale-85
+  embedding:
+    enabled: false
+    tei-base-url: http://localhost:28080
+    qdrant-host: localhost
+    qdrant-port: 28400
+    qdrant-collection-name: memo_chunks
+    job-buffer-size: 10
+    min-search-score-threshold: 0.5
+    max-search-results: 20
