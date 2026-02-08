@@ -131,6 +131,7 @@ config:
   embedding:
     enabled: false
     tei-base-url: http://localhost:28080
+    bm25-base-url: http://localhost:28081
     qdrant-host: localhost
     qdrant-port: 28400
     qdrant-collection-name: memo_chunks

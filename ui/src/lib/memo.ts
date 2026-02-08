@@ -23,7 +23,7 @@ export interface Memo {
   content: string
   isPublished: boolean
   tags: string[]
-  memoScore: number | null
+  scores: { rrf: number; semantic: number; bm25: number } | null
 }
 
 export interface MemoListPageData {
@@ -45,7 +45,7 @@ export function mapToMemo(memo: RawMemo): Memo {
     content: memo.content,
     isPublished: memo.isPublished,
     tags: memo.tags,
-    memoScore: memo.memoScore,
+    scores: memo.scores,
   } satisfies Memo
 }
 

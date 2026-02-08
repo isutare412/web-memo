@@ -10,6 +10,8 @@ type EmbeddingJob struct {
 }
 
 type SearchResult struct {
-	MemoID uuid.UUID
-	Score  float32
+	MemoID        uuid.UUID
+	RRFScore      float32
+	SemanticScore float32
+	BM25Score     float32
 }

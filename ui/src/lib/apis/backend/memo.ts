@@ -11,7 +11,7 @@ export interface RawMemo {
   content: string
   isPublished: boolean
   tags: string[]
-  memoScore: number | null
+  scores: { rrf: number; semantic: number; bm25: number } | null
 }
 
 export interface Subscriber {

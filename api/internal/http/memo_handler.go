@@ -163,9 +163,7 @@ func (h *memoHandler) searchMemos(w http.ResponseWriter, r *http.Request, passpo
 	memos := make([]*memo, 0, len(results))
 	for _, result := range results {
 		var dto memo
-		dto.fromMemo(result.Memo)
-		score := result.Score
-		dto.Score = &score
+		dto.fromMemoSearchResult(result)
 		memos = append(memos, &dto)
 	}
 

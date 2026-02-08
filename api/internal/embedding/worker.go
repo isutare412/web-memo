@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/isutare412/web-memo/api/internal/core/model"
 )
@@ -118,8 +119,21 @@ func (w *Worker) processEmbed(ctx context.Context, ej model.EmbeddingJob) {
 	text := prepareText(ej.Title, ej.Content)
 	chunks := chunkText(text)
 
-	embeddings, err := w.client.Embed(ctx, chunks)
-	if err != nil {
+	eg, egCtx := errgroup.WithContext(ctx)
+	var denseEmbeddings [][]float32
+	var sparseEmbeddings []sparseVector
+
+	eg.Go(func() error {
+		var err error
+		denseEmbeddings, err = w.client.Embed(egCtx, chunks)
+		return err
+	})
+	eg.Go(func() error {
+		var err error
+		sparseEmbeddings, err = w.client.EmbedSparse(egCtx, chunks)
+		return err
+	})
+	if err := eg.Wait(); err != nil {
 		slog.Error("failed to embed memo", "memoId", ej.MemoID, "error", err)
 		return
 	}
@@ -129,7 +143,7 @@ func (w *Worker) processEmbed(ctx context.Context, ej model.EmbeddingJob) {
 		return
 	}
 
-	if err := w.client.UpsertChunks(ctx, ej.MemoID, ej.OwnerID, embeddings); err != nil {
+	if err := w.client.UpsertChunks(ctx, ej.MemoID, ej.OwnerID, denseEmbeddings, sparseEmbeddings); err != nil {
 		slog.Error("failed to upsert embeddings", "memoId", ej.MemoID, "error", err)
 		return
 	}

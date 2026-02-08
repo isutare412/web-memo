@@ -1,11 +1,10 @@
 package embedding
 
 type Config struct {
-	TEIBaseURL              string
-	QdrantHost              string
-	QdrantPort              int
-	QdrantCollectionName    string
-	JobBufferSize           int
-	MinSearchScoreThreshold float32
-	MaxSearchResults        int
+	TEIBaseURL           string
+	BM25BaseURL          string
+	QdrantHost           string
+	QdrantPort           int
+	QdrantCollectionName string
+	JobBufferSize        int
 }

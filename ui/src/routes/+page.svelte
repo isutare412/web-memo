@@ -240,7 +240,7 @@
         <div class="w-4 text-primary">
           <SearchIcon />
         </div>
-        <div class="w-full max-w-xs">
+        <div class="w-full">
           <input
             type="text"
             placeholder="Search memos..."

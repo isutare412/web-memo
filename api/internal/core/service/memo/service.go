@@ -129,13 +129,13 @@ func (s *Service) SearchMemos(ctx context.Context, userID uuid.UUID, query strin
 		}
 	}
 
-	// Merge and sort by score descending, truncate.
+	// Merge and sort by RRF score descending, truncate.
 	merged := append(ownResults, subResults...)
 	slices.SortFunc(merged, func(a, b model.SearchResult) int {
-		if a.Score > b.Score {
+		if a.RRFScore > b.RRFScore {
 			return -1
 		}
-		if a.Score < b.Score {
+		if a.RRFScore < b.RRFScore {
 			return 1
 		}
 		return 0
@@ -149,10 +149,19 @@ func (s *Service) SearchMemos(ctx context.Context, userID uuid.UUID, query strin
 	}
 
 	// Build score map and collect memo IDs.
-	scoreMap := make(map[uuid.UUID]float32, len(merged))
+	type scores struct {
+		RRFScore      float32
+		SemanticScore float32
+		BM25Score     float32
+	}
+	scoreMap := make(map[uuid.UUID]scores, len(merged))
 	memoIDs := make([]uuid.UUID, len(merged))
 	for i, r := range merged {
-		scoreMap[r.MemoID] = r.Score
+		scoreMap[r.MemoID] = scores{
+			RRFScore:      r.RRFScore,
+			SemanticScore: r.SemanticScore,
+			BM25Score:     r.BM25Score,
+		}
 		memoIDs[i] = r.MemoID
 	}
 
@@ -174,9 +183,12 @@ func (s *Service) SearchMemos(ctx context.Context, userID uuid.UUID, query strin
 		if !ok {
 			continue
 		}
+		s := scoreMap[r.MemoID]
 		results = append(results, &model.MemoSearchResult{
-			Memo:  m,
-			Score: r.Score,
+			Memo:          m,
+			RRFScore:      s.RRFScore,
+			SemanticScore: s.SemanticScore,
+			BM25Score:     s.BM25Score,
 		})
 	}
 

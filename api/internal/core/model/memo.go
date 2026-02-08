@@ -25,8 +25,10 @@ type MemoSortParams struct {
 }
 
 type MemoSearchResult struct {
-	Memo  *ent.Memo
-	Score float32
+	Memo          *ent.Memo
+	RRFScore      float32
+	SemanticScore float32
+	BM25Score     float32
 }
 
 type ListSubscribersResponse struct {

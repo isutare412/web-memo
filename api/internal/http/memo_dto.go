@@ -8,20 +8,27 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
 
+type memoScores struct {
+	RRF      float32 `json:"rrf"`
+	Semantic float32 `json:"semantic"`
+	BM25     float32 `json:"bm25"`
+}
+
 type memo struct {
-	ID          uuid.UUID `json:"id"`
-	OwnerID     uuid.UUID `json:"ownerId"`
-	CreateTime  time.Time `json:"createTime"`
-	UpdateTime  time.Time `json:"updateTime"`
-	Title       string    `json:"title"`
-	Content     string    `json:"content"`
-	IsPublished bool      `json:"isPublished"`
-	Version     int       `json:"version"`
-	Tags        []string  `json:"tags"`
-	Score       *float32  `json:"memoScore"`
+	ID          uuid.UUID   `json:"id"`
+	OwnerID     uuid.UUID   `json:"ownerId"`
+	CreateTime  time.Time   `json:"createTime"`
+	UpdateTime  time.Time   `json:"updateTime"`
+	Title       string      `json:"title"`
+	Content     string      `json:"content"`
+	IsPublished bool        `json:"isPublished"`
+	Version     int         `json:"version"`
+	Tags        []string    `json:"tags"`
+	Scores      *memoScores `json:"scores"`
 }
 
 func (m *memo) fromMemo(memo *ent.Memo) {
@@ -36,6 +43,15 @@ func (m *memo) fromMemo(memo *ent.Memo) {
 	m.Tags = lo.Map(memo.Edges.Tags, func(t *ent.Tag, _ int) string {
 		return t.Name
 	})
+}
+
+func (m *memo) fromMemoSearchResult(result *model.MemoSearchResult) {
+	m.fromMemo(result.Memo)
+	m.Scores = &memoScores{
+		RRF:      result.RRFScore,
+		Semantic: result.SemanticScore,
+		BM25:     result.BM25Score,
+	}
 }
 
 type listMemosResponse struct {

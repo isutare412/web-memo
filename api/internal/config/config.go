@@ -103,13 +103,12 @@ func (c *Config) ToImageServiceConfig() image.Config {
 
 func (c *Config) ToEmbeddingConfig() embedding.Config {
 	return embedding.Config{
-		TEIBaseURL:              c.Embedding.TEIBaseURL,
-		QdrantHost:              c.Embedding.QdrantHost,
-		QdrantPort:              c.Embedding.QdrantPort,
-		QdrantCollectionName:    c.Embedding.QdrantCollectionName,
-		JobBufferSize:           c.Embedding.JobBufferSize,
-		MinSearchScoreThreshold: c.Embedding.MinSearchScoreThreshold,
-		MaxSearchResults:        c.Embedding.MaxSearchResults,
+		TEIBaseURL:           c.Embedding.TEIBaseURL,
+		BM25BaseURL:          c.Embedding.BM25BaseURL,
+		QdrantHost:           c.Embedding.QdrantHost,
+		QdrantPort:           c.Embedding.QdrantPort,
+		QdrantCollectionName: c.Embedding.QdrantCollectionName,
+		JobBufferSize:        c.Embedding.JobBufferSize,
 	}
 }
 
@@ -157,6 +156,7 @@ type ImageerConfig struct {
 type EmbeddingConfig struct {
 	Enabled                 bool    `koanf:"enabled"`
 	TEIBaseURL              string  `koanf:"tei-base-url"`
+	BM25BaseURL             string  `koanf:"bm25-base-url"`
 	QdrantHost              string  `koanf:"qdrant-host"`
 	QdrantPort              int     `koanf:"qdrant-port"`
 	QdrantCollectionName    string  `koanf:"qdrant-collection-name"`
