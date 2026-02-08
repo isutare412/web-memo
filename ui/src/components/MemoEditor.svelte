@@ -24,6 +24,7 @@
   export let version: number | undefined = undefined
 
   const dispatch = createEventDispatcher()
+  const CONTENT_MAX_LENGTH = 12000
 
   let tagInputValue = ''
   let tagInput: HTMLInputElement
@@ -32,7 +33,11 @@
   let fileInput: HTMLInputElement
 
   let titleWarning = false
+  let contentWarning = false
   let tagWarning: string | undefined = undefined
+
+  $: contentLength = [...content].length
+  $: isContentOverLimit = contentLength > CONTENT_MAX_LENGTH
 
   let isSubmitting = false
   let isPressingSubmit = false
@@ -191,6 +196,11 @@
   function validateBeforeSubmit(): boolean {
     if (title.trim() === '') {
       titleWarning = true
+      return false
+    }
+
+    if (isContentOverLimit) {
+      contentWarning = true
       return false
     }
 
@@ -781,11 +791,19 @@
         on:drop={onTextareaDrop}
         on:dragover={onTextareaDragOver}
         on:dragleave={onTextareaDragLeave}
+        on:input={() => (contentWarning = false)}
         class="textarea textarea-bordered h-[360px] w-full text-base focus:border-primary focus:outline-none"
         class:border-primary={isDraggingOver}
         class:border-dashed={isDraggingOver}
         class:bg-base-200={isDraggingOver}
+        class:border-error={isContentOverLimit || contentWarning}
+        class:focus:border-error={isContentOverLimit || contentWarning}
       />
+      <div class="mt-1 flex justify-end">
+        <span class="text-xs" class:text-error={isContentOverLimit || contentWarning}>
+          {contentLength.toLocaleString()} / {CONTENT_MAX_LENGTH.toLocaleString()}
+        </span>
+      </div>
     {:else}
       <div
         class="h-[360px] w-full overflow-y-auto rounded-lg border border-base-content/20 bg-base-100 p-4"
