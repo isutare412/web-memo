@@ -1,6 +1,7 @@
 package memo
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"log/slog"
@@ -129,16 +130,16 @@ func (s *Service) SearchMemos(ctx context.Context, userID uuid.UUID, query strin
 		}
 	}
 
-	// Merge and sort by RRF score descending, truncate.
+	// Merge and sort by RRF > Semantic > BM25 score descending, truncate.
 	merged := append(ownResults, subResults...)
 	slices.SortFunc(merged, func(a, b model.SearchResult) int {
-		if a.RRFScore > b.RRFScore {
-			return -1
+		if a.RRFScore != b.RRFScore {
+			return cmp.Compare(b.RRFScore, a.RRFScore)
 		}
-		if a.RRFScore < b.RRFScore {
-			return 1
+		if a.SemanticScore != b.SemanticScore {
+			return cmp.Compare(b.SemanticScore, a.SemanticScore)
 		}
-		return 0
+		return cmp.Compare(b.BM25Score, a.BM25Score)
 	})
 	if len(merged) > s.cfg.MaxSearchResults {
 		merged = merged[:s.cfg.MaxSearchResults]

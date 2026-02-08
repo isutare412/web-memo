@@ -420,9 +420,16 @@ func (c *Client) Search(ctx context.Context, query string, ownerIDFilter *uuid.U
 		})
 	}
 
-	// Sort by RRF score descending.
+	// Sort by RRF > Semantic > BM25 score descending.
 	sort.Slice(results, func(i, j int) bool {
-		return results[i].RRFScore > results[j].RRFScore
+		a, b := results[i], results[j]
+		if a.RRFScore != b.RRFScore {
+			return a.RRFScore > b.RRFScore
+		}
+		if a.SemanticScore != b.SemanticScore {
+			return a.SemanticScore > b.SemanticScore
+		}
+		return a.BM25Score > b.BM25Score
 	})
 
 	if len(results) > limit {
