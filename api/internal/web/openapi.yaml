@@ -627,18 +627,21 @@ components:
       enum:
         - createTime
         - updateTime
+      example: updateTime
       x-go-type: enum.MemoSortKey
       x-go-import:
         path: github.com/isutare412/web-memo/api/internal/core/enum
 
     ImageFormat:
       type: string
+      example: PNG
       x-go-type: images.Format
       x-go-import:
         path: github.com/isutare412/imageer/pkg/images
 
     ImageState:
       type: string
+      example: READY
       x-go-type: images.State
       x-go-import:
         path: github.com/isutare412/imageer/pkg/images
@@ -653,6 +656,8 @@ components:
           type: string
       required:
         - msg
+      example:
+        msg: memo not found
 
     ###
     # Auth Schemas
@@ -688,6 +693,16 @@ components:
         - userName
         - issuedAt
         - expireAt
+      example:
+        id: 550e8400-e29b-41d4-a716-446655440000
+        userType: google
+        email: john.doe@example.com
+        userName: John Doe
+        givenName: John
+        familyName: Doe
+        photoUrl: https://example.com/photos/john.jpg
+        issuedAt: '2025-01-15T09:00:00Z'
+        expireAt: '2025-01-15T10:00:00Z'
 
     ###
     # Memo Schemas
@@ -733,6 +748,26 @@ components:
         - isPublished
         - version
         - tags
+      example:
+        id: 7c9a1e50-e29b-41d4-a716-446655440001
+        ownerId: 550e8400-e29b-41d4-a716-446655440000
+        createTime: '2025-01-15T09:30:00Z'
+        updateTime: '2025-01-15T10:00:00Z'
+        title: Meeting Notes
+        content: Discussed project roadmap and Q2 goals.
+        isPublished: false
+        version: 3
+        tags:
+          - work
+          - meeting
+        scores:
+          rrf: 0.85
+          semantic: 0.92
+          bm25: 0.78
+        viewerContext:
+          isSubscribed: true
+          collaboration:
+            isApproved: false
 
     MemoScores:
       type: object
@@ -750,6 +785,10 @@ components:
         - rrf
         - semantic
         - bm25
+      example:
+        rrf: 0.85
+        semantic: 0.92
+        bm25: 0.78
 
     CreateMemoRequest:
       type: object
@@ -767,6 +806,12 @@ components:
           x-go-type-skip-optional-pointer: true
       required:
         - title
+      example:
+        title: Shopping List
+        content: 'Eggs, milk, bread, butter'
+        tags:
+          - personal
+          - groceries
 
     ReplaceMemoRequest:
       type: object
@@ -787,6 +832,13 @@ components:
       required:
         - title
         - version
+      example:
+        title: Shopping List (Updated)
+        content: 'Eggs, milk, bread, butter, cheese'
+        tags:
+          - personal
+          - groceries
+        version: 2
 
     PublishMemoRequest:
       type: object
@@ -795,6 +847,8 @@ components:
           type: boolean
       required:
         - publish
+      example:
+        publish: true
 
     ListMemosResponse:
       type: object
@@ -817,6 +871,23 @@ components:
             $ref: '#/components/schemas/Memo'
       required:
         - memos
+      example:
+        page: 1
+        pageSize: 10
+        lastPage: 5
+        totalMemoCount: 42
+        memos:
+          - id: 7c9a1e50-e29b-41d4-a716-446655440001
+            ownerId: 550e8400-e29b-41d4-a716-446655440000
+            createTime: '2025-01-15T09:30:00Z'
+            updateTime: '2025-01-15T10:00:00Z'
+            title: Meeting Notes
+            content: Discussed project roadmap and Q2 goals.
+            isPublished: false
+            version: 3
+            tags:
+              - work
+              - meeting
 
     ###
     # Subscriber Schemas
@@ -829,6 +900,8 @@ components:
           format: uuid
       required:
         - id
+      example:
+        id: 8f14e45f-ceea-467f-a83c-0a06b8578e4a
 
     ListSubscribersResponse:
       type: object
@@ -843,6 +916,10 @@ components:
       required:
         - memoOwnerId
         - subscribers
+      example:
+        memoOwnerId: 550e8400-e29b-41d4-a716-446655440000
+        subscribers:
+          - id: 8f14e45f-ceea-467f-a83c-0a06b8578e4a
 
     ###
     # Collaborator Schemas
@@ -864,6 +941,11 @@ components:
         - userName
         - photoUrl
         - isApproved
+      example:
+        id: 8f14e45f-ceea-467f-a83c-0a06b8578e4a
+        userName: Jane Smith
+        photoUrl: https://example.com/photos/jane.jpg
+        isApproved: true
 
     ListCollaboratorsResponse:
       type: object
@@ -878,6 +960,13 @@ components:
       required:
         - memoOwnerId
         - collaborators
+      example:
+        memoOwnerId: 550e8400-e29b-41d4-a716-446655440000
+        collaborators:
+          - id: 8f14e45f-ceea-467f-a83c-0a06b8578e4a
+            userName: Jane Smith
+            photoUrl: https://example.com/photos/jane.jpg
+            isApproved: true
 
     ViewerCollaboration:
       type: object
@@ -886,6 +975,8 @@ components:
           type: boolean
       required:
         - isApproved
+      example:
+        isApproved: true
 
     MemoViewerContext:
       type: object
@@ -899,6 +990,10 @@ components:
       required:
         - isSubscribed
         - collaboration
+      example:
+        isSubscribed: true
+        collaboration:
+          isApproved: false
 
     AuthorizeCollaborationRequest:
       type: object
@@ -907,6 +1002,8 @@ components:
           type: boolean
       required:
         - approve
+      example:
+        approve: true
 
     ###
     # Image Schemas
@@ -921,6 +1018,9 @@ components:
       required:
         - fileName
         - format
+      example:
+        fileName: photo.png
+        format: PNG
 
     CreateUploadURLResponse:
       type: object
@@ -941,6 +1041,12 @@ components:
         - uploadUrl
         - uploadHeaders
         - expiresAt
+      example:
+        imageId: img_abc123
+        uploadUrl: https://storage.example.com/upload/img_abc123
+        uploadHeaders:
+          Content-Type: image/png
+        expiresAt: '2025-01-15T10:30:00Z'
 
     ImageStatus:
       type: object
@@ -958,6 +1064,15 @@ components:
       required:
         - id
         - state
+      example:
+        id: img_abc123
+        state: READY
+        original:
+          url: https://storage.example.com/images/img_abc123/original.png
+          format: PNG
+        downscaled:
+          url: https://storage.example.com/images/img_abc123/downscaled.webp
+          format: WEBP
 
     ImageVariant:
       type: object
@@ -969,3 +1084,6 @@ components:
       required:
         - url
         - format
+      example:
+        url: https://storage.example.com/images/img_abc123/original.png
+        format: PNG
