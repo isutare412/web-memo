@@ -158,6 +158,7 @@ export async function searchMemos(query: string): Promise<ListMemosResponse> {
 export async function createMemo(request: CreateMemoRequest): Promise<RawMemo> {
   const response = await fetch('/api/v1/memos', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   })
   if (!response.ok) {
@@ -174,6 +175,7 @@ export async function replaceMemo(request: ReplaceMemoRequest): Promise<RawMemo>
 
   const response = await fetch(`/api/v1/memos/${request.id}?${searchParams.toString()}`, {
     method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       title: request.title,
       content: request.content,
@@ -192,6 +194,7 @@ export async function replaceMemo(request: ReplaceMemoRequest): Promise<RawMemo>
 export async function publishMemo(request: PublishMemoRequest): Promise<RawMemo> {
   const response = await fetch(`/api/v1/memos/${request.id}/publish`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       publish: request.publish,
     }),
@@ -315,6 +318,7 @@ export async function authorizeCollaboration({
 }: AuthorizeCollaborationRequest): Promise<void> {
   const response = await fetch(`/api/v1/memos/${memoId}/collaborators/${userId}/authorize`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ approve }),
   })
   if (!response.ok) {

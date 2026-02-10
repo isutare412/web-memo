@@ -91,8 +91,9 @@ config:
     service-name: webmemo-api
     sampling-ratio: 0.1
     otlp-grpc-endpoint: localhost:4317
-  http:
+  web:
     port: 80
+    show-openapi-docs: false
   postgres:
     host: postgres-headless
     port: 28100

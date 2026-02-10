@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API Reference</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- Load the Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+    <!-- Initialize the Scalar API Reference -->
+    <script>
+      Scalar.createApiReference("#app", {
+        // https://guides.scalar.com/scalar/scalar-api-references/configuration
+        url: "/docs/openapi.yaml",
+        metaData: {
+          title: "API Reference",
+        },
+        theme: "kepler",
+        telemetry: false,
+        hideClientButton: true,
+      });
+    </script>
+  </body>
+</html>

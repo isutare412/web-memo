@@ -37,8 +37,9 @@ lint: golangci-lint ## Run golangci-lint
 		$(GOLANGCI_LINT) run && \
 		echo "✅ Linting complete."
 
-.PHONY: mocks
-mocks: mockery ## Generate mock implementations.
+.PHONY: generate
+generate: mockery ## Generate mocks and OpenAPI server stubs.
+	go generate ./internal/web/...
 	$(MOCKERY) --config .mockery.yaml
 
 ##@ Entity

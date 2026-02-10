@@ -1,0 +1,948 @@
+openapi: '3.0.4'
+info:
+  title: Web Memo API
+  version: '1.0'
+
+security:
+  - bearerAuth: []
+  - cookieAuth: []
+
+tags:
+  - name: Auth
+  - name: Memo
+  - name: Tag
+  - name: Subscription
+  - name: Collaboration
+  - name: Image
+
+paths:
+  ###
+  # Auth
+  ###
+  /api/v1/google/sign-in:
+    get:
+      operationId: startGoogleSignIn
+      summary: Start Google Sign-In
+      security: []
+      tags:
+        - Auth
+      responses:
+        '302':
+          description: Redirecting to Google Sign-In
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/google/sign-in/finish:
+    get:
+      operationId: finishGoogleSignIn
+      summary: Finish Google Sign-In
+      security: []
+      tags:
+        - Auth
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: The authorization code returned by Google after sign-in.
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          description: The state parameter to prevent CSRF attacks.
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Successfully signed in with Google
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/users/me:
+    get:
+      operationId: getCurrentUser
+      summary: Get current user details
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Successfully retrieved current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/users/refresh-token:
+    post:
+      operationId: refreshToken
+      summary: Refresh the authentication token
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Successfully refreshed token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/users/sign-out:
+    get:
+      operationId: signOut
+      summary: Sign out the current user
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Successfully signed out
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  ###
+  # Memo
+  ###
+  /api/v1/memos:
+    get:
+      operationId: listMemos
+      summary: List memos
+      tags:
+        - Memo
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+        - $ref: '#/components/parameters/TagQuery'
+        - $ref: '#/components/parameters/SortQuery'
+      responses:
+        '200':
+          description: Successfully retrieved memos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMemosResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+    post:
+      operationId: createMemo
+      summary: Create a new memo
+      tags:
+        - Memo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMemoRequest'
+      responses:
+        '200':
+          description: Successfully created memo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memo'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/memos/{memoId}:
+    get:
+      operationId: getMemo
+      summary: Get memo details
+      tags:
+        - Memo
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+      responses:
+        '200':
+          description: Successfully retrieved memo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memo'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+    put:
+      operationId: replaceMemo
+      summary: Replace a memo
+      tags:
+        - Memo
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/PinUpdateTimeQuery'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplaceMemoRequest'
+      responses:
+        '200':
+          description: Successfully replaced memo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memo'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+    delete:
+      operationId: deleteMemo
+      summary: Delete a memo
+      tags:
+        - Memo
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+      responses:
+        '200':
+          description: Successfully deleted memo
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/memos/{memoId}/publish:
+    post:
+      operationId: publishMemo
+      summary: Publish or unpublish a memo
+      tags:
+        - Memo
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishMemoRequest'
+      responses:
+        '200':
+          description: Successfully updated publish state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memo'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  ###
+  # Tag
+  ###
+  /api/v1/memos/{memoId}/tags:
+    get:
+      operationId: getMemoTags
+      summary: Get tags of a memo
+      tags:
+        - Tag
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+      responses:
+        '200':
+          description: Successfully retrieved memo tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+    put:
+      operationId: replaceMemoTags
+      summary: Replace tags of a memo
+      tags:
+        - Tag
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+      responses:
+        '200':
+          description: Successfully replaced memo tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  ###
+  # Subscription
+  ###
+  /api/v1/memos/{memoId}/subscribers:
+    get:
+      operationId: listSubscribers
+      summary: List subscribers of a memo
+      tags:
+        - Subscription
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+      responses:
+        '200':
+          description: Successfully retrieved subscribers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSubscribersResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/memos/{memoId}/subscribers/{userId}:
+    get:
+      operationId: getSubscriber
+      summary: Get subscriber details
+      tags:
+        - Subscription
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: Successfully retrieved subscriber
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscriber'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+    put:
+      operationId: subscribe
+      summary: Subscribe to a memo
+      tags:
+        - Subscription
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: Successfully subscribed
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+    delete:
+      operationId: unsubscribe
+      summary: Unsubscribe from a memo
+      tags:
+        - Subscription
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: Successfully unsubscribed
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  ###
+  # Collaboration
+  ###
+  /api/v1/memos/{memoId}/collaborators:
+    get:
+      operationId: listCollaborators
+      summary: List collaborators of a memo
+      tags:
+        - Collaboration
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+      responses:
+        '200':
+          description: Successfully retrieved collaborators
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCollaboratorsResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/memos/{memoId}/collaborators/{userId}:
+    get:
+      operationId: getCollaborator
+      summary: Get collaborator details
+      tags:
+        - Collaboration
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: Successfully retrieved collaborator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaborator'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+    put:
+      operationId: requestCollaboration
+      summary: Request collaboration on a memo
+      tags:
+        - Collaboration
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: Successfully requested collaboration
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+    delete:
+      operationId: cancelCollaboration
+      summary: Cancel collaboration on a memo
+      tags:
+        - Collaboration
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/UserIdPath'
+      responses:
+        '200':
+          description: Successfully cancelled collaboration
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/memos/{memoId}/collaborators/{userId}/authorize:
+    post:
+      operationId: authorizeCollaboration
+      summary: Authorize or reject a collaboration request
+      tags:
+        - Collaboration
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizeCollaborationRequest'
+      responses:
+        '200':
+          description: Successfully authorized collaboration
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  ###
+  # Tag
+  ###
+  /api/v1/tags:
+    get:
+      operationId: searchTags
+      summary: Search tags by keyword
+      tags:
+        - Tag
+      parameters:
+        - $ref: '#/components/parameters/KeywordQuery'
+      responses:
+        '200':
+          description: Successfully retrieved tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  ###
+  # Image
+  ###
+  /api/v1/images/upload-url:
+    post:
+      operationId: createUploadURL
+      summary: Create a presigned URL for uploading an image
+      tags:
+        - Image
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUploadURLRequest'
+      responses:
+        '200':
+          description: Successfully created upload URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUploadURLResponse'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/images/{imageId}/status:
+    get:
+      operationId: getImageStatus
+      summary: Get image processing status
+      tags:
+        - Image
+      parameters:
+        - $ref: '#/components/parameters/ImageIdPath'
+        - $ref: '#/components/parameters/WaitUntilProcessedQuery'
+      responses:
+        '200':
+          description: Successfully retrieved image status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageStatus'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: wmToken
+
+  parameters:
+    ###
+    # Path Parameters
+    ###
+    MemoIdPath:
+      name: memoId
+      in: path
+      required: true
+      description: The ID of the memo.
+      schema:
+        type: string
+        format: uuid
+
+    UserIdPath:
+      name: userId
+      in: path
+      required: true
+      description: The ID of the user.
+      schema:
+        type: string
+        format: uuid
+
+    ImageIdPath:
+      name: imageId
+      in: path
+      required: true
+      description: The ID of the image.
+      schema:
+        type: string
+
+    ###
+    # Query Parameters
+    ###
+    PageQuery:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+
+    PageSizeQuery:
+      name: pageSize
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+
+    TagQuery:
+      name: tag
+      in: query
+      description: Filter by tags
+      style: form
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+        x-go-type-skip-optional-pointer: true
+
+    SortQuery:
+      name: sort
+      in: query
+      description: Sort key for listing memos
+      schema:
+        $ref: '#/components/schemas/MemoSortKey'
+
+    SearchQuery:
+      name: q
+      in: query
+      description: Search query string
+      schema:
+        type: string
+
+    PinUpdateTimeQuery:
+      name: pinUpdateTime
+      in: query
+      description: Whether to keep the current update time
+      schema:
+        type: boolean
+        default: false
+
+    WaitUntilProcessedQuery:
+      name: waitUntilProcessed
+      in: query
+      description: Wait until the image processing is completed
+      schema:
+        type: boolean
+        default: false
+
+    KeywordQuery:
+      name: kw
+      in: query
+      description: Keyword for searching tags
+      schema:
+        type: string
+
+  responses:
+    ###
+    # Error Responses
+    ###
+    ErrorResponse:
+      description: Error occurred during the request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ###
+    # Enums
+    ###
+    MemoSortKey:
+      type: string
+      enum:
+        - createTime
+        - updateTime
+      x-go-type: enum.MemoSortKey
+      x-go-import:
+        path: github.com/isutare412/web-memo/api/internal/core/enum
+
+    ImageFormat:
+      type: string
+      x-go-type: images.Format
+      x-go-import:
+        path: github.com/isutare412/imageer/pkg/images
+
+    ImageState:
+      type: string
+      x-go-type: images.State
+      x-go-import:
+        path: github.com/isutare412/imageer/pkg/images
+
+    ###
+    # Error Schemas
+    ###
+    ErrorResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+      required:
+        - msg
+
+    ###
+    # Auth Schemas
+    ###
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userType:
+          type: string
+        email:
+          type: string
+        userName:
+          type: string
+        givenName:
+          type: string
+        familyName:
+          type: string
+        photoUrl:
+          type: string
+        issuedAt:
+          type: string
+          format: date-time
+        expireAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userType
+        - email
+        - userName
+        - issuedAt
+        - expireAt
+
+    ###
+    # Memo Schemas
+    ###
+    Memo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: string
+          format: uuid
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+        title:
+          type: string
+        content:
+          type: string
+        isPublished:
+          type: boolean
+        version:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        scores:
+          $ref: '#/components/schemas/MemoScores'
+      required:
+        - id
+        - ownerId
+        - createTime
+        - updateTime
+        - title
+        - content
+        - isPublished
+        - version
+        - tags
+
+    MemoScores:
+      type: object
+      properties:
+        rrf:
+          type: number
+          format: float
+        semantic:
+          type: number
+          format: float
+        bm25:
+          type: number
+          format: float
+      required:
+        - rrf
+        - semantic
+        - bm25
+
+    CreateMemoRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          maxLength: 12000
+        tags:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+      required:
+        - title
+
+    ReplaceMemoRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          maxLength: 12000
+        tags:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+        version:
+          type: integer
+      required:
+        - title
+        - version
+
+    PublishMemoRequest:
+      type: object
+      properties:
+        publish:
+          type: boolean
+      required:
+        - publish
+
+    ListMemosResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+          nullable: true
+        pageSize:
+          type: integer
+          nullable: true
+        lastPage:
+          type: integer
+          nullable: true
+        totalMemoCount:
+          type: integer
+          nullable: true
+        memos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Memo'
+      required:
+        - memos
+
+    ###
+    # Subscriber Schemas
+    ###
+    Subscriber:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
+
+    ListSubscribersResponse:
+      type: object
+      properties:
+        memoOwnerId:
+          type: string
+          format: uuid
+        subscribers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscriber'
+      required:
+        - memoOwnerId
+        - subscribers
+
+    ###
+    # Collaborator Schemas
+    ###
+    Collaborator:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userName:
+          type: string
+        photoUrl:
+          type: string
+        isApproved:
+          type: boolean
+      required:
+        - id
+        - userName
+        - photoUrl
+        - isApproved
+
+    ListCollaboratorsResponse:
+      type: object
+      properties:
+        memoOwnerId:
+          type: string
+          format: uuid
+        collaborators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Collaborator'
+      required:
+        - memoOwnerId
+        - collaborators
+
+    AuthorizeCollaborationRequest:
+      type: object
+      properties:
+        approve:
+          type: boolean
+      required:
+        - approve
+
+    ###
+    # Image Schemas
+    ###
+    CreateUploadURLRequest:
+      type: object
+      properties:
+        fileName:
+          type: string
+        format:
+          $ref: '#/components/schemas/ImageFormat'
+      required:
+        - fileName
+        - format
+
+    CreateUploadURLResponse:
+      type: object
+      properties:
+        imageId:
+          type: string
+        uploadUrl:
+          type: string
+        uploadHeaders:
+          type: object
+          additionalProperties:
+            type: string
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+        - imageId
+        - uploadUrl
+        - uploadHeaders
+        - expiresAt
+
+    ImageStatus:
+      type: object
+      properties:
+        id:
+          type: string
+        state:
+          $ref: '#/components/schemas/ImageState'
+        original:
+          nullable: true
+          $ref: '#/components/schemas/ImageVariant'
+        downscaled:
+          nullable: true
+          $ref: '#/components/schemas/ImageVariant'
+      required:
+        - id
+        - state
+
+    ImageVariant:
+      type: object
+      properties:
+        url:
+          type: string
+        format:
+          $ref: '#/components/schemas/ImageFormat'
+      required:
+        - url
+        - format

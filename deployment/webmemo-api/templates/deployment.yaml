@@ -40,7 +40,7 @@ spec:
           args: [ "-configs", "configs" ]
           ports:
             - name: http
-              containerPort: {{ .Values.config.http.port }}
+              containerPort: {{ .Values.config.web.port }}
               protocol: TCP
           livenessProbe:
             httpGet:

@@ -1,0 +1,9 @@
+package: gen
+generate:
+  gorilla-server: true
+  models: true
+  embedded-spec: true
+output: gen/server_stub.go
+output-options:
+  name-normalizer: ToCamelCaseWithInitialisms
+  skip-prune: true

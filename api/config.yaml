@@ -14,8 +14,9 @@ trace:
   sampling-ratio: 0.1
   otlp-grpc-endpoint: localhost:4317
 
-http:
+web:
   port: 8412
+  show-openapi-docs: true
 
 postgres:
   host: localhost

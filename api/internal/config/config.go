@@ -15,13 +15,14 @@ import (
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
 	"github.com/isutare412/web-memo/api/internal/tracing"
+	"github.com/isutare412/web-memo/api/internal/web"
 )
 
 type Config struct {
 	Wire      WireConfig      `koanf:"wire"`
 	Log       log.Config      `koanf:"log"`
 	Trace     tracing.Config  `koanf:"trace"`
-	HTTP      HTTPConfig      `koanf:"http"`
+	Web       WebConfig       `koanf:"web"`
 	Postgres  postgres.Config `koanf:"postgres"`
 	Redis     redis.Config    `koanf:"redis"`
 	Google    GoogleConfig    `koanf:"google"`
@@ -42,7 +43,16 @@ func (c *Config) ToTracingConfig() tracing.Config {
 
 func (c *Config) ToHTTPConfig() http.Config {
 	return http.Config{
-		Port:                  c.HTTP.Port,
+		Port:                  c.Web.Port,
+		CookieTokenExpiration: c.JWT.Expiration,
+		EmbeddingEnabled:      c.Embedding.Enabled,
+	}
+}
+
+func (c *Config) ToWebConfig() web.Config {
+	return web.Config{
+		Port:                  c.Web.Port,
+		ShowOpenAPIDocs:       c.Web.ShowOpenAPIDocs,
 		CookieTokenExpiration: c.JWT.Expiration,
 		EmbeddingEnabled:      c.Embedding.Enabled,
 	}
@@ -117,8 +127,9 @@ type WireConfig struct {
 	ShutdownTimeout   time.Duration `koanf:"shutdown-timeout" validate:"required"`
 }
 
-type HTTPConfig struct {
-	Port int `koanf:"port" validate:"required"`
+type WebConfig struct {
+	Port            int  `koanf:"port" validate:"required"`
+	ShowOpenAPIDocs bool `koanf:"show-openapi-docs"`
 }
 
 type GoogleConfig struct {

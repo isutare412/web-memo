@@ -32,7 +32,7 @@ trace:
   service-name: webmemo-api-test
   sampling-ratio: 0.5
   otlp-grpc-endpoint: localhost:4317
-http:
+web:
   port: 8412
 postgres:
   host: 127.0.0.1
@@ -129,7 +129,7 @@ imageer:
 						SamplingRatio:    0.5,
 						OTLPGRPCEndpoint: "localhost:4317",
 					},
-					HTTP: config.HTTPConfig{
+					Web: config.WebConfig{
 						Port: 8412,
 					},
 					Postgres: postgres.Config{
@@ -206,7 +206,7 @@ imageer:
 						SamplingRatio:    0.5,
 						OTLPGRPCEndpoint: "localhost:4317",
 					},
-					HTTP: config.HTTPConfig{
+					Web: config.WebConfig{
 						Port: 8412,
 					},
 					Postgres: postgres.Config{
@@ -265,7 +265,7 @@ imageer:
 
 		It("loads config overwritten by local config", func() {
 			var (
-				givenConfigTextOverwrite = `http:
+				givenConfigTextOverwrite = `web:
   port: 12345
 oauth:
   state-timeout: 1h`
@@ -287,7 +287,7 @@ oauth:
 						SamplingRatio:    0.5,
 						OTLPGRPCEndpoint: "localhost:4317",
 					},
-					HTTP: config.HTTPConfig{
+					Web: config.WebConfig{
 						Port: 12345,
 					},
 					Postgres: postgres.Config{

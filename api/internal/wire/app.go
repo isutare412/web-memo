@@ -17,11 +17,11 @@ import (
 	"github.com/isutare412/web-memo/api/internal/cron"
 	"github.com/isutare412/web-memo/api/internal/embedding"
 	"github.com/isutare412/web-memo/api/internal/google"
-	"github.com/isutare412/web-memo/api/internal/http"
 	"github.com/isutare412/web-memo/api/internal/imageer"
 	"github.com/isutare412/web-memo/api/internal/jwt"
 	"github.com/isutare412/web-memo/api/internal/postgres"
 	"github.com/isutare412/web-memo/api/internal/redis"
+	"github.com/isutare412/web-memo/api/internal/web"
 )
 
 type App struct {
@@ -29,7 +29,7 @@ type App struct {
 
 	postgresClient  *postgres.Client
 	redisClient     *redis.Client
-	httpServer      *http.Server
+	httpServer      *web.Server
 	cronScheduler   *cron.Scheduler
 	embeddingWorker *embedding.Worker
 	memoService     *memo.Service
@@ -96,7 +96,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 		redisClient,
 	}
 
-	httpServer := http.NewServer(cfg.ToHTTPConfig(), authService, memoService, pingers, imageService)
+	httpServer := web.NewServer(cfg.ToWebConfig(), pingers, authService, memoService, imageService)
 
 	cronScheduler, err := cron.NewScheduler(cfg.ToCronConfig(), memoService)
 	if err != nil {
