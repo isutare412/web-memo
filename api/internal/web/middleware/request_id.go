@@ -20,9 +20,9 @@ func WithRequestID(next http.Handler) http.Handler {
 		spanCtx := span.SpanContext()
 
 		// Use trace ID as request ID if possible
-		id := spanCtx.TraceID().String()
-		if id == "" {
-			id = uuid.NewString()
+		id := uuid.NewString()
+		if tid := spanCtx.TraceID(); tid.IsValid() {
+			id = tid.String()
 		}
 		log.AddAttrs(ctx, slog.String("requestId", id))
 
