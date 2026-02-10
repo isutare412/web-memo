@@ -45,6 +45,7 @@ type MemoRepository interface {
 
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int, updateTime bool) error
 
+	IsSubscribed(ctx context.Context, memoID, userID uuid.UUID) (bool, error)
 	RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error
 	UnregisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error
 	ClearSubscribers(ctx context.Context, memoID uuid.UUID) error

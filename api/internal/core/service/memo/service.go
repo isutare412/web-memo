@@ -115,6 +115,58 @@ func (s *Service) GetMemo(ctx context.Context, memoID uuid.UUID, requester *mode
 	return memo, nil
 }
 
+func (s *Service) GetMemoDetail(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken,
+) (*model.GetMemoDetailResponse, error) {
+	var resp model.GetMemoDetailResponse
+
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByIDWithEdges(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.CanReadMemo(memo) {
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
+		}
+
+		resp.Memo = memo
+
+		if requester == nil {
+			return nil
+		}
+
+		viewerCtx := &model.MemoViewerContext{}
+
+		isSubscribed, err := s.memoRepository.IsSubscribed(ctx, memoID, requester.UserID)
+		if err != nil {
+			return fmt.Errorf("checking subscription: %w", err)
+		}
+		viewerCtx.IsSubscribed = isSubscribed
+
+		collabo, err := s.collaborationRepository.Find(ctx, memoID, requester.UserID)
+		switch {
+		case err == nil:
+			viewerCtx.IsCollaborator = true
+			viewerCtx.IsApproved = collabo.Approved
+		case pkgerr.IsErrNotFound(err):
+			// Not a collaborator — normal expected state
+		default:
+			return fmt.Errorf("finding collaboration: %w", err)
+		}
+
+		resp.ViewerContext = viewerCtx
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("getting memo detail: %w", err)
+	}
+
+	return &resp, nil
+}
+
 func (s *Service) SearchMemos(ctx context.Context, userID uuid.UUID, query string) ([]*model.MemoSearchResult, error) {
 	// Get subscribed memo IDs for the user.
 	subscribedIDs, err := s.memoRepository.FindSubscribedMemoIDs(ctx, userID)

@@ -12,6 +12,10 @@ export interface RawMemo {
   isPublished: boolean
   tags: string[]
   scores: { rrf: number; semantic: number; bm25: number } | null
+  viewerContext?: {
+    isSubscribed: boolean
+    collaboration: { isApproved: boolean } | null
+  } | null
 }
 
 export interface Subscriber {

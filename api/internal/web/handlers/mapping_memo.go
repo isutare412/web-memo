@@ -103,6 +103,32 @@ func CollaboratorsToWeb(resp *model.ListCollaboratorsResponse, memoID uuid.UUID)
 	}
 }
 
+// MemoDetailToWeb converts a GetMemoDetailResponse to the generated Memo type,
+// including the viewer context when present.
+func MemoDetailToWeb(resp *model.GetMemoDetailResponse) gen.Memo {
+	m := MemoToWeb(resp.Memo, memoTagNames(resp.Memo))
+	m.ViewerContext = ViewerContextToWeb(resp.ViewerContext)
+	return m
+}
+
+// ViewerContextToWeb converts a model.MemoViewerContext to the generated
+// MemoViewerContext. Returns nil when the input is nil (unauthenticated).
+func ViewerContextToWeb(ctx *model.MemoViewerContext) *gen.MemoViewerContext {
+	if ctx == nil {
+		return nil
+	}
+	result := &gen.MemoViewerContext{
+		IsSubscribed:  ctx.IsSubscribed,
+		Collaboration: nil,
+	}
+	if ctx.IsCollaborator {
+		result.Collaboration = &gen.ViewerCollaboration{
+			IsApproved: ctx.IsApproved,
+		}
+	}
+	return result
+}
+
 // memoTagNames extracts tag names from a memo's eager-loaded Tags edge.
 func memoTagNames(memo *ent.Memo) []string {
 	return lo.Map(memo.Edges.Tags, func(t *ent.Tag, _ int) string {

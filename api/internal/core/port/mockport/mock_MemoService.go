@@ -406,6 +406,66 @@ func (_c *MockMemoService_GetMemo_Call) RunAndReturn(run func(context.Context, u
 	return _c
 }
 
+// GetMemoDetail provides a mock function with given fields: ctx, memoID, requester
+func (_m *MockMemoService) GetMemoDetail(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.GetMemoDetailResponse, error) {
+	ret := _m.Called(ctx, memoID, requester)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMemoDetail")
+	}
+
+	var r0 *model.GetMemoDetailResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *model.AppIDToken) (*model.GetMemoDetailResponse, error)); ok {
+		return rf(ctx, memoID, requester)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, *model.AppIDToken) *model.GetMemoDetailResponse); ok {
+		r0 = rf(ctx, memoID, requester)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.GetMemoDetailResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, *model.AppIDToken) error); ok {
+		r1 = rf(ctx, memoID, requester)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockMemoService_GetMemoDetail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMemoDetail'
+type MockMemoService_GetMemoDetail_Call struct {
+	*mock.Call
+}
+
+// GetMemoDetail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - memoID uuid.UUID
+//   - requester *model.AppIDToken
+func (_e *MockMemoService_Expecter) GetMemoDetail(ctx interface{}, memoID interface{}, requester interface{}) *MockMemoService_GetMemoDetail_Call {
+	return &MockMemoService_GetMemoDetail_Call{Call: _e.mock.On("GetMemoDetail", ctx, memoID, requester)}
+}
+
+func (_c *MockMemoService_GetMemoDetail_Call) Run(run func(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken)) *MockMemoService_GetMemoDetail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(*model.AppIDToken))
+	})
+	return _c
+}
+
+func (_c *MockMemoService_GetMemoDetail_Call) Return(_a0 *model.GetMemoDetailResponse, _a1 error) *MockMemoService_GetMemoDetail_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockMemoService_GetMemoDetail_Call) RunAndReturn(run func(context.Context, uuid.UUID, *model.AppIDToken) (*model.GetMemoDetailResponse, error)) *MockMemoService_GetMemoDetail_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListCollaborators provides a mock function with given fields: ctx, memoID, requester
 func (_m *MockMemoService) ListCollaborators(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListCollaboratorsResponse, error) {
 	ret := _m.Called(ctx, memoID, requester)

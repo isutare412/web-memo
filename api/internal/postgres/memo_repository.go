@@ -542,6 +542,30 @@ func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagI
 	return nil
 }
 
+func (r *MemoRepository) IsSubscribed(ctx context.Context, memoID, userID uuid.UUID) (bool, error) {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.IsSubscribed",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	exists, err := client.Subscription.
+		Query().
+		Where(
+			subscription.And(
+				subscription.MemoID(memoID),
+				subscription.UserID(userID),
+			),
+		).
+		Exist(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
 func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
 	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.RegisterSubscriber",
 		trace.WithSpanKind(trace.SpanKindClient),

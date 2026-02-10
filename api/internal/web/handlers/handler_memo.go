@@ -159,14 +159,13 @@ func (h *Handler) GetMemo(w http.ResponseWriter, r *http.Request, memoID gen.Mem
 		token = passport.Token
 	}
 
-	memoFound, err := h.memoService.GetMemo(ctx, memoID, token)
+	resp, err := h.memoService.GetMemoDetail(ctx, memoID, token)
 	if err != nil {
-		gen.RespondError(w, r, fmt.Errorf("getting memo: %w", err))
+		gen.RespondError(w, r, fmt.Errorf("getting memo detail: %w", err))
 		return
 	}
 
-	memoTags := lo.Map(memoFound.Edges.Tags, func(t *ent.Tag, _ int) string { return t.Name })
-	gen.RespondJSON(w, http.StatusOK, MemoToWeb(memoFound, memoTags))
+	gen.RespondJSON(w, http.StatusOK, MemoDetailToWeb(resp))
 }
 
 // ReplaceMemo replaces a memo with updated data.

@@ -16,9 +16,7 @@
     authorizeCollaboration,
     cancelCollaboration,
     deleteMemo,
-    getCollaborator,
     getMemo,
-    getSubscriber,
     listCollaborators,
     listSubscribers,
     publishMemo,
@@ -87,7 +85,9 @@
     try {
       await syncUserData()
       await syncMemo(forceRefresh)
-      await Promise.all([syncSubscribeStatus(), syncCollborationStatus()])
+      if (user && memo && user.id === memo.ownerId) {
+        await Promise.all([syncOwnerSubscriberCount(), syncOwnerCollaborators()])
+      }
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
       goto('/')
@@ -96,55 +96,26 @@
   }
 
   async function syncMemo(forceRefresh: boolean) {
-    if (!forceRefresh && memo !== undefined) return
+    if (forceRefresh || memo === undefined) {
+      memo = undefined
+      memo = mapToMemo(await getMemo(memoId))
+    }
 
-    memo = undefined
-    memo = mapToMemo(await getMemo(memoId))
-  }
-
-  async function syncSubscribeStatus() {
-    if (user === undefined || memo === undefined) return
-
-    try {
-      if (memo.ownerId === user.id) {
-        const response = await listSubscribers(memoId)
-        subscriberCount = response.subscribers.length
-      } else {
-        await getSubscriber({ memoId, userId: user.id })
-        isMemoSubscribed = true
-      }
-    } catch (error: unknown) {
-      if (!(error instanceof StatusError)) {
-        addToast(getErrorMessage(error), 'error')
-        return
-      } else if (error.status !== 404) {
-        addToast(error.message, 'error')
-        return
-      }
+    if (memo.viewerContext) {
+      isMemoSubscribed = memo.viewerContext.isSubscribed
+      isMemoCollaborated = memo.viewerContext.collaboration !== null
+      isMemoCollaborateApproved = memo.viewerContext.collaboration?.isApproved ?? false
     }
   }
 
-  async function syncCollborationStatus() {
-    if (user === undefined || memo === undefined) return
+  async function syncOwnerSubscriberCount() {
+    const response = await listSubscribers(memoId)
+    subscriberCount = response.subscribers.length
+  }
 
-    try {
-      if (memo.ownerId === user.id) {
-        const response = await listCollaborators(memoId)
-        collaborators = response.collaborators
-      } else {
-        const collaborator = await getCollaborator({ memoId, userId: user.id })
-        isMemoCollaborated = true
-        isMemoCollaborateApproved = collaborator.isApproved
-      }
-    } catch (error: unknown) {
-      if (!(error instanceof StatusError)) {
-        addToast(getErrorMessage(error), 'error')
-        return
-      } else if (error.status !== 404) {
-        addToast(error.message, 'error')
-        return
-      }
-    }
+  async function syncOwnerCollaborators() {
+    const response = await listCollaborators(memoId)
+    collaborators = response.collaborators
   }
 
   async function onRefreshButtonClick() {
@@ -228,7 +199,7 @@
         userId: event.detail.userId,
         approve: event.detail.checked,
       })
-      await syncCollborationStatus()
+      await syncOwnerCollaborators()
     } catch (error: unknown) {
       addToast(getErrorMessage(error), 'error')
       return

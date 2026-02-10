@@ -40,3 +40,14 @@ type ListCollaboratorsResponse struct {
 	MemoOwnerID   uuid.UUID
 	Collaborators []*ent.User
 }
+
+type MemoViewerContext struct {
+	IsSubscribed   bool
+	IsCollaborator bool
+	IsApproved     bool
+}
+
+type GetMemoDetailResponse struct {
+	Memo          *ent.Memo
+	ViewerContext *MemoViewerContext
+}

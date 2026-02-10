@@ -721,6 +721,8 @@ components:
             type: string
         scores:
           $ref: '#/components/schemas/MemoScores'
+        viewerContext:
+          $ref: '#/components/schemas/MemoViewerContext'
       required:
         - id
         - ownerId
@@ -876,6 +878,27 @@ components:
       required:
         - memoOwnerId
         - collaborators
+
+    ViewerCollaboration:
+      type: object
+      properties:
+        isApproved:
+          type: boolean
+      required:
+        - isApproved
+
+    MemoViewerContext:
+      type: object
+      properties:
+        isSubscribed:
+          type: boolean
+        collaboration:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ViewerCollaboration'
+      required:
+        - isSubscribed
+        - collaboration
 
     AuthorizeCollaborationRequest:
       type: object

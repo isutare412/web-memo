@@ -13,6 +13,11 @@ export const defaultSortOrder = SortOrder.UPDATE_TIME
 
 export const reservedTags = ['published']
 
+export interface MemoViewerContext {
+  isSubscribed: boolean
+  collaboration: { isApproved: boolean } | null
+}
+
 export interface Memo {
   id: string
   ownerId: string
@@ -24,6 +29,7 @@ export interface Memo {
   isPublished: boolean
   tags: string[]
   scores: { rrf: number; semantic: number; bm25: number } | null
+  viewerContext: MemoViewerContext | null
 }
 
 export interface MemoListPageData {
@@ -46,6 +52,7 @@ export function mapToMemo(memo: RawMemo): Memo {
     isPublished: memo.isPublished,
     tags: memo.tags,
     scores: memo.scores,
+    viewerContext: memo.viewerContext ?? null,
   } satisfies Memo
 }
 
