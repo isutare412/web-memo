@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -53,7 +54,7 @@ func NewServer(
 		middleware.RecoverPanic,
 	}
 
-	apiMiddlewares := append([]mux.MiddlewareFunc(nil), baseMiddlewares...)
+	apiMiddlewares := slices.Clone(baseMiddlewares)
 	apiMiddlewares = append(apiMiddlewares,
 		authenticator.Authenticate,
 		middleware.WithOpenAPIValidator(),
