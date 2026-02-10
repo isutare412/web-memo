@@ -62,12 +62,6 @@ func NewServer(
 
 	r := mux.NewRouter()
 
-	// Health checks (base middleware only)
-	healthRouter := r.PathPrefix("/health").Subrouter()
-	healthRouter.Use(baseMiddlewares...)
-	healthRouter.HandleFunc("/livez", handler.Liveness).Methods("GET")
-	healthRouter.HandleFunc("/readyz", handler.Readiness).Methods("GET")
-
 	// OpenAPI docs (base middleware only, no auth)
 	if cfg.ShowOpenAPIDocs {
 		docsRouter := r.PathPrefix("/docs").Subrouter()
@@ -83,7 +77,9 @@ func NewServer(
 			Methods("GET")
 	}
 
-	// Metrics (no middleware)
+	// Infrastructure endpoints (no middleware)
+	r.HandleFunc("/health/livez", handler.Liveness).Methods("GET")
+	r.HandleFunc("/health/readyz", handler.Readiness).Methods("GET")
 	r.Handle("/metrics", promhttp.HandlerFor(metric.Gatherer(), promhttp.HandlerOpts{})).
 		Methods("GET")
 
