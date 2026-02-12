@@ -1,33 +1,33 @@
 const themeKey = 'preferredTheme'
 
-export enum ThemeMode {
-  Light = 'light',
-  Dark = 'dark',
-}
+export const themes = [
+  'light',
+  'dark',
+  'cupcake',
+  'retro',
+  'halloween',
+  'sunset',
+  'dim',
+  'lemonade',
+] as const
 
-const themeNames = new Map([
-  [ThemeMode.Light, 'light'],
-  [ThemeMode.Dark, 'dark'],
-])
+export type Theme = (typeof themes)[number]
 
-export function getPreferredTheme(): ThemeMode {
-  const theme = localStorage.getItem(themeKey)
-  switch (theme) {
-    case 'light':
-      return ThemeMode.Light
-    case 'dark':
-      return ThemeMode.Dark
+export function getPreferredTheme(): Theme {
+  const stored = localStorage.getItem(themeKey)
+  if (stored && themes.includes(stored as Theme)) {
+    return stored as Theme
   }
 
   return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? ThemeMode.Dark
-    : ThemeMode.Light
+    ? 'dark'
+    : 'light'
 }
 
-export function setPreferredTheme(theme: ThemeMode) {
+export function setPreferredTheme(theme: Theme) {
   localStorage.setItem(themeKey, theme)
 }
 
-export function setDocumentDataTheme(theme: ThemeMode) {
-  document.documentElement.setAttribute('data-theme', themeNames.get(theme)!)
+export function setDocumentDataTheme(theme: Theme) {
+  document.documentElement.setAttribute('data-theme', theme)
 }

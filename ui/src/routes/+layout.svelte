@@ -1,26 +1,27 @@
 <script lang="ts">
   import Avatar from '$components/Avatar.svelte'
   import LoadingProgressBar from '$components/LoadingProgressBar.svelte'
-  import ThemeToggle from '$components/ThemeToggle.svelte'
+  import ThemeSelector from '$components/ThemeSelector.svelte'
   import ToastContainer from '$components/ToastContainer.svelte'
   import {
     getPreferredTheme,
     setDocumentDataTheme,
     setPreferredTheme,
-    type ThemeMode,
+    type Theme,
   } from '$lib/theme'
   import '@fontsource-variable/inter'
   import { onMount } from 'svelte'
   import '../app.css'
 
-  let preferredTheme: ThemeMode | undefined = undefined
+  let preferredTheme: Theme | undefined = undefined
 
   onMount(async () => {
     preferredTheme = getPreferredTheme()
     setDocumentDataTheme(preferredTheme)
   })
 
-  function onThemeToggle(theme: ThemeMode) {
+  function onThemeChange(theme: Theme) {
+    preferredTheme = theme
     setDocumentDataTheme(theme)
     setPreferredTheme(theme)
   }
@@ -33,7 +34,7 @@
     <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
       <a class="text-3xl" href="/">Web Memo</a>
       <div class="flex items-center gap-x-3">
-        <ThemeToggle {onThemeToggle} initialMode={preferredTheme} />
+        <ThemeSelector {onThemeChange} currentTheme={preferredTheme} />
         <Avatar />
       </div>
     </div>
