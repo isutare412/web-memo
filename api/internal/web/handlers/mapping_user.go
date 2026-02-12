@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"github.com/samber/lo"
-
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/web/gen"
 )
@@ -14,9 +12,9 @@ func UserToWeb(token *model.AppIDToken) gen.User {
 		UserType:   string(token.UserType),
 		Email:      token.Email,
 		UserName:   token.UserName,
-		GivenName:  lo.ToPtr(token.GivenName),
-		FamilyName: lo.ToPtr(token.FamilyName),
-		PhotoURL:   lo.ToPtr(token.PhotoURL),
+		GivenName:  new(token.GivenName),
+		FamilyName: new(token.FamilyName),
+		PhotoURL:   new(token.PhotoURL),
 		IssuedAt:   token.IssuedAt,
 		ExpireAt:   token.ExpireAt,
 	}

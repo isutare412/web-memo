@@ -49,10 +49,10 @@ func MemosToListResponse(memos []*ent.Memo, tagsByMemo [][]string, page, pageSiz
 	}
 
 	return gen.ListMemosResponse{
-		Page:           lo.ToPtr(page),
-		PageSize:       lo.ToPtr(pageSize),
-		LastPage:       lo.ToPtr(lastPage),
-		TotalMemoCount: lo.ToPtr(totalCount),
+		Page:           new(page),
+		PageSize:       new(pageSize),
+		LastPage:       new(lastPage),
+		TotalMemoCount: new(totalCount),
 		Memos:          webMemos,
 	}
 }

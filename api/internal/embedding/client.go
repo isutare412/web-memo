@@ -431,10 +431,10 @@ func (c *Client) searchDenseGroups(ctx context.Context, denseVector []float32, f
 	groups, err := c.qdrantClient.QueryGroups(ctx, &qdrant.QueryPointGroups{
 		CollectionName: c.collectionName,
 		Query:          qdrant.NewQueryDense(denseVector),
-		Using:          qdrant.PtrOf("dense"),
+		Using:          new("dense"),
 		GroupBy:        "memo_id",
-		GroupSize:      qdrant.PtrOf(uint64(1)),
-		Limit:          qdrant.PtrOf(uint64(limit)),
+		GroupSize:      new(uint64(1)),
+		Limit:          new(uint64(limit)),
 		Filter:         filter,
 	})
 	if err != nil {
@@ -452,11 +452,11 @@ func (c *Client) searchSparseGroups(ctx context.Context, sparse sparseVector, fi
 	groups, err := c.qdrantClient.QueryGroups(ctx, &qdrant.QueryPointGroups{
 		CollectionName: c.collectionName,
 		Query:          qdrant.NewQuerySparse(sparse.Indices, sparse.Values),
-		Using:          qdrant.PtrOf("sparse"),
+		Using:          new("sparse"),
 		GroupBy:        "memo_id",
-		GroupSize:      qdrant.PtrOf(uint64(1)),
-		Limit:          qdrant.PtrOf(uint64(limit)),
-		ScoreThreshold: qdrant.PtrOf(float32(0.1)),
+		GroupSize:      new(uint64(1)),
+		Limit:          new(uint64(limit)),
+		ScoreThreshold: new(float32(0.1)),
 		Filter:         filter,
 	})
 	if err != nil {
