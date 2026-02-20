@@ -21,6 +21,8 @@ func (Subscription) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("user_id", uuid.UUID{}),
 		field.UUID("memo_id", uuid.UUID{}),
+		field.Bool("approved").
+			Default(true),
 		field.Time("create_time").
 			Default(time.Now).
 			Immutable(),

@@ -56,10 +56,6 @@ func init() {
 	memoDescContent := memoFields[3].Descriptor()
 	// memo.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	memo.ContentValidator = memoDescContent.Validators[0].(func(string) error)
-	// memoDescIsPublished is the schema descriptor for is_published field.
-	memoDescIsPublished := memoFields[4].Descriptor()
-	// memo.DefaultIsPublished holds the default value on creation for the is_published field.
-	memo.DefaultIsPublished = memoDescIsPublished.Default.(bool)
 	// memoDescVersion is the schema descriptor for version field.
 	memoDescVersion := memoFields[5].Descriptor()
 	// memo.DefaultVersion holds the default value on creation for the version field.
@@ -82,8 +78,12 @@ func init() {
 	memo.DefaultID = memoDescID.Default.(func() uuid.UUID)
 	subscriptionFields := schema.Subscription{}.Fields()
 	_ = subscriptionFields
+	// subscriptionDescApproved is the schema descriptor for approved field.
+	subscriptionDescApproved := subscriptionFields[2].Descriptor()
+	// subscription.DefaultApproved holds the default value on creation for the approved field.
+	subscription.DefaultApproved = subscriptionDescApproved.Default.(bool)
 	// subscriptionDescCreateTime is the schema descriptor for create_time field.
-	subscriptionDescCreateTime := subscriptionFields[2].Descriptor()
+	subscriptionDescCreateTime := subscriptionFields[3].Descriptor()
 	// subscription.DefaultCreateTime holds the default value on creation for the create_time field.
 	subscription.DefaultCreateTime = subscriptionDescCreateTime.Default.(func() time.Time)
 	tagMixin := schema.Tag{}.Mixin()

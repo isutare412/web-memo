@@ -3,11 +3,13 @@
 package memo
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 const (
@@ -21,8 +23,8 @@ const (
 	FieldTitle = "title"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
-	// FieldIsPublished holds the string denoting the is_published field in the database.
-	FieldIsPublished = "is_published"
+	// FieldPublishState holds the string denoting the publish_state field in the database.
+	FieldPublishState = "publish_state"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// FieldIsEmbedded holds the string denoting the is_embedded field in the database.
@@ -89,7 +91,7 @@ var Columns = []string{
 	FieldOwnerID,
 	FieldTitle,
 	FieldContent,
-	FieldIsPublished,
+	FieldPublishState,
 	FieldVersion,
 	FieldIsEmbedded,
 	FieldCreateTime,
@@ -123,8 +125,6 @@ var (
 	TitleValidator func(string) error
 	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	ContentValidator func(string) error
-	// DefaultIsPublished holds the default value on creation for the "is_published" field.
-	DefaultIsPublished bool
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion int
 	// DefaultIsEmbedded holds the default value on creation for the "is_embedded" field.
@@ -136,6 +136,18 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+const DefaultPublishState enum.PublishState = "private"
+
+// PublishStateValidator is a validator for the "publish_state" field enum values. It is called by the builders before save.
+func PublishStateValidator(ps enum.PublishState) error {
+	switch ps {
+	case "private", "shared", "published":
+		return nil
+	default:
+		return fmt.Errorf("memo: invalid enum value for publish_state field: %q", ps)
+	}
+}
 
 // OrderOption defines the ordering options for the Memo queries.
 type OrderOption func(*sql.Selector)
@@ -160,9 +172,9 @@ func ByContent(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContent, opts...).ToFunc()
 }
 
-// ByIsPublished orders the results by the is_published field.
-func ByIsPublished(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsPublished, opts...).ToFunc()
+// ByPublishState orders the results by the publish_state field.
+func ByPublishState(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPublishState, opts...).ToFunc()
 }
 
 // ByVersion orders the results by the version field.

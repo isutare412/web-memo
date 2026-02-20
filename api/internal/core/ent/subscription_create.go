@@ -37,6 +37,20 @@ func (sc *SubscriptionCreate) SetMemoID(u uuid.UUID) *SubscriptionCreate {
 	return sc
 }
 
+// SetApproved sets the "approved" field.
+func (sc *SubscriptionCreate) SetApproved(b bool) *SubscriptionCreate {
+	sc.mutation.SetApproved(b)
+	return sc
+}
+
+// SetNillableApproved sets the "approved" field if the given value is not nil.
+func (sc *SubscriptionCreate) SetNillableApproved(b *bool) *SubscriptionCreate {
+	if b != nil {
+		sc.SetApproved(*b)
+	}
+	return sc
+}
+
 // SetCreateTime sets the "create_time" field.
 func (sc *SubscriptionCreate) SetCreateTime(t time.Time) *SubscriptionCreate {
 	sc.mutation.SetCreateTime(t)
@@ -102,6 +116,10 @@ func (sc *SubscriptionCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (sc *SubscriptionCreate) defaults() {
+	if _, ok := sc.mutation.Approved(); !ok {
+		v := subscription.DefaultApproved
+		sc.mutation.SetApproved(v)
+	}
 	if _, ok := sc.mutation.CreateTime(); !ok {
 		v := subscription.DefaultCreateTime()
 		sc.mutation.SetCreateTime(v)
@@ -115,6 +133,9 @@ func (sc *SubscriptionCreate) check() error {
 	}
 	if _, ok := sc.mutation.MemoID(); !ok {
 		return &ValidationError{Name: "memo_id", err: errors.New(`ent: missing required field "Subscription.memo_id"`)}
+	}
+	if _, ok := sc.mutation.Approved(); !ok {
+		return &ValidationError{Name: "approved", err: errors.New(`ent: missing required field "Subscription.approved"`)}
 	}
 	if _, ok := sc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Subscription.create_time"`)}
@@ -152,6 +173,10 @@ func (sc *SubscriptionCreate) createSpec() (*Subscription, *sqlgraph.CreateSpec)
 		_spec = sqlgraph.NewCreateSpec(subscription.Table, sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = sc.conflict
+	if value, ok := sc.mutation.Approved(); ok {
+		_spec.SetField(subscription.FieldApproved, field.TypeBool, value)
+		_node.Approved = value
+	}
 	if value, ok := sc.mutation.CreateTime(); ok {
 		_spec.SetField(subscription.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = value
@@ -266,6 +291,18 @@ func (u *SubscriptionUpsert) UpdateMemoID() *SubscriptionUpsert {
 	return u
 }
 
+// SetApproved sets the "approved" field.
+func (u *SubscriptionUpsert) SetApproved(v bool) *SubscriptionUpsert {
+	u.Set(subscription.FieldApproved, v)
+	return u
+}
+
+// UpdateApproved sets the "approved" field to the value that was provided on create.
+func (u *SubscriptionUpsert) UpdateApproved() *SubscriptionUpsert {
+	u.SetExcluded(subscription.FieldApproved)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -336,6 +373,20 @@ func (u *SubscriptionUpsertOne) SetMemoID(v uuid.UUID) *SubscriptionUpsertOne {
 func (u *SubscriptionUpsertOne) UpdateMemoID() *SubscriptionUpsertOne {
 	return u.Update(func(s *SubscriptionUpsert) {
 		s.UpdateMemoID()
+	})
+}
+
+// SetApproved sets the "approved" field.
+func (u *SubscriptionUpsertOne) SetApproved(v bool) *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetApproved(v)
+	})
+}
+
+// UpdateApproved sets the "approved" field to the value that was provided on create.
+func (u *SubscriptionUpsertOne) UpdateApproved() *SubscriptionUpsertOne {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateApproved()
 	})
 }
 
@@ -575,6 +626,20 @@ func (u *SubscriptionUpsertBulk) SetMemoID(v uuid.UUID) *SubscriptionUpsertBulk 
 func (u *SubscriptionUpsertBulk) UpdateMemoID() *SubscriptionUpsertBulk {
 	return u.Update(func(s *SubscriptionUpsert) {
 		s.UpdateMemoID()
+	})
+}
+
+// SetApproved sets the "approved" field.
+func (u *SubscriptionUpsertBulk) SetApproved(v bool) *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.SetApproved(v)
+	})
+}
+
+// UpdateApproved sets the "approved" field to the value that was provided on create.
+func (u *SubscriptionUpsertBulk) UpdateApproved() *SubscriptionUpsertBulk {
+	return u.Update(func(s *SubscriptionUpsert) {
+		s.UpdateApproved()
 	})
 }
 

@@ -12,15 +12,15 @@ import (
 // MemoToWeb converts an ent.Memo and its associated tags to the generated Memo type.
 func MemoToWeb(memo *ent.Memo, tags []string) gen.Memo {
 	return gen.Memo{
-		ID:          memo.ID,
-		OwnerID:     memo.OwnerID,
-		CreateTime:  memo.CreateTime,
-		UpdateTime:  memo.UpdateTime,
-		Title:       memo.Title,
-		Content:     memo.Content,
-		IsPublished: memo.IsPublished,
-		Version:     memo.Version,
-		Tags:        tags,
+		ID:           memo.ID,
+		OwnerID:      memo.OwnerID,
+		CreateTime:   memo.CreateTime,
+		UpdateTime:   memo.UpdateTime,
+		Title:        memo.Title,
+		Content:      memo.Content,
+		PublishState: gen.PublishState(memo.PublishState),
+		Version:      memo.Version,
+		Tags:         tags,
 	}
 }
 
@@ -72,8 +72,13 @@ func SearchResultsToListResponse(results []*model.MemoSearchResult) gen.ListMemo
 func SubscribersToWeb(resp *model.ListSubscribersResponse) gen.ListSubscribersResponse {
 	return gen.ListSubscribersResponse{
 		MemoOwnerID: resp.MemoOwnerID,
-		Subscribers: lo.Map(resp.Subscribers, func(u *ent.User, _ int) gen.Subscriber {
-			return gen.Subscriber{ID: u.ID}
+		Subscribers: lo.Map(resp.Subscribers, func(si model.SubscriberInfo, _ int) gen.Subscriber {
+			return gen.Subscriber{
+				ID:       si.User.ID,
+				UserName: si.User.UserName,
+				PhotoURL: si.User.PhotoURL,
+				Approved: si.Approved,
+			}
 		}),
 	}
 }
@@ -118,8 +123,13 @@ func ViewerContextToWeb(ctx *model.MemoViewerContext) *gen.MemoViewerContext {
 		return nil
 	}
 	result := &gen.MemoViewerContext{
-		IsSubscribed:  ctx.IsSubscribed,
+		Subscription:  nil,
 		Collaboration: nil,
+	}
+	if ctx.Subscription != nil {
+		result.Subscription = &gen.ViewerSubscription{
+			IsApproved: ctx.Subscription.IsApproved,
+		}
 	}
 	if ctx.IsCollaborator {
 		result.Collaboration = &gen.ViewerCollaboration{

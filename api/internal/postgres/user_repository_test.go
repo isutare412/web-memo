@@ -53,7 +53,8 @@ var _ = Describe("UserRepository", func() {
 			}
 			fakeMemos = [...]*ent.Memo{
 				{
-					Title: "memo-one",
+					Title:        "memo-one",
+					PublishState: enum.PublishStatePrivate,
 				},
 			}
 		)
@@ -72,7 +73,7 @@ var _ = Describe("UserRepository", func() {
 				fakeMemos[i] = memoCreated
 			}
 
-			err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[0].ID)
+			err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[0].ID, true)
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = collaborationRepository.Create(ctx, fakeMemos[0].ID, fakeUsers[0].ID)

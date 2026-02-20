@@ -700,7 +700,7 @@ type MemoMutation struct {
 	id                    *uuid.UUID
 	title                 *string
 	content               *string
-	is_published          *bool
+	publish_state         *enum.PublishState
 	version               *int
 	addversion            *int
 	is_embedded           *bool
@@ -941,40 +941,40 @@ func (m *MemoMutation) ResetContent() {
 	m.content = nil
 }
 
-// SetIsPublished sets the "is_published" field.
-func (m *MemoMutation) SetIsPublished(b bool) {
-	m.is_published = &b
+// SetPublishState sets the "publish_state" field.
+func (m *MemoMutation) SetPublishState(es enum.PublishState) {
+	m.publish_state = &es
 }
 
-// IsPublished returns the value of the "is_published" field in the mutation.
-func (m *MemoMutation) IsPublished() (r bool, exists bool) {
-	v := m.is_published
+// PublishState returns the value of the "publish_state" field in the mutation.
+func (m *MemoMutation) PublishState() (r enum.PublishState, exists bool) {
+	v := m.publish_state
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldIsPublished returns the old "is_published" field's value of the Memo entity.
+// OldPublishState returns the old "publish_state" field's value of the Memo entity.
 // If the Memo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MemoMutation) OldIsPublished(ctx context.Context) (v bool, err error) {
+func (m *MemoMutation) OldPublishState(ctx context.Context) (v enum.PublishState, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsPublished is only allowed on UpdateOne operations")
+		return v, errors.New("OldPublishState is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsPublished requires an ID field in the mutation")
+		return v, errors.New("OldPublishState requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsPublished: %w", err)
+		return v, fmt.Errorf("querying old value for OldPublishState: %w", err)
 	}
-	return oldValue.IsPublished, nil
+	return oldValue.PublishState, nil
 }
 
-// ResetIsPublished resets all changes to the "is_published" field.
-func (m *MemoMutation) ResetIsPublished() {
-	m.is_published = nil
+// ResetPublishState resets all changes to the "publish_state" field.
+func (m *MemoMutation) ResetPublishState() {
+	m.publish_state = nil
 }
 
 // SetVersion sets the "version" field.
@@ -1482,8 +1482,8 @@ func (m *MemoMutation) Fields() []string {
 	if m.content != nil {
 		fields = append(fields, memo.FieldContent)
 	}
-	if m.is_published != nil {
-		fields = append(fields, memo.FieldIsPublished)
+	if m.publish_state != nil {
+		fields = append(fields, memo.FieldPublishState)
 	}
 	if m.version != nil {
 		fields = append(fields, memo.FieldVersion)
@@ -1511,8 +1511,8 @@ func (m *MemoMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case memo.FieldContent:
 		return m.Content()
-	case memo.FieldIsPublished:
-		return m.IsPublished()
+	case memo.FieldPublishState:
+		return m.PublishState()
 	case memo.FieldVersion:
 		return m.Version()
 	case memo.FieldIsEmbedded:
@@ -1536,8 +1536,8 @@ func (m *MemoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTitle(ctx)
 	case memo.FieldContent:
 		return m.OldContent(ctx)
-	case memo.FieldIsPublished:
-		return m.OldIsPublished(ctx)
+	case memo.FieldPublishState:
+		return m.OldPublishState(ctx)
 	case memo.FieldVersion:
 		return m.OldVersion(ctx)
 	case memo.FieldIsEmbedded:
@@ -1576,12 +1576,12 @@ func (m *MemoMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetContent(v)
 		return nil
-	case memo.FieldIsPublished:
-		v, ok := value.(bool)
+	case memo.FieldPublishState:
+		v, ok := value.(enum.PublishState)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetIsPublished(v)
+		m.SetPublishState(v)
 		return nil
 	case memo.FieldVersion:
 		v, ok := value.(int)
@@ -1684,8 +1684,8 @@ func (m *MemoMutation) ResetField(name string) error {
 	case memo.FieldContent:
 		m.ResetContent()
 		return nil
-	case memo.FieldIsPublished:
-		m.ResetIsPublished()
+	case memo.FieldPublishState:
+		m.ResetPublishState()
 		return nil
 	case memo.FieldVersion:
 		m.ResetVersion()
@@ -1915,6 +1915,7 @@ type SubscriptionMutation struct {
 	op                Op
 	typ               string
 	id                *int
+	approved          *bool
 	create_time       *time.Time
 	clearedFields     map[string]struct{}
 	subscriber        *uuid.UUID
@@ -2096,6 +2097,42 @@ func (m *SubscriptionMutation) ResetMemoID() {
 	m.memo = nil
 }
 
+// SetApproved sets the "approved" field.
+func (m *SubscriptionMutation) SetApproved(b bool) {
+	m.approved = &b
+}
+
+// Approved returns the value of the "approved" field in the mutation.
+func (m *SubscriptionMutation) Approved() (r bool, exists bool) {
+	v := m.approved
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApproved returns the old "approved" field's value of the Subscription entity.
+// If the Subscription object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SubscriptionMutation) OldApproved(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApproved is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApproved requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApproved: %w", err)
+	}
+	return oldValue.Approved, nil
+}
+
+// ResetApproved resets all changes to the "approved" field.
+func (m *SubscriptionMutation) ResetApproved() {
+	m.approved = nil
+}
+
 // SetCreateTime sets the "create_time" field.
 func (m *SubscriptionMutation) SetCreateTime(t time.Time) {
 	m.create_time = &t
@@ -2233,12 +2270,15 @@ func (m *SubscriptionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SubscriptionMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.subscriber != nil {
 		fields = append(fields, subscription.FieldUserID)
 	}
 	if m.memo != nil {
 		fields = append(fields, subscription.FieldMemoID)
+	}
+	if m.approved != nil {
+		fields = append(fields, subscription.FieldApproved)
 	}
 	if m.create_time != nil {
 		fields = append(fields, subscription.FieldCreateTime)
@@ -2255,6 +2295,8 @@ func (m *SubscriptionMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case subscription.FieldMemoID:
 		return m.MemoID()
+	case subscription.FieldApproved:
+		return m.Approved()
 	case subscription.FieldCreateTime:
 		return m.CreateTime()
 	}
@@ -2270,6 +2312,8 @@ func (m *SubscriptionMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldUserID(ctx)
 	case subscription.FieldMemoID:
 		return m.OldMemoID(ctx)
+	case subscription.FieldApproved:
+		return m.OldApproved(ctx)
 	case subscription.FieldCreateTime:
 		return m.OldCreateTime(ctx)
 	}
@@ -2294,6 +2338,13 @@ func (m *SubscriptionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMemoID(v)
+		return nil
+	case subscription.FieldApproved:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApproved(v)
 		return nil
 	case subscription.FieldCreateTime:
 		v, ok := value.(time.Time)
@@ -2356,6 +2407,9 @@ func (m *SubscriptionMutation) ResetField(name string) error {
 		return nil
 	case subscription.FieldMemoID:
 		m.ResetMemoID()
+		return nil
+	case subscription.FieldApproved:
+		m.ResetApproved()
 		return nil
 	case subscription.FieldCreateTime:
 		m.ResetCreateTime()

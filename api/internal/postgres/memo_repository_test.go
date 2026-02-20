@@ -66,12 +66,14 @@ var _ = Describe("MemoRepository", func() {
 			}
 			fakeMemos = [...]*ent.Memo{
 				{
-					Title:   "memo-one",
-					Content: "content-one",
+					Title:        "memo-one",
+					Content:      "content-one",
+					PublishState: enum.PublishStatePrivate,
 				},
 				{
-					Title:   "memo-two",
-					Content: "content-two",
+					Title:        "memo-two",
+					Content:      "content-two",
+					PublishState: enum.PublishStatePrivate,
 				},
 			}
 			fakeTags = [...]*ent.Tag{
@@ -104,7 +106,7 @@ var _ = Describe("MemoRepository", func() {
 				Expect(err).NotTo(HaveOccurred())
 				fakeMemos[i] = memoCreated
 
-				err = memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID)
+				err = memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = collaborationRepository.Create(ctx, memoCreated.ID, fakeUsers[2].ID)
@@ -241,8 +243,9 @@ var _ = Describe("MemoRepository", func() {
 			It("creates memo", func(ctx SpecContext) {
 				var (
 					givenMemo = &ent.Memo{
-						Title:   "new-title",
-						Content: "new-content",
+						Title:        "new-title",
+						Content:      "new-content",
+						PublishState: enum.PublishStatePrivate,
 					}
 					givenTagIDs = lo.Map(fakeTags[:], func(t *ent.Tag, _ int) int { return t.ID })
 				)
@@ -258,7 +261,9 @@ var _ = Describe("MemoRepository", func() {
 
 			It("returns error if title is empty", func(ctx SpecContext) {
 				var (
-					givenMemo = &ent.Memo{}
+					givenMemo = &ent.Memo{
+						PublishState: enum.PublishStatePrivate,
+					}
 				)
 
 				_, err := memoRepository.Create(ctx, givenMemo, fakeUsers[0].ID, nil)
@@ -270,10 +275,10 @@ var _ = Describe("MemoRepository", func() {
 			It("updates memo", func(ctx SpecContext) {
 				var (
 					givenMemo = &ent.Memo{
-						ID:          fakeMemos[0].ID,
-						Title:       "new-title",
-						Content:     "new-content",
-						IsPublished: true,
+						ID:           fakeMemos[0].ID,
+						Title:        "new-title",
+						Content:      "new-content",
+						PublishState: enum.PublishStatePublished,
 					}
 				)
 
@@ -283,15 +288,16 @@ var _ = Describe("MemoRepository", func() {
 				Expect(memo.ID).To(Equal(fakeMemos[0].ID))
 				Expect(memo.Title).To(Equal(givenMemo.Title))
 				Expect(memo.Content).To(Equal(givenMemo.Content))
-				Expect(memo.IsPublished).To(Equal(givenMemo.IsPublished))
+				Expect(memo.PublishState).To(Equal(givenMemo.PublishState))
 			})
 
 			It("sets updateTime if requested explicitly", func(ctx SpecContext) {
 				var (
 					givenMemo = &ent.Memo{
-						ID:         fakeMemos[0].ID,
-						Title:      "new-title",
-						UpdateTime: time.Now().Add(123 * time.Second),
+						ID:           fakeMemos[0].ID,
+						Title:        "new-title",
+						PublishState: enum.PublishStatePrivate,
+						UpdateTime:   time.Now().Add(123 * time.Second),
 					}
 				)
 
@@ -305,9 +311,10 @@ var _ = Describe("MemoRepository", func() {
 			It("returns not found error if id does not exist", func(ctx SpecContext) {
 				var (
 					givenMemo = &ent.Memo{
-						ID:      uuid.Must(uuid.NewRandom()),
-						Title:   "new-title",
-						Content: "new-content",
+						ID:           uuid.Must(uuid.NewRandom()),
+						Title:        "new-title",
+						Content:      "new-content",
+						PublishState: enum.PublishStatePrivate,
 					}
 				)
 
@@ -316,12 +323,12 @@ var _ = Describe("MemoRepository", func() {
 			})
 		})
 
-		Context("UpdateIsPublish", func() {
-			It("updates IsPublish with updating UpdateTime", func(ctx SpecContext) {
-				memo, err := memoRepository.UpdateIsPublish(ctx, fakeMemos[0].ID, true)
+		Context("UpdatePublishState", func() {
+			It("updates PublishState with updating UpdateTime", func(ctx SpecContext) {
+				memo, err := memoRepository.UpdatePublishState(ctx, fakeMemos[0].ID, enum.PublishStatePublished)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(memo.ID).To(Equal(fakeMemos[0].ID))
-				Expect(memo.IsPublished).NotTo(Equal(fakeMemos[0].IsPublished))
+				Expect(memo.PublishState).To(Equal(enum.PublishStatePublished))
 				Expect(memo.UpdateTime.Equal(fakeMemos[0].UpdateTime)).To(BeTrue())
 			})
 		})
@@ -377,7 +384,7 @@ var _ = Describe("MemoRepository", func() {
 
 		Context("RegisterSubscriber", func() {
 			It("registers subscriber", func(ctx SpecContext) {
-				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[0].ID)
+				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[0].ID, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				subs, err := userRepository.FindAllBySubscribingMemoID(ctx, fakeMemos[0].ID)
@@ -388,17 +395,17 @@ var _ = Describe("MemoRepository", func() {
 			})
 
 			It("emits error if memo does not exist", func(ctx SpecContext) {
-				err := memoRepository.RegisterSubscriber(ctx, uuid.Must(uuid.NewRandom()), fakeUsers[0].ID)
+				err := memoRepository.RegisterSubscriber(ctx, uuid.Must(uuid.NewRandom()), fakeUsers[0].ID, true)
 				Expect(err).To(HaveOccurred())
 			})
 
 			It("emits error if user does not exist", func(ctx SpecContext) {
-				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, uuid.Must(uuid.NewRandom()))
+				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, uuid.Must(uuid.NewRandom()), true)
 				Expect(err).To(HaveOccurred())
 			})
 
 			It("emits error if user already subscribed", func(ctx SpecContext) {
-				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[1].ID)
+				err := memoRepository.RegisterSubscriber(ctx, fakeMemos[0].ID, fakeUsers[1].ID, true)
 				Expect(err).To(HaveOccurred())
 			})
 		})

@@ -18,6 +18,8 @@ const (
 	FieldUserID = "user_id"
 	// FieldMemoID holds the string denoting the memo_id field in the database.
 	FieldMemoID = "memo_id"
+	// FieldApproved holds the string denoting the approved field in the database.
+	FieldApproved = "approved"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
 	// EdgeSubscriber holds the string denoting the subscriber edge name in mutations.
@@ -47,6 +49,7 @@ var Columns = []string{
 	FieldID,
 	FieldUserID,
 	FieldMemoID,
+	FieldApproved,
 	FieldCreateTime,
 }
 
@@ -61,6 +64,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultApproved holds the default value on creation for the "approved" field.
+	DefaultApproved bool
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 )
@@ -81,6 +86,11 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 // ByMemoID orders the results by the memo_id field.
 func ByMemoID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMemoID, opts...).ToFunc()
+}
+
+// ByApproved orders the results by the approved field.
+func ByApproved(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApproved, opts...).ToFunc()
 }
 
 // ByCreateTime orders the results by the create_time field.

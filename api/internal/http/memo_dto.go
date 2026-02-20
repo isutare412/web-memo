@@ -8,6 +8,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
 )
@@ -19,16 +20,16 @@ type memoScores struct {
 }
 
 type memo struct {
-	ID          uuid.UUID   `json:"id"`
-	OwnerID     uuid.UUID   `json:"ownerId"`
-	CreateTime  time.Time   `json:"createTime"`
-	UpdateTime  time.Time   `json:"updateTime"`
-	Title       string      `json:"title"`
-	Content     string      `json:"content"`
-	IsPublished bool        `json:"isPublished"`
-	Version     int         `json:"version"`
-	Tags        []string    `json:"tags"`
-	Scores      *memoScores `json:"scores"`
+	ID           uuid.UUID         `json:"id"`
+	OwnerID      uuid.UUID         `json:"ownerId"`
+	CreateTime   time.Time         `json:"createTime"`
+	UpdateTime   time.Time         `json:"updateTime"`
+	Title        string            `json:"title"`
+	Content      string            `json:"content"`
+	PublishState enum.PublishState `json:"publishState"`
+	Version      int               `json:"version"`
+	Tags         []string          `json:"tags"`
+	Scores       *memoScores       `json:"scores"`
 }
 
 func (m *memo) fromMemo(memo *ent.Memo) {
@@ -38,7 +39,7 @@ func (m *memo) fromMemo(memo *ent.Memo) {
 	m.UpdateTime = memo.UpdateTime
 	m.Title = memo.Title
 	m.Content = memo.Content
-	m.IsPublished = memo.IsPublished
+	m.PublishState = memo.PublishState
 	m.Version = memo.Version
 	m.Tags = lo.Map(memo.Edges.Tags, func(t *ent.Tag, _ int) string {
 		return t.Name
@@ -111,7 +112,7 @@ func (r *replaceMemoRequest) toMemo() *ent.Memo {
 }
 
 type publishMemoRequest struct {
-	Publish *bool `json:"publish" validate:"required"`
+	PublishState *enum.PublishState `json:"publishState" validate:"required"`
 }
 
 type listSubscribersResponse struct {
@@ -119,11 +120,17 @@ type listSubscribersResponse struct {
 }
 
 type subscriber struct {
-	ID uuid.UUID `json:"id"`
+	ID       uuid.UUID `json:"id"`
+	UserName string    `json:"userName"`
+	PhotoURL string    `json:"photoUrl"`
+	Approved bool      `json:"approved"`
 }
 
-func (s *subscriber) fromUser(u *ent.User) {
-	s.ID = u.ID
+func (s *subscriber) fromSubscriberInfo(si model.SubscriberInfo) {
+	s.ID = si.User.ID
+	s.UserName = si.User.UserName
+	s.PhotoURL = si.User.PhotoURL
+	s.Approved = si.Approved
 }
 
 type listCollaboratorsResponse struct {

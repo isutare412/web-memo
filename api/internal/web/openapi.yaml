@@ -324,6 +324,10 @@ paths:
       responses:
         '200':
           description: Successfully subscribed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscribeResponse'
         default:
           $ref: '#/components/responses/ErrorResponse'
 
@@ -338,6 +342,26 @@ paths:
       responses:
         '200':
           description: Successfully unsubscribed
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/v1/memos/{memoId}/subscribers/{userId}/authorize:
+    post:
+      operationId: authorizeSubscription
+      summary: Approve or reject a subscription request
+      tags:
+        - Subscription
+      parameters:
+        - $ref: '#/components/parameters/MemoIdPath'
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizeSubscriptionRequest'
+      responses:
+        '200':
+          description: Successfully authorized subscription
         default:
           $ref: '#/components/responses/ErrorResponse'
 
@@ -632,6 +656,17 @@ components:
       x-go-import:
         path: github.com/isutare412/web-memo/api/internal/core/enum
 
+    PublishState:
+      type: string
+      enum:
+        - private
+        - shared
+        - published
+      example: private
+      x-go-type: enum.PublishState
+      x-go-import:
+        path: github.com/isutare412/web-memo/api/internal/core/enum
+
     ImageFormat:
       type: string
       example: PNG
@@ -726,8 +761,8 @@ components:
           type: string
         content:
           type: string
-        isPublished:
-          type: boolean
+        publishState:
+          $ref: '#/components/schemas/PublishState'
         version:
           type: integer
         tags:
@@ -745,7 +780,7 @@ components:
         - updateTime
         - title
         - content
-        - isPublished
+        - publishState
         - version
         - tags
       example:
@@ -755,7 +790,7 @@ components:
         updateTime: '2025-01-15T10:00:00Z'
         title: Meeting Notes
         content: Discussed project roadmap and Q2 goals.
-        isPublished: false
+        publishState: private
         version: 3
         tags:
           - work
@@ -765,7 +800,8 @@ components:
           semantic: 0.92
           bm25: 0.78
         viewerContext:
-          isSubscribed: true
+          subscription:
+            isApproved: true
           collaboration:
             isApproved: false
 
@@ -843,12 +879,12 @@ components:
     PublishMemoRequest:
       type: object
       properties:
-        publish:
-          type: boolean
+        publishState:
+          $ref: '#/components/schemas/PublishState'
       required:
-        - publish
+        - publishState
       example:
-        publish: true
+        publishState: published
 
     ListMemosResponse:
       type: object
@@ -883,7 +919,7 @@ components:
             updateTime: '2025-01-15T10:00:00Z'
             title: Meeting Notes
             content: Discussed project roadmap and Q2 goals.
-            isPublished: false
+            publishState: private
             version: 3
             tags:
               - work
@@ -898,10 +934,22 @@ components:
         id:
           type: string
           format: uuid
+        userName:
+          type: string
+        photoUrl:
+          type: string
+        approved:
+          type: boolean
       required:
         - id
+        - userName
+        - photoUrl
+        - approved
       example:
         id: 8f14e45f-ceea-467f-a83c-0a06b8578e4a
+        userName: Jane Smith
+        photoUrl: https://example.com/photos/jane.jpg
+        approved: true
 
     ListSubscribersResponse:
       type: object
@@ -920,6 +968,45 @@ components:
         memoOwnerId: 550e8400-e29b-41d4-a716-446655440000
         subscribers:
           - id: 8f14e45f-ceea-467f-a83c-0a06b8578e4a
+            userName: Jane Smith
+            photoUrl: https://example.com/photos/jane.jpg
+            approved: true
+
+    SubscribeResponse:
+      type: object
+      properties:
+        subscription:
+          type: object
+          properties:
+            userId:
+              type: string
+              format: uuid
+            memoId:
+              type: string
+              format: uuid
+            approved:
+              type: boolean
+          required:
+            - userId
+            - memoId
+            - approved
+      required:
+        - subscription
+      example:
+        subscription:
+          userId: 550e8400-e29b-41d4-a716-446655440000
+          memoId: 7c9a1e50-e29b-41d4-a716-446655440001
+          approved: true
+
+    AuthorizeSubscriptionRequest:
+      type: object
+      properties:
+        approve:
+          type: boolean
+      required:
+        - approve
+      example:
+        approve: true
 
     ###
     # Collaborator Schemas
@@ -981,19 +1068,32 @@ components:
     MemoViewerContext:
       type: object
       properties:
-        isSubscribed:
-          type: boolean
+        subscription:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ViewerSubscription'
         collaboration:
           nullable: true
           allOf:
             - $ref: '#/components/schemas/ViewerCollaboration'
       required:
-        - isSubscribed
+        - subscription
         - collaboration
       example:
-        isSubscribed: true
+        subscription:
+          isApproved: true
         collaboration:
           isApproved: false
+
+    ViewerSubscription:
+      type: object
+      properties:
+        isApproved:
+          type: boolean
+      required:
+        - isApproved
+      example:
+        isApproved: true
 
     AuthorizeCollaborationRequest:
       type: object

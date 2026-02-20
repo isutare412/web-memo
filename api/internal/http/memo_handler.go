@@ -292,7 +292,7 @@ func (h *memoHandler) publishMemo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	memoUpdated, err := h.memoService.UpdateMemoPublishedState(ctx, memoID, *req.Publish, passport.token)
+	memoUpdated, err := h.memoService.UpdateMemoPublishState(ctx, memoID, *req.PublishState, passport.token)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("updating memo published state: %w", err))
 		return
@@ -423,7 +423,7 @@ func (h *memoHandler) getSubscriber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userFound, ok := lo.Find(resp.Subscribers, func(u *ent.User) bool { return u.ID == userID })
+	si, ok := lo.Find(resp.Subscribers, func(si model.SubscriberInfo) bool { return si.User.ID == userID })
 	if !ok {
 		responseError(w, r, pkgerr.Known{
 			Code:      pkgerr.CodeNotFound,
@@ -432,7 +432,9 @@ func (h *memoHandler) getSubscriber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responseJSON(w, &subscriber{ID: userFound.ID})
+	var s subscriber
+	s.fromSubscriberInfo(si)
+	responseJSON(w, &s)
 }
 
 func (h *memoHandler) listSubscribers(w http.ResponseWriter, r *http.Request) {
@@ -466,9 +468,9 @@ func (h *memoHandler) listSubscribers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseJSON(w, &listSubscribersResponse{
-		Subscribers: lo.Map(resp.Subscribers, func(u *ent.User, _ int) *subscriber {
+		Subscribers: lo.Map(resp.Subscribers, func(si model.SubscriberInfo, _ int) *subscriber {
 			var s subscriber
-			s.fromUser(u)
+			s.fromSubscriberInfo(si)
 			return &s
 		}),
 	})
@@ -503,7 +505,7 @@ func (h *memoHandler) subscribeMemo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.memoService.SubscribeMemo(ctx, memoID, passport.token); err != nil {
+	if _, err := h.memoService.SubscribeMemo(ctx, memoID, passport.token); err != nil {
 		responseError(w, r, fmt.Errorf("subscribing memo: %w", err))
 		return
 	}

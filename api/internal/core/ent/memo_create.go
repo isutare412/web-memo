@@ -18,6 +18,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // MemoCreate is the builder for creating a Memo entity.
@@ -46,16 +47,16 @@ func (mc *MemoCreate) SetContent(s string) *MemoCreate {
 	return mc
 }
 
-// SetIsPublished sets the "is_published" field.
-func (mc *MemoCreate) SetIsPublished(b bool) *MemoCreate {
-	mc.mutation.SetIsPublished(b)
+// SetPublishState sets the "publish_state" field.
+func (mc *MemoCreate) SetPublishState(es enum.PublishState) *MemoCreate {
+	mc.mutation.SetPublishState(es)
 	return mc
 }
 
-// SetNillableIsPublished sets the "is_published" field if the given value is not nil.
-func (mc *MemoCreate) SetNillableIsPublished(b *bool) *MemoCreate {
-	if b != nil {
-		mc.SetIsPublished(*b)
+// SetNillablePublishState sets the "publish_state" field if the given value is not nil.
+func (mc *MemoCreate) SetNillablePublishState(es *enum.PublishState) *MemoCreate {
+	if es != nil {
+		mc.SetPublishState(*es)
 	}
 	return mc
 }
@@ -245,9 +246,9 @@ func (mc *MemoCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (mc *MemoCreate) defaults() {
-	if _, ok := mc.mutation.IsPublished(); !ok {
-		v := memo.DefaultIsPublished
-		mc.mutation.SetIsPublished(v)
+	if _, ok := mc.mutation.PublishState(); !ok {
+		v := memo.DefaultPublishState
+		mc.mutation.SetPublishState(v)
 	}
 	if _, ok := mc.mutation.Version(); !ok {
 		v := memo.DefaultVersion
@@ -292,8 +293,13 @@ func (mc *MemoCreate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Memo.content": %w`, err)}
 		}
 	}
-	if _, ok := mc.mutation.IsPublished(); !ok {
-		return &ValidationError{Name: "is_published", err: errors.New(`ent: missing required field "Memo.is_published"`)}
+	if _, ok := mc.mutation.PublishState(); !ok {
+		return &ValidationError{Name: "publish_state", err: errors.New(`ent: missing required field "Memo.publish_state"`)}
+	}
+	if v, ok := mc.mutation.PublishState(); ok {
+		if err := memo.PublishStateValidator(v); err != nil {
+			return &ValidationError{Name: "publish_state", err: fmt.Errorf(`ent: validator failed for field "Memo.publish_state": %w`, err)}
+		}
 	}
 	if _, ok := mc.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Memo.version"`)}
@@ -354,9 +360,9 @@ func (mc *MemoCreate) createSpec() (*Memo, *sqlgraph.CreateSpec) {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)
 		_node.Content = value
 	}
-	if value, ok := mc.mutation.IsPublished(); ok {
-		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
-		_node.IsPublished = value
+	if value, ok := mc.mutation.PublishState(); ok {
+		_spec.SetField(memo.FieldPublishState, field.TypeEnum, value)
+		_node.PublishState = value
 	}
 	if value, ok := mc.mutation.Version(); ok {
 		_spec.SetField(memo.FieldVersion, field.TypeInt, value)
@@ -567,15 +573,15 @@ func (u *MemoUpsert) UpdateContent() *MemoUpsert {
 	return u
 }
 
-// SetIsPublished sets the "is_published" field.
-func (u *MemoUpsert) SetIsPublished(v bool) *MemoUpsert {
-	u.Set(memo.FieldIsPublished, v)
+// SetPublishState sets the "publish_state" field.
+func (u *MemoUpsert) SetPublishState(v enum.PublishState) *MemoUpsert {
+	u.Set(memo.FieldPublishState, v)
 	return u
 }
 
-// UpdateIsPublished sets the "is_published" field to the value that was provided on create.
-func (u *MemoUpsert) UpdateIsPublished() *MemoUpsert {
-	u.SetExcluded(memo.FieldIsPublished)
+// UpdatePublishState sets the "publish_state" field to the value that was provided on create.
+func (u *MemoUpsert) UpdatePublishState() *MemoUpsert {
+	u.SetExcluded(memo.FieldPublishState)
 	return u
 }
 
@@ -714,17 +720,17 @@ func (u *MemoUpsertOne) UpdateContent() *MemoUpsertOne {
 	})
 }
 
-// SetIsPublished sets the "is_published" field.
-func (u *MemoUpsertOne) SetIsPublished(v bool) *MemoUpsertOne {
+// SetPublishState sets the "publish_state" field.
+func (u *MemoUpsertOne) SetPublishState(v enum.PublishState) *MemoUpsertOne {
 	return u.Update(func(s *MemoUpsert) {
-		s.SetIsPublished(v)
+		s.SetPublishState(v)
 	})
 }
 
-// UpdateIsPublished sets the "is_published" field to the value that was provided on create.
-func (u *MemoUpsertOne) UpdateIsPublished() *MemoUpsertOne {
+// UpdatePublishState sets the "publish_state" field to the value that was provided on create.
+func (u *MemoUpsertOne) UpdatePublishState() *MemoUpsertOne {
 	return u.Update(func(s *MemoUpsert) {
-		s.UpdateIsPublished()
+		s.UpdatePublishState()
 	})
 }
 
@@ -1037,17 +1043,17 @@ func (u *MemoUpsertBulk) UpdateContent() *MemoUpsertBulk {
 	})
 }
 
-// SetIsPublished sets the "is_published" field.
-func (u *MemoUpsertBulk) SetIsPublished(v bool) *MemoUpsertBulk {
+// SetPublishState sets the "publish_state" field.
+func (u *MemoUpsertBulk) SetPublishState(v enum.PublishState) *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
-		s.SetIsPublished(v)
+		s.SetPublishState(v)
 	})
 }
 
-// UpdateIsPublished sets the "is_published" field to the value that was provided on create.
-func (u *MemoUpsertBulk) UpdateIsPublished() *MemoUpsertBulk {
+// UpdatePublishState sets the "publish_state" field to the value that was provided on create.
+func (u *MemoUpsertBulk) UpdatePublishState() *MemoUpsertBulk {
 	return u.Update(func(s *MemoUpsert) {
-		s.UpdateIsPublished()
+		s.UpdatePublishState()
 	})
 }
 

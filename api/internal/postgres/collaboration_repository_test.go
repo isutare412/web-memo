@@ -50,8 +50,9 @@ var _ = Describe("CollaborationRepository", func() {
 				},
 			}
 			fakeMemo = &ent.Memo{
-				Title:   "memo-one",
-				Content: "content-one",
+				Title:        "memo-one",
+				Content:      "content-one",
+				PublishState: enum.PublishStatePrivate,
 			}
 		)
 

@@ -66,6 +66,11 @@ func MemoID(v uuid.UUID) predicate.Subscription {
 	return predicate.Subscription(sql.FieldEQ(FieldMemoID, v))
 }
 
+// Approved applies equality check predicate on the "approved" field. It's identical to ApprovedEQ.
+func Approved(v bool) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldApproved, v))
+}
+
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Subscription {
 	return predicate.Subscription(sql.FieldEQ(FieldCreateTime, v))
@@ -109,6 +114,16 @@ func MemoIDIn(vs ...uuid.UUID) predicate.Subscription {
 // MemoIDNotIn applies the NotIn predicate on the "memo_id" field.
 func MemoIDNotIn(vs ...uuid.UUID) predicate.Subscription {
 	return predicate.Subscription(sql.FieldNotIn(FieldMemoID, vs...))
+}
+
+// ApprovedEQ applies the EQ predicate on the "approved" field.
+func ApprovedEQ(v bool) predicate.Subscription {
+	return predicate.Subscription(sql.FieldEQ(FieldApproved, v))
+}
+
+// ApprovedNEQ applies the NEQ predicate on the "approved" field.
+func ApprovedNEQ(v bool) predicate.Subscription {
+	return predicate.Subscription(sql.FieldNEQ(FieldApproved, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.

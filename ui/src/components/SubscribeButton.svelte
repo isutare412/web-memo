@@ -1,8 +1,10 @@
 <script lang="ts">
   import BookmarkIcon from '$components/icons/BookmarkIcon.svelte'
+  import CheckIcon from '$components/icons/CheckIcon.svelte'
   import { createEventDispatcher } from 'svelte'
 
   export let isActivated: boolean
+  export let isChecked = false
 
   const dispatch = createEventDispatcher()
 
@@ -20,5 +22,10 @@
     <div class="w-[12px]">
       <BookmarkIcon />
     </div>
+    {#if isChecked}
+      <div class="w-[12px]">
+        <CheckIcon />
+      </div>
+    {/if}
   </button>
 </div>

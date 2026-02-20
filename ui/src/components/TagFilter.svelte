@@ -74,6 +74,7 @@
     const searchParams = get(page).url.searchParams
     if (!addTagToSearchParams(searchParams, trimmedInput)) return
 
+    inputValue = ''
     setPageOfSearchParams(searchParams, 1)
     goto(`/?${searchParams.toString()}`)
   }

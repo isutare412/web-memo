@@ -58,6 +58,20 @@ func (su *SubscriptionUpdate) SetNillableMemoID(u *uuid.UUID) *SubscriptionUpdat
 	return su
 }
 
+// SetApproved sets the "approved" field.
+func (su *SubscriptionUpdate) SetApproved(b bool) *SubscriptionUpdate {
+	su.mutation.SetApproved(b)
+	return su
+}
+
+// SetNillableApproved sets the "approved" field if the given value is not nil.
+func (su *SubscriptionUpdate) SetNillableApproved(b *bool) *SubscriptionUpdate {
+	if b != nil {
+		su.SetApproved(*b)
+	}
+	return su
+}
+
 // SetSubscriberID sets the "subscriber" edge to the User entity by ID.
 func (su *SubscriptionUpdate) SetSubscriberID(id uuid.UUID) *SubscriptionUpdate {
 	su.mutation.SetSubscriberID(id)
@@ -140,6 +154,9 @@ func (su *SubscriptionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := su.mutation.Approved(); ok {
+		_spec.SetField(subscription.FieldApproved, field.TypeBool, value)
 	}
 	if su.mutation.SubscriberCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -243,6 +260,20 @@ func (suo *SubscriptionUpdateOne) SetMemoID(u uuid.UUID) *SubscriptionUpdateOne 
 func (suo *SubscriptionUpdateOne) SetNillableMemoID(u *uuid.UUID) *SubscriptionUpdateOne {
 	if u != nil {
 		suo.SetMemoID(*u)
+	}
+	return suo
+}
+
+// SetApproved sets the "approved" field.
+func (suo *SubscriptionUpdateOne) SetApproved(b bool) *SubscriptionUpdateOne {
+	suo.mutation.SetApproved(b)
+	return suo
+}
+
+// SetNillableApproved sets the "approved" field if the given value is not nil.
+func (suo *SubscriptionUpdateOne) SetNillableApproved(b *bool) *SubscriptionUpdateOne {
+	if b != nil {
+		suo.SetApproved(*b)
 	}
 	return suo
 }
@@ -359,6 +390,9 @@ func (suo *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscript
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := suo.mutation.Approved(); ok {
+		_spec.SetField(subscription.FieldApproved, field.TypeBool, value)
 	}
 	if suo.mutation.SubscriberCleared() {
 		edge := &sqlgraph.EdgeSpec{

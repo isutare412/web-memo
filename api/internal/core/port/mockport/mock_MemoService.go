@@ -6,9 +6,8 @@ import (
 	context "context"
 
 	ent "github.com/isutare412/web-memo/api/internal/core/ent"
-	mock "github.com/stretchr/testify/mock"
-
 	model "github.com/isutare412/web-memo/api/internal/core/model"
+	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/google/uuid"
 )

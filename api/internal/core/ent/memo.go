@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/memo"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // Memo is the model entity for the Memo schema.
@@ -25,8 +26,8 @@ type Memo struct {
 	Title string `json:"title,omitempty"`
 	// Content holds the value of the "content" field.
 	Content string `json:"content,omitempty"`
-	// IsPublished holds the value of the "is_published" field.
-	IsPublished bool `json:"is_published,omitempty"`
+	// PublishState holds the value of the "publish_state" field.
+	PublishState enum.PublishState `json:"publish_state,omitempty"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
 	// IsEmbedded holds the value of the "is_embedded" field.
@@ -121,11 +122,11 @@ func (*Memo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case memo.FieldIsPublished, memo.FieldIsEmbedded:
+		case memo.FieldIsEmbedded:
 			values[i] = new(sql.NullBool)
 		case memo.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case memo.FieldTitle, memo.FieldContent:
+		case memo.FieldTitle, memo.FieldContent, memo.FieldPublishState:
 			values[i] = new(sql.NullString)
 		case memo.FieldCreateTime, memo.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -170,11 +171,11 @@ func (m *Memo) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				m.Content = value.String
 			}
-		case memo.FieldIsPublished:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_published", values[i])
+		case memo.FieldPublishState:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field publish_state", values[i])
 			} else if value.Valid {
-				m.IsPublished = value.Bool
+				m.PublishState = enum.PublishState(value.String)
 			}
 		case memo.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -275,8 +276,8 @@ func (m *Memo) String() string {
 	builder.WriteString("content=")
 	builder.WriteString(m.Content)
 	builder.WriteString(", ")
-	builder.WriteString("is_published=")
-	builder.WriteString(fmt.Sprintf("%v", m.IsPublished))
+	builder.WriteString("publish_state=")
+	builder.WriteString(fmt.Sprintf("%v", m.PublishState))
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", m.Version))

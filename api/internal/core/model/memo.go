@@ -31,9 +31,14 @@ type MemoSearchResult struct {
 	BM25Score     float32
 }
 
+type SubscriberInfo struct {
+	User     *ent.User
+	Approved bool
+}
+
 type ListSubscribersResponse struct {
 	MemoOwnerID uuid.UUID
-	Subscribers []*ent.User
+	Subscribers []SubscriberInfo
 }
 
 type ListCollaboratorsResponse struct {
@@ -42,9 +47,13 @@ type ListCollaboratorsResponse struct {
 }
 
 type MemoViewerContext struct {
-	IsSubscribed   bool
 	IsCollaborator bool
 	IsApproved     bool
+	Subscription   *ViewerSubscription
+}
+
+type ViewerSubscription struct {
+	IsApproved bool
 }
 
 type GetMemoDetailResponse struct {

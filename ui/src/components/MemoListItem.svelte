@@ -60,7 +60,7 @@
       <div class="w-[12px] text-primary">
         <BookmarkIcon />
       </div>
-    {:else if memo.isPublished}
+    {:else if memo.publishState !== 'private'}
       <div class="w-[14px] text-primary">
         <WebPublishIcon />
       </div>

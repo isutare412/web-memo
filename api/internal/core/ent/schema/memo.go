@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // Memo holds the schema definition for the Memo entity.
@@ -26,8 +27,9 @@ func (Memo) Fields() []ent.Field {
 			MaxLen(512),
 		field.String("content").
 			MaxLen(60_000),
-		field.Bool("is_published").
-			Default(false),
+		field.Enum("publish_state").
+			GoType(enum.PublishState("")).
+			Default(string(enum.PublishStatePrivate)),
 		field.Int("version").
 			Default(0),
 		field.Bool("is_embedded").

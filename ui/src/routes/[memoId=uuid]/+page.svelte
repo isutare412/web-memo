@@ -7,13 +7,16 @@
   import LinkShareButton from '$components/LinkShareButton.svelte'
   import Markdown from '$components/Markdown.svelte'
   import SubscribeButton from '$components/SubscribeButton.svelte'
+  import SubscriptionApproveTable from '$components/SubscriptionApproveTable.svelte'
   import Tag from '$components/Tag.svelte'
+  import BookmarkIcon from '$components/icons/BookmarkIcon.svelte'
   import PenIcon from '$components/icons/PenIcon.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
   import TrashBinIcon from '$components/icons/TrashBinIcon.svelte'
   import { StatusError } from '$lib/apis/backend/error'
   import {
     authorizeCollaboration,
+    authorizeSubscription,
     cancelCollaboration,
     deleteMemo,
     getMemo,
@@ -25,6 +28,7 @@
     subscribeMemo,
     unsubscribeMemo,
     type Collaborator,
+    type Subscriber,
   } from '$lib/apis/backend/memo'
   import { authStore, signInGoogle, syncUserData } from '$lib/auth'
   import { loading } from '$lib/stores/loading'
@@ -58,7 +62,7 @@
   let subscriberCount: number | undefined = undefined
   let subscribeConfirmModal: HTMLDialogElement
   let isSubscribing = false
-  let isMemoSubscribed = false
+  let subscriptionState: 'none' | 'pending' | 'approved' = 'none'
 
   let collaborateConfirmModal: HTMLDialogElement
   let isRequestingCollaborate = false
@@ -67,10 +71,13 @@
 
   let collaborateApproveModal: HTMLDialogElement
   let collaborators: Collaborator[] = []
+  let subscribers: Subscriber[] = []
+  let subscriptionApproveModal: HTMLDialogElement
   $: hasApprovedCollaborators = collaborators.some((c) => c.isApproved)
 
   let publishConfirmModal: HTMLDialogElement
   let isPublishing = false
+  let pendingPublishState: 'private' | 'shared' | 'published' = 'private'
 
   let deleteConfirmModal: HTMLDialogElement
   let isDeleting = false
@@ -86,7 +93,7 @@
       await syncUserData()
       await syncMemo(forceRefresh)
       if (user && memo && user.id === memo.ownerId) {
-        await Promise.all([syncOwnerSubscriberCount(), syncOwnerCollaborators()])
+        await Promise.all([syncOwnerSubscribers(), syncOwnerCollaborators()])
       }
     } catch (error) {
       addToast(getErrorMessage(error), 'error')
@@ -102,15 +109,20 @@
     }
 
     if (memo.viewerContext) {
-      isMemoSubscribed = memo.viewerContext.isSubscribed
+      if (memo.viewerContext.subscription === null) {
+        subscriptionState = 'none'
+      } else {
+        subscriptionState = memo.viewerContext.subscription.isApproved ? 'approved' : 'pending'
+      }
       isMemoCollaborated = memo.viewerContext.collaboration !== null
       isMemoCollaborateApproved = memo.viewerContext.collaboration?.isApproved ?? false
     }
   }
 
-  async function syncOwnerSubscriberCount() {
+  async function syncOwnerSubscribers() {
     const response = await listSubscribers(memoId)
-    subscriberCount = response.subscribers.length
+    subscribers = response.subscribers
+    subscriberCount = subscribers.length
   }
 
   async function syncOwnerCollaborators() {
@@ -176,16 +188,20 @@
     try {
       isSubscribing = true
 
-      if (isMemoSubscribed) {
+      if (subscriptionState !== 'none') {
         await unsubscribeMemo({ memoId, userId: user.id })
-        isMemoSubscribed = false
+        subscriptionState = 'none'
       } else {
-        await subscribeMemo({ memoId, userId: user.id })
-        isMemoSubscribed = true
+        const response = await subscribeMemo({ memoId, userId: user.id })
+        subscriptionState = response.subscription.approved ? 'approved' : 'pending'
       }
 
       isSubscribing = false
       subscribeConfirmModal.close()
+
+      if (memo.publishState === 'shared') {
+        await syncMemo(true)
+      }
     } catch (error: unknown) {
       addToast(getErrorMessage(error), 'error')
       return
@@ -203,6 +219,19 @@
     } catch (error: unknown) {
       addToast(getErrorMessage(error), 'error')
       return
+    }
+  }
+
+  async function onSubscriptionApprove(event: CustomEvent<{ userId: string; checked: boolean }>) {
+    try {
+      await authorizeSubscription({
+        memoId,
+        userId: event.detail.userId,
+        approve: event.detail.checked,
+      })
+      await syncOwnerSubscribers()
+    } catch (error: unknown) {
+      addToast(getErrorMessage(error), 'error')
     }
   }
 
@@ -230,7 +259,9 @@
     }
   }
 
-  function onShareEvent() {
+  function onShareEvent(event: CustomEvent<{ publishState: 'private' | 'shared' | 'published' }>) {
+    const newState = event.detail.publishState
+    pendingPublishState = newState
     publishConfirmModal.showModal()
   }
 
@@ -263,25 +294,24 @@
   }
 
   function onPublishConfirm() {
-    if (memo === undefined) {
-      return
-    }
+    if (memo === undefined) return
 
     const memoUrl = pageUrl.toString()
     isPublishing = true
 
-    // https://forums.developer.apple.com/forums/thread/691873
-    // Apple WebKit does not allow async, so we build promise and pass it.
     const publishMemoPromise = publishMemo({
       id: memoId,
-      publish: !memo.isPublished,
+      publishState: pendingPublishState,
     })
       .then((rawMemo) => {
         memo = mapToMemo(rawMemo)
 
-        if (!memo.isPublished) {
+        if (memo.publishState === 'private') {
           subscriberCount = undefined
+          subscribers = []
           collaborators = []
+        } else {
+          syncOwnerSubscribers()
         }
 
         isPublishing = false
@@ -289,27 +319,27 @@
       })
       .catch((error) => {
         addToast(getErrorMessage(error), 'error')
-        goto('/')
+        isPublishing = false
       })
 
-    if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
-      navigator.clipboard
-        .write([
-          new ClipboardItem({
-            'text/plain': publishMemoPromise.then(() => memoUrl),
-          }),
-        ])
-        .then(() => {
-          if (memo !== undefined && memo.isPublished)
+    if (pendingPublishState !== 'private') {
+      if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+        navigator.clipboard
+          .write([
+            new ClipboardItem({
+              'text/plain': publishMemoPromise.then(() => memoUrl),
+            }),
+          ])
+          .then(() => {
             addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
-        })
-    } else {
-      publishMemoPromise.then(() => {
-        navigator.clipboard.writeText(memoUrl).then(() => {
-          if (memo !== undefined && memo.isPublished)
+          })
+      } else {
+        publishMemoPromise.then(() => {
+          navigator.clipboard.writeText(memoUrl).then(() => {
             addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
+          })
         })
-      })
+      }
     }
   }
 </script>
@@ -399,14 +429,24 @@
     </div>
   {/if}
 
-  <div class="mt-3">
-    <Markdown
-      content={memo.content}
-      editable={canEdit}
-      disabled={isCheckboxUpdating}
-      on:checkboxToggle={onCheckboxToggle}
-    />
-  </div>
+  {#if isOwner || memo.publishState !== 'shared' || subscriptionState === 'approved'}
+    <div class="mt-3">
+      <Markdown
+        content={memo.content}
+        editable={canEdit}
+        disabled={isCheckboxUpdating}
+        on:checkboxToggle={onCheckboxToggle}
+      />
+    </div>
+  {:else if subscriptionState === 'pending'}
+    <div class="alert mt-3">
+      <span>Your access request is pending approval by the memo owner.</span>
+    </div>
+  {:else}
+    <div class="alert mt-3">
+      <span>This memo is shared. Request access to view the content.</span>
+    </div>
+  {/if}
   <div class="mt-3 flex flex-col gap-y-1">
     <div class="flex justify-end">
       <span class="text-xs opacity-70">Create {formatDate(memo.createTime)}</span>
@@ -418,7 +458,7 @@
 
   {#if isOwner}
     <div class="mt-2 flex justify-end gap-x-1">
-      {#if memo.isPublished}
+      {#if memo.publishState !== 'private'}
         <CollaborateButton
           disabled={!collaborators.length}
           isActivated={hasApprovedCollaborators}
@@ -426,10 +466,22 @@
           on:click={onCollaborateClick}
         />
       {/if}
+      {#if memo.publishState === 'shared' && subscribers.length > 0}
+        <button
+          on:click={() => subscriptionApproveModal.showModal()}
+          class="btn btn-outline btn-sm rounded-full"
+          class:btn-primary={subscribers.some((s) => s.approved)}
+        >
+          <div class="w-[12px]">
+            <BookmarkIcon />
+          </div>
+          {subscribers.length}
+        </button>
+      {/if}
       <LinkShareButton
         link={pageUrl.toString()}
         shareCount={subscriberCount}
-        isShared={memo.isPublished}
+        publishState={memo.publishState}
         on:share={onShareEvent}
       />
       <LinkCopyButton link={pageUrl.toString()} />
@@ -444,18 +496,32 @@
       </form>
     </dialog>
 
+    <dialog bind:this={subscriptionApproveModal} class="modal">
+      <div class="modal-box w-fit min-w-80">
+        <SubscriptionApproveTable {subscribers} on:change={onSubscriptionApprove} />
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+
     <dialog bind:this={publishConfirmModal} class="modal">
       <div class="modal-box">
         <p class="py-4">
-          {#if memo.isPublished}
+          {#if pendingPublishState === 'private'}
             <p>
-              Will you <span class="font-bold text-primary">un-publish</span> the memo?<br />Only
-              you will be able to access the memo through a link.
+              Will you make the memo <span class="font-bold text-primary">private</span>?<br />
+              Only you and collaborators will be able to access the memo.
+            </p>
+          {:else if pendingPublishState === 'shared'}
+            <p>
+              Will you <span class="font-bold text-primary">share</span> the memo?<br />
+              Users with the link can request access. You will approve who can view.
             </p>
           {:else}
             <p>
-              Will you <span class="font-bold text-primary">publish</span> the memo?<br />Anyone
-              will be able to access the memo through a link.
+              Will you <span class="font-bold text-primary">publish</span> the memo?<br />
+              Anyone with the link will be able to access the memo.
             </p>
           {/if}
         </p>
@@ -487,24 +553,35 @@
       <CollaborateButton
         isActivated={isMemoCollaborated}
         isChecked={isMemoCollaborateApproved}
+        disabled={memo.publishState === 'shared' && subscriptionState !== 'approved'}
         on:click={onCollaborateClick}
       />
-      <SubscribeButton isActivated={isMemoSubscribed} on:subscribe={onSusbscribeEvent} />
+      <SubscribeButton
+        isActivated={subscriptionState !== 'none'}
+        isChecked={subscriptionState === 'approved'}
+        on:subscribe={onSusbscribeEvent}
+      />
       <LinkCopyButton link={pageUrl.toString()} />
     </div>
 
     <dialog bind:this={subscribeConfirmModal} class="modal">
       <div class="modal-box">
         <p class="py-4">
-          {#if isMemoSubscribed}
+          {#if subscriptionState !== 'none'}
             <p>
-              Will you <span class="font-bold text-primary">unsubscribe</span> the memo?<br />The
-              memo will not be exposed to your memo list.
+              Will you <span class="font-bold text-primary">unsubscribe</span> the memo?<br />
+              The memo will not be exposed to your memo list.
+            </p>
+          {:else if memo.publishState === 'shared'}
+            <p>
+              Will you <span class="font-bold text-primary">request access</span> to this memo?<br
+              />
+              The owner will need to approve your request.
             </p>
           {:else}
             <p>
-              Will you <span class="font-bold text-primary">subcribe</span> the memo?<br />The memo
-              will be exposed to your memo list.
+              Will you <span class="font-bold text-primary">subscribe</span> to this memo?<br />
+              The memo will be exposed to your memo list.
             </p>
           {/if}
         </p>

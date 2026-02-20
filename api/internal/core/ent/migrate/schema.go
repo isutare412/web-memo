@@ -54,7 +54,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "title", Type: field.TypeString, Size: 512},
 		{Name: "content", Type: field.TypeString, Size: 60000},
-		{Name: "is_published", Type: field.TypeBool, Default: false},
+		{Name: "publish_state", Type: field.TypeEnum, Enums: []string{"private", "shared", "published"}, Default: "private"},
 		{Name: "version", Type: field.TypeInt, Default: 0},
 		{Name: "is_embedded", Type: field.TypeBool, Default: false},
 		{Name: "create_time", Type: field.TypeTime},
@@ -90,6 +90,7 @@ var (
 	// SubscriptionsColumns holds the columns for the "subscriptions" table.
 	SubscriptionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "approved", Type: field.TypeBool, Default: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeUUID},
 		{Name: "memo_id", Type: field.TypeUUID},
@@ -102,13 +103,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "subscriptions_users_subscriber",
-				Columns:    []*schema.Column{SubscriptionsColumns[2]},
+				Columns:    []*schema.Column{SubscriptionsColumns[3]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 			{
 				Symbol:     "subscriptions_memos_memo",
-				Columns:    []*schema.Column{SubscriptionsColumns[3]},
+				Columns:    []*schema.Column{SubscriptionsColumns[4]},
 				RefColumns: []*schema.Column{MemosColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -117,12 +118,12 @@ var (
 			{
 				Name:    "subscription_memo_id_user_id",
 				Unique:  true,
-				Columns: []*schema.Column{SubscriptionsColumns[3], SubscriptionsColumns[2]},
+				Columns: []*schema.Column{SubscriptionsColumns[4], SubscriptionsColumns[3]},
 			},
 			{
 				Name:    "subscription_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{SubscriptionsColumns[2]},
+				Columns: []*schema.Column{SubscriptionsColumns[3]},
 			},
 		},
 	}

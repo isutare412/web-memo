@@ -8,6 +8,7 @@ import (
 	"github.com/isutare412/imageer/pkg/images"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
@@ -29,8 +30,8 @@ type MemoService interface {
 	UpdateMemo(
 		ctx context.Context, memo *ent.Memo, tagNames []string,
 		requester *model.AppIDToken, isPinUpdateTime bool) (*ent.Memo, error)
-	UpdateMemoPublishedState(
-		ctx context.Context, memoID uuid.UUID, publish bool, requester *model.AppIDToken) (*ent.Memo, error)
+	UpdateMemoPublishState(
+		ctx context.Context, memoID uuid.UUID, state enum.PublishState, requester *model.AppIDToken) (*ent.Memo, error)
 	DeleteMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error
 
 	ListTags(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) ([]*ent.Tag, error)
@@ -40,8 +41,11 @@ type MemoService interface {
 	EnqueueMissingEmbeddings(context.Context) (enqueued int, err error)
 
 	ListSubscribers(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListSubscribersResponse, error)
-	SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error
+	SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Subscription, error)
 	UnsubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error
+
+	AuthorizeSubscriber(
+		ctx context.Context, memoID, subscriberID uuid.UUID, approve bool, requester *model.AppIDToken) error
 
 	ListCollaborators(
 		ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*model.ListCollaboratorsResponse, error)

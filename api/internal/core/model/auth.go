@@ -79,7 +79,17 @@ func (t *AppIDToken) CanReadMemo(memo *ent.Memo) bool {
 	if t.CanWriteMemo(memo) {
 		return true
 	}
-	return memo.IsPublished
+	return memo.PublishState == enum.PublishStatePublished
+}
+
+func (t *AppIDToken) CanViewMemoLanding(memo *ent.Memo) bool {
+	if t.CanReadMemo(memo) {
+		return true
+	}
+	if t == nil {
+		return false
+	}
+	return memo.PublishState == enum.PublishStateShared
 }
 
 func (t *AppIDToken) IsOwner(memo *ent.Memo) bool {

@@ -136,11 +136,22 @@ var _ = Describe("Auth", func() {
 				var (
 					givenToken *model.AppIDToken = nil
 					givenMemo                    = &ent.Memo{
-						IsPublished: true,
+						PublishState: enum.PublishStatePublished,
 					}
 				)
 
 				Expect(givenToken.CanReadMemo(givenMemo)).To(BeTrue())
+			})
+
+			It("fails if shared memo without token", func() {
+				var (
+					givenToken *model.AppIDToken = nil
+					givenMemo                    = &ent.Memo{
+						PublishState: enum.PublishStateShared,
+					}
+				)
+
+				Expect(givenToken.CanReadMemo(givenMemo)).To(BeFalse())
 			})
 
 			It("fails if not owner", func() {

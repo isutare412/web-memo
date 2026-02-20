@@ -18,6 +18,7 @@ import (
 	"github.com/isutare412/web-memo/api/internal/core/ent/subscription"
 	"github.com/isutare412/web-memo/api/internal/core/ent/tag"
 	"github.com/isutare412/web-memo/api/internal/core/ent/user"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // MemoUpdate is the builder for updating Memo entities.
@@ -75,16 +76,16 @@ func (mu *MemoUpdate) SetNillableContent(s *string) *MemoUpdate {
 	return mu
 }
 
-// SetIsPublished sets the "is_published" field.
-func (mu *MemoUpdate) SetIsPublished(b bool) *MemoUpdate {
-	mu.mutation.SetIsPublished(b)
+// SetPublishState sets the "publish_state" field.
+func (mu *MemoUpdate) SetPublishState(es enum.PublishState) *MemoUpdate {
+	mu.mutation.SetPublishState(es)
 	return mu
 }
 
-// SetNillableIsPublished sets the "is_published" field if the given value is not nil.
-func (mu *MemoUpdate) SetNillableIsPublished(b *bool) *MemoUpdate {
-	if b != nil {
-		mu.SetIsPublished(*b)
+// SetNillablePublishState sets the "publish_state" field if the given value is not nil.
+func (mu *MemoUpdate) SetNillablePublishState(es *enum.PublishState) *MemoUpdate {
+	if es != nil {
+		mu.SetPublishState(*es)
 	}
 	return mu
 }
@@ -373,6 +374,11 @@ func (mu *MemoUpdate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Memo.content": %w`, err)}
 		}
 	}
+	if v, ok := mu.mutation.PublishState(); ok {
+		if err := memo.PublishStateValidator(v); err != nil {
+			return &ValidationError{Name: "publish_state", err: fmt.Errorf(`ent: validator failed for field "Memo.publish_state": %w`, err)}
+		}
+	}
 	if mu.mutation.OwnerCleared() && len(mu.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Memo.owner"`)
 	}
@@ -397,8 +403,8 @@ func (mu *MemoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := mu.mutation.Content(); ok {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)
 	}
-	if value, ok := mu.mutation.IsPublished(); ok {
-		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
+	if value, ok := mu.mutation.PublishState(); ok {
+		_spec.SetField(memo.FieldPublishState, field.TypeEnum, value)
 	}
 	if value, ok := mu.mutation.Version(); ok {
 		_spec.SetField(memo.FieldVersion, field.TypeInt, value)
@@ -752,16 +758,16 @@ func (muo *MemoUpdateOne) SetNillableContent(s *string) *MemoUpdateOne {
 	return muo
 }
 
-// SetIsPublished sets the "is_published" field.
-func (muo *MemoUpdateOne) SetIsPublished(b bool) *MemoUpdateOne {
-	muo.mutation.SetIsPublished(b)
+// SetPublishState sets the "publish_state" field.
+func (muo *MemoUpdateOne) SetPublishState(es enum.PublishState) *MemoUpdateOne {
+	muo.mutation.SetPublishState(es)
 	return muo
 }
 
-// SetNillableIsPublished sets the "is_published" field if the given value is not nil.
-func (muo *MemoUpdateOne) SetNillableIsPublished(b *bool) *MemoUpdateOne {
-	if b != nil {
-		muo.SetIsPublished(*b)
+// SetNillablePublishState sets the "publish_state" field if the given value is not nil.
+func (muo *MemoUpdateOne) SetNillablePublishState(es *enum.PublishState) *MemoUpdateOne {
+	if es != nil {
+		muo.SetPublishState(*es)
 	}
 	return muo
 }
@@ -1063,6 +1069,11 @@ func (muo *MemoUpdateOne) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Memo.content": %w`, err)}
 		}
 	}
+	if v, ok := muo.mutation.PublishState(); ok {
+		if err := memo.PublishStateValidator(v); err != nil {
+			return &ValidationError{Name: "publish_state", err: fmt.Errorf(`ent: validator failed for field "Memo.publish_state": %w`, err)}
+		}
+	}
 	if muo.mutation.OwnerCleared() && len(muo.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Memo.owner"`)
 	}
@@ -1104,8 +1115,8 @@ func (muo *MemoUpdateOne) sqlSave(ctx context.Context) (_node *Memo, err error) 
 	if value, ok := muo.mutation.Content(); ok {
 		_spec.SetField(memo.FieldContent, field.TypeString, value)
 	}
-	if value, ok := muo.mutation.IsPublished(); ok {
-		_spec.SetField(memo.FieldIsPublished, field.TypeBool, value)
+	if value, ok := muo.mutation.PublishState(); ok {
+		_spec.SetField(memo.FieldPublishState, field.TypeEnum, value)
 	}
 	if value, ok := muo.mutation.Version(); ok {
 		_spec.SetField(memo.FieldVersion, field.TypeInt, value)

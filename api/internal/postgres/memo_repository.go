@@ -112,7 +112,7 @@ func (r *MemoRepository) FindSubscribedMemoIDs(ctx context.Context, userID uuid.
 
 	subs, err := client.Subscription.
 		Query().
-		Where(subscription.UserID(userID)).
+		Where(subscription.UserID(userID), subscription.Approved(true)).
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -374,7 +374,7 @@ func (r *MemoRepository) Create(
 		SetTitle(memo.Title).
 		SetContent(base64Encode(memo.Content)).
 		SetOwnerID(userID).
-		SetIsPublished(memo.IsPublished).
+		SetPublishState(memo.PublishState).
 		AddTagIDs(tagIDs...).
 		Save(ctx)
 	if err != nil {
@@ -402,7 +402,7 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 		UpdateOneID(memo.ID).
 		SetTitle(memo.Title).
 		SetContent(base64Encode(memo.Content)).
-		SetIsPublished(memo.IsPublished).
+		SetPublishState(memo.PublishState).
 		SetVersion(memo.Version).
 		SetIsEmbedded(false).
 		SetUpdateTime(lo.Ternary(memo.UpdateTime.IsZero(), time.Now(), memo.UpdateTime)).
@@ -427,8 +427,10 @@ func (r *MemoRepository) Update(ctx context.Context, memo *ent.Memo) (*ent.Memo,
 	return memoUpdated, nil
 }
 
-func (r *MemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.UUID, isPublish bool) (*ent.Memo, error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.UpdateIsPublish",
+func (r *MemoRepository) UpdatePublishState(ctx context.Context, memoID uuid.UUID,
+	state enum.PublishState,
+) (*ent.Memo, error) {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.UpdatePublishState",
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
@@ -438,7 +440,7 @@ func (r *MemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.UUID, 
 	// we do not update UpdateTime when published state changes.
 	memoUpdated, err := client.Memo.
 		UpdateOneID(memoID).
-		SetIsPublished(isPublish).
+		SetPublishState(state).
 		Save(ctx)
 	switch {
 	case ent.IsNotFound(err):
@@ -542,15 +544,16 @@ func (r *MemoRepository) ReplaceTags(ctx context.Context, memoID uuid.UUID, tagI
 	return nil
 }
 
-func (r *MemoRepository) IsSubscribed(ctx context.Context, memoID, userID uuid.UUID) (bool, error) {
-	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.IsSubscribed",
+func (r *MemoRepository) FindSubscription(ctx context.Context, memoID, userID uuid.UUID,
+) (*ent.Subscription, error) {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.FindSubscription",
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(tracing.PeerServicePostgres))
 	defer span.End()
 
 	client := transactionClient(ctx, r.client)
 
-	exists, err := client.Subscription.
+	sub, err := client.Subscription.
 		Query().
 		Where(
 			subscription.And(
@@ -558,15 +561,45 @@ func (r *MemoRepository) IsSubscribed(ctx context.Context, memoID, userID uuid.U
 				subscription.UserID(userID),
 			),
 		).
-		Exist(ctx)
-	if err != nil {
-		return false, err
+		Only(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return nil, pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			Origin:    err,
+			ClientMsg: "subscription not found",
+		}
+	case err != nil:
+		return nil, err
 	}
 
-	return exists, nil
+	return sub, nil
 }
 
-func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error {
+func (r *MemoRepository) FindSubscriptionsByMemoID(ctx context.Context, memoID uuid.UUID,
+) ([]*ent.Subscription, error) {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.FindSubscriptionsByMemoID",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	subs, err := client.Subscription.
+		Query().
+		Where(subscription.MemoID(memoID)).
+		WithSubscriber().
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return subs, nil
+}
+
+func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID,
+	approved bool,
+) error {
 	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.RegisterSubscriber",
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(tracing.PeerServicePostgres))
@@ -578,7 +611,61 @@ func (r *MemoRepository) RegisterSubscriber(ctx context.Context, memoID, userID 
 		Create().
 		SetMemoID(memoID).
 		SetUserID(userID).
+		SetApproved(approved).
 		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *MemoRepository) UpdateSubscriptionApproval(ctx context.Context, memoID, userID uuid.UUID,
+	approved bool,
+) error {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.UpdateSubscriptionApproval",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	count, err := client.Subscription.
+		Update().
+		Where(
+			subscription.And(
+				subscription.MemoID(memoID),
+				subscription.UserID(userID),
+			),
+		).
+		SetApproved(approved).
+		Save(ctx)
+	switch {
+	case err != nil:
+		return err
+	case count == 0:
+		return pkgerr.Known{
+			Code:      pkgerr.CodeNotFound,
+			ClientMsg: "subscription not found",
+		}
+	}
+
+	return nil
+}
+
+func (r *MemoRepository) ApproveAllSubscriptions(ctx context.Context, memoID uuid.UUID) error {
+	ctx, span := tracing.StartSpan(ctx, "postgres.MemoRepository.ApproveAllSubscriptions",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(tracing.PeerServicePostgres))
+	defer span.End()
+
+	client := transactionClient(ctx, r.client)
+
+	_, err := client.Subscription.
+		Update().
+		Where(subscription.MemoID(memoID)).
+		SetApproved(true).
+		Save(ctx)
 	if err != nil {
 		return err
 	}

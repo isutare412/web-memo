@@ -6,9 +6,9 @@ import (
 	context "context"
 
 	ent "github.com/isutare412/web-memo/api/internal/core/ent"
-	mock "github.com/stretchr/testify/mock"
-
+	enum "github.com/isutare412/web-memo/api/internal/core/enum"
 	model "github.com/isutare412/web-memo/api/internal/core/model"
+	mock "github.com/stretchr/testify/mock"
 
 	uuid "github.com/google/uuid"
 )
@@ -24,6 +24,53 @@ type MockMemoRepository_Expecter struct {
 
 func (_m *MockMemoRepository) EXPECT() *MockMemoRepository_Expecter {
 	return &MockMemoRepository_Expecter{mock: &_m.Mock}
+}
+
+// ApproveAllSubscriptions provides a mock function with given fields: ctx, memoID
+func (_m *MockMemoRepository) ApproveAllSubscriptions(ctx context.Context, memoID uuid.UUID) error {
+	ret := _m.Called(ctx, memoID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ApproveAllSubscriptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, memoID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockMemoRepository_ApproveAllSubscriptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ApproveAllSubscriptions'
+type MockMemoRepository_ApproveAllSubscriptions_Call struct {
+	*mock.Call
+}
+
+// ApproveAllSubscriptions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - memoID uuid.UUID
+func (_e *MockMemoRepository_Expecter) ApproveAllSubscriptions(ctx interface{}, memoID interface{}) *MockMemoRepository_ApproveAllSubscriptions_Call {
+	return &MockMemoRepository_ApproveAllSubscriptions_Call{Call: _e.mock.On("ApproveAllSubscriptions", ctx, memoID)}
+}
+
+func (_c *MockMemoRepository_ApproveAllSubscriptions_Call) Run(run func(ctx context.Context, memoID uuid.UUID)) *MockMemoRepository_ApproveAllSubscriptions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockMemoRepository_ApproveAllSubscriptions_Call) Return(_a0 error) *MockMemoRepository_ApproveAllSubscriptions_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockMemoRepository_ApproveAllSubscriptions_Call) RunAndReturn(run func(context.Context, uuid.UUID) error) *MockMemoRepository_ApproveAllSubscriptions_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ClearSubscribers provides a mock function with given fields: ctx, memoID
@@ -717,23 +764,25 @@ func (_c *MockMemoRepository_FindSubscribedMemoIDs_Call) RunAndReturn(run func(c
 	return _c
 }
 
-// IsSubscribed provides a mock function with given fields: ctx, memoID, userID
-func (_m *MockMemoRepository) IsSubscribed(ctx context.Context, memoID uuid.UUID, userID uuid.UUID) (bool, error) {
+// FindSubscription provides a mock function with given fields: ctx, memoID, userID
+func (_m *MockMemoRepository) FindSubscription(ctx context.Context, memoID uuid.UUID, userID uuid.UUID) (*ent.Subscription, error) {
 	ret := _m.Called(ctx, memoID, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for IsSubscribed")
+		panic("no return value specified for FindSubscription")
 	}
 
-	var r0 bool
+	var r0 *ent.Subscription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (bool, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*ent.Subscription, error)); ok {
 		return rf(ctx, memoID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) bool); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *ent.Subscription); ok {
 		r0 = rf(ctx, memoID, userID)
 	} else {
-		r0 = ret.Get(0).(bool)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ent.Subscription)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
@@ -745,47 +794,47 @@ func (_m *MockMemoRepository) IsSubscribed(ctx context.Context, memoID uuid.UUID
 	return r0, r1
 }
 
-// MockMemoRepository_IsSubscribed_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsSubscribed'
-type MockMemoRepository_IsSubscribed_Call struct {
+// MockMemoRepository_FindSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindSubscription'
+type MockMemoRepository_FindSubscription_Call struct {
 	*mock.Call
 }
 
-// IsSubscribed is a helper method to define mock.On call
+// FindSubscription is a helper method to define mock.On call
 //   - ctx context.Context
 //   - memoID uuid.UUID
 //   - userID uuid.UUID
-func (_e *MockMemoRepository_Expecter) IsSubscribed(ctx interface{}, memoID interface{}, userID interface{}) *MockMemoRepository_IsSubscribed_Call {
-	return &MockMemoRepository_IsSubscribed_Call{Call: _e.mock.On("IsSubscribed", ctx, memoID, userID)}
+func (_e *MockMemoRepository_Expecter) FindSubscription(ctx interface{}, memoID interface{}, userID interface{}) *MockMemoRepository_FindSubscription_Call {
+	return &MockMemoRepository_FindSubscription_Call{Call: _e.mock.On("FindSubscription", ctx, memoID, userID)}
 }
 
-func (_c *MockMemoRepository_IsSubscribed_Call) Run(run func(ctx context.Context, memoID uuid.UUID, userID uuid.UUID)) *MockMemoRepository_IsSubscribed_Call {
+func (_c *MockMemoRepository_FindSubscription_Call) Run(run func(ctx context.Context, memoID uuid.UUID, userID uuid.UUID)) *MockMemoRepository_FindSubscription_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockMemoRepository_IsSubscribed_Call) Return(_a0 bool, _a1 error) *MockMemoRepository_IsSubscribed_Call {
+func (_c *MockMemoRepository_FindSubscription_Call) Return(_a0 *ent.Subscription, _a1 error) *MockMemoRepository_FindSubscription_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockMemoRepository_IsSubscribed_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (bool, error)) *MockMemoRepository_IsSubscribed_Call {
+func (_c *MockMemoRepository_FindSubscription_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) (*ent.Subscription, error)) *MockMemoRepository_FindSubscription_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RegisterSubscriber provides a mock function with given fields: ctx, memoID, userID
-func (_m *MockMemoRepository) RegisterSubscriber(ctx context.Context, memoID uuid.UUID, userID uuid.UUID) error {
-	ret := _m.Called(ctx, memoID, userID)
+// RegisterSubscriber provides a mock function with given fields: ctx, memoID, userID, approved
+func (_m *MockMemoRepository) RegisterSubscriber(ctx context.Context, memoID uuid.UUID, userID uuid.UUID, approved bool) error {
+	ret := _m.Called(ctx, memoID, userID, approved)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RegisterSubscriber")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
-		r0 = rf(ctx, memoID, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, bool) error); ok {
+		r0 = rf(ctx, memoID, userID, approved)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -802,13 +851,14 @@ type MockMemoRepository_RegisterSubscriber_Call struct {
 //   - ctx context.Context
 //   - memoID uuid.UUID
 //   - userID uuid.UUID
-func (_e *MockMemoRepository_Expecter) RegisterSubscriber(ctx interface{}, memoID interface{}, userID interface{}) *MockMemoRepository_RegisterSubscriber_Call {
-	return &MockMemoRepository_RegisterSubscriber_Call{Call: _e.mock.On("RegisterSubscriber", ctx, memoID, userID)}
+//   - approved bool
+func (_e *MockMemoRepository_Expecter) RegisterSubscriber(ctx interface{}, memoID interface{}, userID interface{}, approved interface{}) *MockMemoRepository_RegisterSubscriber_Call {
+	return &MockMemoRepository_RegisterSubscriber_Call{Call: _e.mock.On("RegisterSubscriber", ctx, memoID, userID, approved)}
 }
 
-func (_c *MockMemoRepository_RegisterSubscriber_Call) Run(run func(ctx context.Context, memoID uuid.UUID, userID uuid.UUID)) *MockMemoRepository_RegisterSubscriber_Call {
+func (_c *MockMemoRepository_RegisterSubscriber_Call) Run(run func(ctx context.Context, memoID uuid.UUID, userID uuid.UUID, approved bool)) *MockMemoRepository_RegisterSubscriber_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(bool))
 	})
 	return _c
 }
@@ -818,7 +868,7 @@ func (_c *MockMemoRepository_RegisterSubscriber_Call) Return(_a0 error) *MockMem
 	return _c
 }
 
-func (_c *MockMemoRepository_RegisterSubscriber_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID) error) *MockMemoRepository_RegisterSubscriber_Call {
+func (_c *MockMemoRepository_RegisterSubscriber_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, bool) error) *MockMemoRepository_RegisterSubscriber_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1027,29 +1077,29 @@ func (_c *MockMemoRepository_UpdateIsEmbedded_Call) RunAndReturn(run func(contex
 	return _c
 }
 
-// UpdateIsPublish provides a mock function with given fields: ctx, memoID, isPublish
-func (_m *MockMemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.UUID, isPublish bool) (*ent.Memo, error) {
-	ret := _m.Called(ctx, memoID, isPublish)
+// UpdatePublishState provides a mock function with given fields: ctx, memoID, state
+func (_m *MockMemoRepository) UpdatePublishState(ctx context.Context, memoID uuid.UUID, state enum.PublishState) (*ent.Memo, error) {
+	ret := _m.Called(ctx, memoID, state)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpdateIsPublish")
+		panic("no return value specified for UpdatePublishState")
 	}
 
 	var r0 *ent.Memo
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, bool) (*ent.Memo, error)); ok {
-		return rf(ctx, memoID, isPublish)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, enum.PublishState) (*ent.Memo, error)); ok {
+		return rf(ctx, memoID, state)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, bool) *ent.Memo); ok {
-		r0 = rf(ctx, memoID, isPublish)
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, enum.PublishState) *ent.Memo); ok {
+		r0 = rf(ctx, memoID, state)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*ent.Memo)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, bool) error); ok {
-		r1 = rf(ctx, memoID, isPublish)
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID, enum.PublishState) error); ok {
+		r1 = rf(ctx, memoID, state)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1057,32 +1107,81 @@ func (_m *MockMemoRepository) UpdateIsPublish(ctx context.Context, memoID uuid.U
 	return r0, r1
 }
 
-// MockMemoRepository_UpdateIsPublish_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateIsPublish'
-type MockMemoRepository_UpdateIsPublish_Call struct {
+// MockMemoRepository_UpdatePublishState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdatePublishState'
+type MockMemoRepository_UpdatePublishState_Call struct {
 	*mock.Call
 }
 
-// UpdateIsPublish is a helper method to define mock.On call
+// UpdatePublishState is a helper method to define mock.On call
 //   - ctx context.Context
 //   - memoID uuid.UUID
-//   - isPublish bool
-func (_e *MockMemoRepository_Expecter) UpdateIsPublish(ctx interface{}, memoID interface{}, isPublish interface{}) *MockMemoRepository_UpdateIsPublish_Call {
-	return &MockMemoRepository_UpdateIsPublish_Call{Call: _e.mock.On("UpdateIsPublish", ctx, memoID, isPublish)}
+//   - state enum.PublishState
+func (_e *MockMemoRepository_Expecter) UpdatePublishState(ctx interface{}, memoID interface{}, state interface{}) *MockMemoRepository_UpdatePublishState_Call {
+	return &MockMemoRepository_UpdatePublishState_Call{Call: _e.mock.On("UpdatePublishState", ctx, memoID, state)}
 }
 
-func (_c *MockMemoRepository_UpdateIsPublish_Call) Run(run func(ctx context.Context, memoID uuid.UUID, isPublish bool)) *MockMemoRepository_UpdateIsPublish_Call {
+func (_c *MockMemoRepository_UpdatePublishState_Call) Run(run func(ctx context.Context, memoID uuid.UUID, state enum.PublishState)) *MockMemoRepository_UpdatePublishState_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(bool))
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(enum.PublishState))
 	})
 	return _c
 }
 
-func (_c *MockMemoRepository_UpdateIsPublish_Call) Return(_a0 *ent.Memo, _a1 error) *MockMemoRepository_UpdateIsPublish_Call {
+func (_c *MockMemoRepository_UpdatePublishState_Call) Return(_a0 *ent.Memo, _a1 error) *MockMemoRepository_UpdatePublishState_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockMemoRepository_UpdateIsPublish_Call) RunAndReturn(run func(context.Context, uuid.UUID, bool) (*ent.Memo, error)) *MockMemoRepository_UpdateIsPublish_Call {
+func (_c *MockMemoRepository_UpdatePublishState_Call) RunAndReturn(run func(context.Context, uuid.UUID, enum.PublishState) (*ent.Memo, error)) *MockMemoRepository_UpdatePublishState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateSubscriptionApproval provides a mock function with given fields: ctx, memoID, userID, approved
+func (_m *MockMemoRepository) UpdateSubscriptionApproval(ctx context.Context, memoID uuid.UUID, userID uuid.UUID, approved bool) error {
+	ret := _m.Called(ctx, memoID, userID, approved)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateSubscriptionApproval")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, bool) error); ok {
+		r0 = rf(ctx, memoID, userID, approved)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockMemoRepository_UpdateSubscriptionApproval_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSubscriptionApproval'
+type MockMemoRepository_UpdateSubscriptionApproval_Call struct {
+	*mock.Call
+}
+
+// UpdateSubscriptionApproval is a helper method to define mock.On call
+//   - ctx context.Context
+//   - memoID uuid.UUID
+//   - userID uuid.UUID
+//   - approved bool
+func (_e *MockMemoRepository_Expecter) UpdateSubscriptionApproval(ctx interface{}, memoID interface{}, userID interface{}, approved interface{}) *MockMemoRepository_UpdateSubscriptionApproval_Call {
+	return &MockMemoRepository_UpdateSubscriptionApproval_Call{Call: _e.mock.On("UpdateSubscriptionApproval", ctx, memoID, userID, approved)}
+}
+
+func (_c *MockMemoRepository_UpdateSubscriptionApproval_Call) Run(run func(ctx context.Context, memoID uuid.UUID, userID uuid.UUID, approved bool)) *MockMemoRepository_UpdateSubscriptionApproval_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID), args[2].(uuid.UUID), args[3].(bool))
+	})
+	return _c
+}
+
+func (_c *MockMemoRepository_UpdateSubscriptionApproval_Call) Return(_a0 error) *MockMemoRepository_UpdateSubscriptionApproval_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockMemoRepository_UpdateSubscriptionApproval_Call) RunAndReturn(run func(context.Context, uuid.UUID, uuid.UUID, bool) error) *MockMemoRepository_UpdateSubscriptionApproval_Call {
 	_c.Call.Return(run)
 	return _c
 }

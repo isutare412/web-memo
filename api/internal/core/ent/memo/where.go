@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/isutare412/web-memo/api/internal/core/ent/predicate"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
 
 // ID filters vertices based on their ID field.
@@ -69,11 +70,6 @@ func Title(v string) predicate.Memo {
 // Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
 func Content(v string) predicate.Memo {
 	return predicate.Memo(sql.FieldEQ(FieldContent, v))
-}
-
-// IsPublished applies equality check predicate on the "is_published" field. It's identical to IsPublishedEQ.
-func IsPublished(v bool) predicate.Memo {
-	return predicate.Memo(sql.FieldEQ(FieldIsPublished, v))
 }
 
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
@@ -246,14 +242,34 @@ func ContentContainsFold(v string) predicate.Memo {
 	return predicate.Memo(sql.FieldContainsFold(FieldContent, v))
 }
 
-// IsPublishedEQ applies the EQ predicate on the "is_published" field.
-func IsPublishedEQ(v bool) predicate.Memo {
-	return predicate.Memo(sql.FieldEQ(FieldIsPublished, v))
+// PublishStateEQ applies the EQ predicate on the "publish_state" field.
+func PublishStateEQ(v enum.PublishState) predicate.Memo {
+	vc := v
+	return predicate.Memo(sql.FieldEQ(FieldPublishState, vc))
 }
 
-// IsPublishedNEQ applies the NEQ predicate on the "is_published" field.
-func IsPublishedNEQ(v bool) predicate.Memo {
-	return predicate.Memo(sql.FieldNEQ(FieldIsPublished, v))
+// PublishStateNEQ applies the NEQ predicate on the "publish_state" field.
+func PublishStateNEQ(v enum.PublishState) predicate.Memo {
+	vc := v
+	return predicate.Memo(sql.FieldNEQ(FieldPublishState, vc))
+}
+
+// PublishStateIn applies the In predicate on the "publish_state" field.
+func PublishStateIn(vs ...enum.PublishState) predicate.Memo {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Memo(sql.FieldIn(FieldPublishState, v...))
+}
+
+// PublishStateNotIn applies the NotIn predicate on the "publish_state" field.
+func PublishStateNotIn(vs ...enum.PublishState) predicate.Memo {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Memo(sql.FieldNotIn(FieldPublishState, v...))
 }
 
 // VersionEQ applies the EQ predicate on the "version" field.

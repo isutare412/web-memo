@@ -64,8 +64,9 @@ var _ = Describe("TagRepository", func() {
 				},
 			}
 			fakeMemo = &ent.Memo{
-				Title:   "memo-one",
-				Content: "content-one",
+				Title:        "memo-one",
+				Content:      "content-one",
+				PublishState: enum.PublishStatePrivate,
 			}
 			fakeTags = [...]*ent.Tag{
 				{
@@ -96,7 +97,7 @@ var _ = Describe("TagRepository", func() {
 			Expect(err).NotTo(HaveOccurred())
 			fakeMemo = memoCreated
 
-			err = memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID)
+			err = memoRepository.RegisterSubscriber(ctx, memoCreated.ID, fakeUsers[1].ID, true)
 			Expect(err).NotTo(HaveOccurred())
 
 			_, err = collaborationRepository.Create(ctx, memoCreated.ID, fakeUsers[2].ID)

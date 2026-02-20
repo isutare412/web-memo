@@ -14,6 +14,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/core/port"
 	"github.com/isutare412/web-memo/api/internal/pkgerr"
@@ -22,11 +23,13 @@ import (
 
 const (
 	tagPublished          = "published"
+	tagShared             = "shared"
 	embeddingSyncPageSize = 100
 )
 
 var reservedTags = []string{
 	tagPublished,
+	tagShared,
 }
 
 type Config struct {
@@ -125,7 +128,7 @@ func (s *Service) GetMemoDetail(ctx context.Context, memoID uuid.UUID, requester
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanReadMemo(memo) {
+		if !requester.CanViewMemoLanding(memo) {
 			return pkgerr.Known{
 				Code:      pkgerr.CodePermissionDenied,
 				ClientMsg: "not allowed to access memo",
@@ -140,11 +143,15 @@ func (s *Service) GetMemoDetail(ctx context.Context, memoID uuid.UUID, requester
 
 		viewerCtx := &model.MemoViewerContext{}
 
-		isSubscribed, err := s.memoRepository.IsSubscribed(ctx, memoID, requester.UserID)
-		if err != nil {
-			return fmt.Errorf("checking subscription: %w", err)
+		sub, err := s.memoRepository.FindSubscription(ctx, memoID, requester.UserID)
+		switch {
+		case err == nil:
+			viewerCtx.Subscription = &model.ViewerSubscription{IsApproved: sub.Approved}
+		case pkgerr.IsErrNotFound(err):
+			// Not subscribed — leave Subscription nil
+		default:
+			return fmt.Errorf("finding subscription: %w", err)
 		}
-		viewerCtx.IsSubscribed = isSubscribed
 
 		collabo, err := s.collaborationRepository.Find(ctx, memoID, requester.UserID)
 		switch {
@@ -158,6 +165,16 @@ func (s *Service) GetMemoDetail(ctx context.Context, memoID uuid.UUID, requester
 		}
 
 		resp.ViewerContext = viewerCtx
+
+		// Strip content for unauthorized shared memo access.
+		if memo.PublishState == enum.PublishStateShared && requester != nil {
+			canRead := requester.CanWriteMemo(memo) ||
+				(viewerCtx.Subscription != nil && viewerCtx.Subscription.IsApproved)
+			if !canRead {
+				resp.Memo.Content = ""
+			}
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -347,7 +364,7 @@ func (s *Service) UpdateMemo(
 			func(t *ent.Tag, _ int) bool { return lo.Contains(reservedTags, t.Name) })
 		tags = append(tags, reservedTags...)
 
-		memo.IsPublished = memoFound.IsPublished
+		memo.PublishState = memoFound.PublishState
 		if isPinUpdateTime {
 			memo.UpdateTime = memoFound.UpdateTime
 		}
@@ -385,10 +402,10 @@ func (s *Service) UpdateMemo(
 	return memoUpdated, nil
 }
 
-func (s *Service) UpdateMemoPublishedState(
+func (s *Service) UpdateMemoPublishState(
 	ctx context.Context,
 	memoID uuid.UUID,
-	publish bool,
+	state enum.PublishState,
 	requester *model.AppIDToken,
 ) (*ent.Memo, error) {
 	var memoUpdated *ent.Memo
@@ -406,34 +423,55 @@ func (s *Service) UpdateMemoPublishedState(
 			}
 		}
 
-		if memoFound.IsPublished == publish {
+		if memoFound.PublishState == state {
 			memoUpdated = memoFound
 			return nil
 		}
 
-		var tagIDs []int
-		if publish {
-			tags, err := s.ensureTags(ctx, []string{tagPublished})
+		oldState := memoFound.PublishState
+
+		// Tag management: add state-specific reserved tag, remove others.
+		var tagsToAdd []string
+		var tagsToRemove []string
+		switch state {
+		case enum.PublishStatePublished:
+			tagsToAdd = []string{tagPublished}
+			tagsToRemove = []string{tagShared}
+		case enum.PublishStateShared:
+			tagsToAdd = []string{tagShared}
+			tagsToRemove = []string{tagPublished}
+		default:
+			tagsToRemove = []string{tagPublished, tagShared}
+		}
+
+		tags := lo.Filter(memoFound.Edges.Tags, func(t *ent.Tag, _ int) bool {
+			return !lo.Contains(tagsToRemove, t.Name)
+		})
+
+		if len(tagsToAdd) > 0 {
+			ensured, err := s.ensureTags(ctx, tagsToAdd)
 			if err != nil {
 				return fmt.Errorf("ensuring tags: %w", err)
 			}
-
-			tagIDs = lo.Map(append(memoFound.Edges.Tags, tags...), func(tag *ent.Tag, _ int) int { return tag.ID })
-		} else {
-			tags := lo.Filter(memoFound.Edges.Tags, func(t *ent.Tag, _ int) bool { return t.Name != tagPublished })
-			tagIDs = lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
+			tags = append(tags, ensured...)
 		}
+
+		tagIDs := lo.Map(tags, func(tag *ent.Tag, _ int) int { return tag.ID })
 
 		if err := s.memoRepository.ReplaceTags(ctx, memoFound.ID, tagIDs, false); err != nil {
 			return fmt.Errorf("replacing tags: %w", err)
 		}
 
-		memo, err := s.memoRepository.UpdateIsPublish(ctx, memoFound.ID, publish)
+		memo, err := s.memoRepository.UpdatePublishState(ctx, memoFound.ID, state)
 		if err != nil {
-			return fmt.Errorf("updating memo published state: %w", err)
+			return fmt.Errorf("updating memo publish state: %w", err)
 		}
 
-		if !publish {
+		// State transition side effects.
+		switch {
+		case state == enum.PublishStatePrivate &&
+			(oldState == enum.PublishStateShared || oldState == enum.PublishStatePublished):
+			// Going to private: clear subscribers and collaborators.
 			if err := s.memoRepository.ClearSubscribers(ctx, memoFound.ID); err != nil {
 				return fmt.Errorf("clearing subscribers: %w", err)
 			}
@@ -441,15 +479,20 @@ func (s *Service) UpdateMemoPublishedState(
 			if _, err := s.collaborationRepository.DeleteAllByMemoID(ctx, memoFound.ID); err != nil {
 				return fmt.Errorf("clearing collaborations: %w", err)
 			}
+		case state == enum.PublishStatePublished && oldState == enum.PublishStateShared:
+			// Going from shared to published: auto-approve pending subscriptions.
+			if err := s.memoRepository.ApproveAllSubscriptions(ctx, memoFound.ID); err != nil {
+				return fmt.Errorf("approving all subscriptions: %w", err)
+			}
 		}
 
-		tags, err := s.tagRepository.FindAllByMemoID(ctx, memoID)
+		memoTags, err := s.tagRepository.FindAllByMemoID(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding tags of memo: %w", err)
 		}
 
 		memoUpdated = memo
-		memoUpdated.Edges.Tags = tags
+		memoUpdated.Edges.Tags = memoTags
 		return nil
 	})
 	if err != nil {
@@ -624,7 +667,7 @@ func (s *Service) ListSubscribers(
 ) (*model.ListSubscribersResponse, error) {
 	var (
 		ownerID     uuid.UUID
-		subscribers []*ent.User
+		subscribers []model.SubscriberInfo
 	)
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
 		memo, err := s.memoRepository.FindByID(ctx, memoID)
@@ -639,13 +682,19 @@ func (s *Service) ListSubscribers(
 			}
 		}
 
-		users, err := s.userRepository.FindAllBySubscribingMemoID(ctx, memoID)
+		subs, err := s.memoRepository.FindSubscriptionsByMemoID(ctx, memoID)
 		if err != nil {
 			return fmt.Errorf("finding subscribers: %w", err)
 		}
 
 		ownerID = memo.OwnerID
-		subscribers = users
+		subscribers = make([]model.SubscriberInfo, 0, len(subs))
+		for _, sub := range subs {
+			subscribers = append(subscribers, model.SubscriberInfo{
+				User:     sub.Edges.Subscriber,
+				Approved: sub.Approved,
+			})
+		}
 		return nil
 	})
 	if err != nil {
@@ -658,13 +707,15 @@ func (s *Service) ListSubscribers(
 	}, nil
 }
 
-func (s *Service) SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
+func (s *Service) SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) (*ent.Subscription, error) {
 	if requester == nil {
-		return pkgerr.Known{
+		return nil, pkgerr.Known{
 			Code:      pkgerr.CodeUnauthenticated,
 			ClientMsg: "must be signed-in for subscription",
 		}
 	}
+
+	var result *ent.Subscription
 
 	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
 		memo, err := s.memoRepository.FindByID(ctx, memoID)
@@ -678,36 +729,43 @@ func (s *Service) SubscribeMemo(ctx context.Context, memoID uuid.UUID, requester
 			}
 		}
 
-		if !memo.IsPublished {
+		if memo.PublishState == enum.PublishStatePrivate {
 			return pkgerr.Known{
 				Code:      pkgerr.CodeBadRequest,
 				ClientMsg: "memo is not published",
 			}
 		}
 
-		subscribers, err := s.userRepository.FindAllBySubscribingMemoID(ctx, memoID)
-		if err != nil {
-			return fmt.Errorf("finding existing subscribers: %w", err)
-		}
-
-		if _, ok := lo.Find(subscribers, func(u *ent.User) bool { return u.ID == requester.UserID }); ok {
+		// Check if already subscribed.
+		_, err = s.memoRepository.FindSubscription(ctx, memoID, requester.UserID)
+		switch {
+		case err == nil:
 			return pkgerr.Known{
-				Code:      pkgerr.CodeBadRequest,
+				Code:      pkgerr.CodeAlreadyExists,
 				ClientMsg: "already subscribed memo",
 			}
+		case !pkgerr.IsErrNotFound(err):
+			return fmt.Errorf("checking existing subscription: %w", err)
 		}
 
-		if err := s.memoRepository.RegisterSubscriber(ctx, memoID, requester.UserID); err != nil {
+		approved := memo.PublishState == enum.PublishStatePublished
+		if err := s.memoRepository.RegisterSubscriber(ctx, memoID, requester.UserID, approved); err != nil {
 			return fmt.Errorf("registering subscriber: %w", err)
 		}
 
+		sub, err := s.memoRepository.FindSubscription(ctx, memoID, requester.UserID)
+		if err != nil {
+			return fmt.Errorf("finding created subscription: %w", err)
+		}
+
+		result = sub
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("during transaction: %w", err)
+		return nil, fmt.Errorf("during transaction: %w", err)
 	}
 
-	return nil
+	return result, nil
 }
 
 func (s *Service) UnsubscribeMemo(ctx context.Context, memoID uuid.UUID, requester *model.AppIDToken) error {
@@ -744,6 +802,50 @@ func (s *Service) UnsubscribeMemo(ctx context.Context, memoID uuid.UUID, request
 
 		if err := s.memoRepository.UnregisterSubscriber(ctx, memoID, requester.UserID); err != nil {
 			return fmt.Errorf("unregistering subscriber: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("during transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Service) AuthorizeSubscriber(
+	ctx context.Context,
+	memoID, subscriberID uuid.UUID,
+	approve bool,
+	requester *model.AppIDToken,
+) error {
+	err := s.transactionManager.WithTx(ctx, func(ctx context.Context) error {
+		memo, err := s.memoRepository.FindByID(ctx, memoID)
+		if err != nil {
+			return fmt.Errorf("finding memo: %w", err)
+		}
+
+		if !requester.IsOwner(memo) {
+			return pkgerr.Known{
+				Code:      pkgerr.CodePermissionDenied,
+				ClientMsg: "not allowed to access memo",
+			}
+		}
+
+		sub, err := s.memoRepository.FindSubscription(ctx, memoID, subscriberID)
+		if err != nil {
+			return fmt.Errorf("finding subscription: %w", err)
+		}
+
+		if sub.Approved == approve {
+			return pkgerr.Known{
+				Code:      pkgerr.CodeBadRequest,
+				ClientMsg: lo.Ternary(approve, "subscriber is already approved", "subscriber is already disapproved"),
+			}
+		}
+
+		if err := s.memoRepository.UpdateSubscriptionApproval(ctx, memoID, subscriberID, approve); err != nil {
+			return fmt.Errorf("updating subscription approval: %w", err)
 		}
 
 		return nil
@@ -810,10 +912,20 @@ func (s *Service) RegisterCollaborator(ctx context.Context, memoID uuid.UUID, re
 			return fmt.Errorf("finding memo: %w", err)
 		}
 
-		if !requester.CanReadMemo(memo) {
+		if !requester.CanViewMemoLanding(memo) {
 			return pkgerr.Known{
 				Code:      pkgerr.CodePermissionDenied,
 				ClientMsg: "not allowed to access memo",
+			}
+		}
+
+		if memo.PublishState == enum.PublishStateShared {
+			sub, err := s.memoRepository.FindSubscription(ctx, memoID, requester.UserID)
+			if err != nil || !sub.Approved {
+				return pkgerr.Known{
+					Code:      pkgerr.CodePermissionDenied,
+					ClientMsg: "subscription must be approved before requesting collaboration",
+				}
 			}
 		}
 

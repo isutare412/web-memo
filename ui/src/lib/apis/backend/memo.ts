@@ -9,17 +9,20 @@ export interface RawMemo {
   updateTime: string
   title: string
   content: string
-  isPublished: boolean
+  publishState: 'private' | 'shared' | 'published'
   tags: string[]
   scores: { rrf: number; semantic: number; bm25: number } | null
   viewerContext?: {
-    isSubscribed: boolean
+    subscription: { isApproved: boolean } | null
     collaboration: { isApproved: boolean } | null
   } | null
 }
 
 export interface Subscriber {
   id: string
+  userName: string
+  photoUrl: string
+  approved: boolean
 }
 
 export interface Collaborator {
@@ -54,7 +57,7 @@ interface ReplaceMemoRequest {
 
 interface PublishMemoRequest {
   id: string
-  publish: boolean
+  publishState: 'private' | 'shared' | 'published'
 }
 
 interface GetSubscriberRequest {
@@ -63,6 +66,7 @@ interface GetSubscriberRequest {
 }
 
 interface ListSubsribersResponse {
+  memoOwnerID: string
   subscribers: Subscriber[]
 }
 
@@ -74,6 +78,20 @@ interface SubscribeMemoRequest {
 interface UnsubscriberMemoRequest {
   memoId: string
   userId: string
+}
+
+export interface SubscribeResponse {
+  subscription: {
+    userId: string
+    memoId: string
+    approved: boolean
+  }
+}
+
+export interface AuthorizeSubscriptionRequest {
+  memoId: string
+  userId: string
+  approve: boolean
 }
 
 interface GetCollaboratorRequest {
@@ -200,7 +218,7 @@ export async function publishMemo(request: PublishMemoRequest): Promise<RawMemo>
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      publish: request.publish,
+      publishState: request.publishState,
     }),
   })
   if (!response.ok) {
@@ -231,7 +249,10 @@ export async function listSubscribers(memoId: string): Promise<ListSubsribersRes
   return response.json()
 }
 
-export async function subscribeMemo({ memoId, userId }: SubscribeMemoRequest): Promise<void> {
+export async function subscribeMemo({
+  memoId,
+  userId,
+}: SubscribeMemoRequest): Promise<SubscribeResponse> {
   const response = await fetch(`/api/v1/memos/${memoId}/subscribers/${userId}`, {
     method: 'PUT',
   })
@@ -240,7 +261,7 @@ export async function subscribeMemo({ memoId, userId }: SubscribeMemoRequest): P
     throw new StatusError(response.status, errorResponse.msg)
   }
 
-  return
+  return response.json()
 }
 
 export async function unsubscribeMemo({ memoId, userId }: UnsubscriberMemoRequest): Promise<void> {
@@ -253,6 +274,22 @@ export async function unsubscribeMemo({ memoId, userId }: UnsubscriberMemoReques
   }
 
   return
+}
+
+export async function authorizeSubscription({
+  memoId,
+  userId,
+  approve,
+}: AuthorizeSubscriptionRequest): Promise<void> {
+  const response = await fetch(`/api/v1/memos/${memoId}/subscribers/${userId}/authorize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ approve }),
+  })
+  if (!response.ok) {
+    const errorResponse = await getErrorResponse(response)
+    throw new StatusError(response.status, errorResponse.msg)
+  }
 }
 
 export async function deleteMemo(id: string): Promise<void> {

@@ -258,7 +258,8 @@ func (h *Handler) PublishMemo(w http.ResponseWriter, r *http.Request, memoID gen
 		return
 	}
 
-	memoUpdated, err := h.memoService.UpdateMemoPublishedState(ctx, memoID, req.Publish, passport.Token)
+	memoUpdated, err := h.memoService.UpdateMemoPublishState(ctx, memoID,
+		enum.PublishState(req.PublishState), passport.Token)
 	if err != nil {
 		gen.RespondError(w, r, fmt.Errorf("updating memo published state: %w", err))
 		return

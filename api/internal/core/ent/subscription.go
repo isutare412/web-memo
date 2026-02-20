@@ -24,6 +24,8 @@ type Subscription struct {
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// MemoID holds the value of the "memo_id" field.
 	MemoID uuid.UUID `json:"memo_id,omitempty"`
+	// Approved holds the value of the "approved" field.
+	Approved bool `json:"approved,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -70,6 +72,8 @@ func (*Subscription) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case subscription.FieldApproved:
+			values[i] = new(sql.NullBool)
 		case subscription.FieldID:
 			values[i] = new(sql.NullInt64)
 		case subscription.FieldCreateTime:
@@ -108,6 +112,12 @@ func (s *Subscription) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field memo_id", values[i])
 			} else if value != nil {
 				s.MemoID = *value
+			}
+		case subscription.FieldApproved:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field approved", values[i])
+			} else if value.Valid {
+				s.Approved = value.Bool
 			}
 		case subscription.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -166,6 +176,9 @@ func (s *Subscription) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("memo_id=")
 	builder.WriteString(fmt.Sprintf("%v", s.MemoID))
+	builder.WriteString(", ")
+	builder.WriteString("approved=")
+	builder.WriteString(fmt.Sprintf("%v", s.Approved))
 	builder.WriteString(", ")
 	builder.WriteString("create_time=")
 	builder.WriteString(s.CreateTime.Format(time.ANSIC))

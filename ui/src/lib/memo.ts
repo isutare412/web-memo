@@ -11,10 +11,10 @@ export enum SortOrder {
 export const defaultPageSize = 10
 export const defaultSortOrder = SortOrder.UPDATE_TIME
 
-export const reservedTags = ['published']
+export const reservedTags = ['published', 'shared']
 
 export interface MemoViewerContext {
-  isSubscribed: boolean
+  subscription: { isApproved: boolean } | null
   collaboration: { isApproved: boolean } | null
 }
 
@@ -26,7 +26,7 @@ export interface Memo {
   updateTime: Date
   title: string
   content: string
-  isPublished: boolean
+  publishState: 'private' | 'shared' | 'published'
   tags: string[]
   scores: { rrf: number; semantic: number; bm25: number } | null
   viewerContext: MemoViewerContext | null
@@ -49,7 +49,7 @@ export function mapToMemo(memo: RawMemo): Memo {
     updateTime: new Date(memo.updateTime),
     title: memo.title,
     content: memo.content,
-    isPublished: memo.isPublished,
+    publishState: memo.publishState,
     tags: memo.tags,
     scores: memo.scores,
     viewerContext: memo.viewerContext ?? null,

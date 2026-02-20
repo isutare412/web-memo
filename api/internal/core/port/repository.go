@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/isutare412/web-memo/api/internal/core/ent"
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 )
 
@@ -39,14 +40,17 @@ type MemoRepository interface {
 	CountByUserIDAndTagNames(ctx context.Context, userID uuid.UUID, tags []string) (int, error)
 	Create(ctx context.Context, memo *ent.Memo, userID uuid.UUID, tagIDs []int) (*ent.Memo, error)
 	Update(context.Context, *ent.Memo) (*ent.Memo, error)
-	UpdateIsPublish(ctx context.Context, memoID uuid.UUID, isPublish bool) (*ent.Memo, error)
+	UpdatePublishState(ctx context.Context, memoID uuid.UUID, state enum.PublishState) (*ent.Memo, error)
 	UpdateIsEmbedded(ctx context.Context, memoID uuid.UUID, isEmbedded bool) error
 	Delete(ctx context.Context, memoID uuid.UUID) error
 
 	ReplaceTags(ctx context.Context, memoID uuid.UUID, tagIDs []int, updateTime bool) error
 
-	IsSubscribed(ctx context.Context, memoID, userID uuid.UUID) (bool, error)
-	RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error
+	FindSubscription(ctx context.Context, memoID, userID uuid.UUID) (*ent.Subscription, error)
+	FindSubscriptionsByMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.Subscription, error)
+	RegisterSubscriber(ctx context.Context, memoID, userID uuid.UUID, approved bool) error
+	UpdateSubscriptionApproval(ctx context.Context, memoID, userID uuid.UUID, approved bool) error
+	ApproveAllSubscriptions(ctx context.Context, memoID uuid.UUID) error
 	UnregisterSubscriber(ctx context.Context, memoID, userID uuid.UUID) error
 	ClearSubscribers(ctx context.Context, memoID uuid.UUID) error
 }
