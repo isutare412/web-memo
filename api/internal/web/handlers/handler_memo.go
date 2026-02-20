@@ -133,8 +133,9 @@ func (h *Handler) CreateMemo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	memo := &ent.Memo{
-		Title:   req.Title,
-		Content: lo.FromPtrOr(req.Content, ""),
+		Title:        req.Title,
+		Content:      lo.FromPtrOr(req.Content, ""),
+		PublishState: enum.PublishStatePrivate,
 	}
 
 	tags := req.Tags
