@@ -26,7 +26,10 @@
 </script>
 
 <div class="opacity-70">
-  <button on:click={onClickCopyButton} class="btn btn-outline btn-sm rounded-full">
+  <button
+    on:click={onClickCopyButton}
+    class="btn btn-outline btn-sm rounded-full"
+  >
     <div class="w-[15px]">
       <CopyIcon />
     </div>

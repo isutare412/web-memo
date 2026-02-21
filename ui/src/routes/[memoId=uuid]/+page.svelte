@@ -7,9 +7,9 @@
   import LinkShareButton from '$components/LinkShareButton.svelte'
   import Markdown from '$components/Markdown.svelte'
   import SubscribeButton from '$components/SubscribeButton.svelte'
+  import SubscriptionApproveButton from '$components/SubscriptionApproveButton.svelte'
   import SubscriptionApproveTable from '$components/SubscriptionApproveTable.svelte'
   import Tag from '$components/Tag.svelte'
-  import BookmarkIcon from '$components/icons/BookmarkIcon.svelte'
   import PenIcon from '$components/icons/PenIcon.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
   import TrashBinIcon from '$components/icons/TrashBinIcon.svelte'
@@ -467,16 +467,11 @@
         />
       {/if}
       {#if memo.publishState === 'shared' && subscribers.length > 0}
-        <button
+        <SubscriptionApproveButton
+          isActivated={subscribers.some((s) => s.approved)}
+          count={subscribers.length}
           on:click={() => subscriptionApproveModal.showModal()}
-          class="btn btn-outline btn-sm rounded-full"
-          class:btn-primary={subscribers.some((s) => s.approved)}
-        >
-          <div class="w-[12px]">
-            <BookmarkIcon />
-          </div>
-          {subscribers.length}
-        </button>
+        />
       {/if}
       <LinkShareButton
         link={pageUrl.toString()}
