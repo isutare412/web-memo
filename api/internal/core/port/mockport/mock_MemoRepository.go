@@ -824,6 +824,65 @@ func (_c *MockMemoRepository_FindSubscription_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// FindSubscriptionsByMemoID provides a mock function with given fields: ctx, memoID
+func (_m *MockMemoRepository) FindSubscriptionsByMemoID(ctx context.Context, memoID uuid.UUID) ([]*ent.Subscription, error) {
+	ret := _m.Called(ctx, memoID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindSubscriptionsByMemoID")
+	}
+
+	var r0 []*ent.Subscription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]*ent.Subscription, error)); ok {
+		return rf(ctx, memoID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) []*ent.Subscription); ok {
+		r0 = rf(ctx, memoID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*ent.Subscription)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, memoID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockMemoRepository_FindSubscriptionsByMemoID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindSubscriptionsByMemoID'
+type MockMemoRepository_FindSubscriptionsByMemoID_Call struct {
+	*mock.Call
+}
+
+// FindSubscriptionsByMemoID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - memoID uuid.UUID
+func (_e *MockMemoRepository_Expecter) FindSubscriptionsByMemoID(ctx interface{}, memoID interface{}) *MockMemoRepository_FindSubscriptionsByMemoID_Call {
+	return &MockMemoRepository_FindSubscriptionsByMemoID_Call{Call: _e.mock.On("FindSubscriptionsByMemoID", ctx, memoID)}
+}
+
+func (_c *MockMemoRepository_FindSubscriptionsByMemoID_Call) Run(run func(ctx context.Context, memoID uuid.UUID)) *MockMemoRepository_FindSubscriptionsByMemoID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *MockMemoRepository_FindSubscriptionsByMemoID_Call) Return(_a0 []*ent.Subscription, _a1 error) *MockMemoRepository_FindSubscriptionsByMemoID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockMemoRepository_FindSubscriptionsByMemoID_Call) RunAndReturn(run func(context.Context, uuid.UUID) ([]*ent.Subscription, error)) *MockMemoRepository_FindSubscriptionsByMemoID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterSubscriber provides a mock function with given fields: ctx, memoID, userID, approved
 func (_m *MockMemoRepository) RegisterSubscriber(ctx context.Context, memoID uuid.UUID, userID uuid.UUID, approved bool) error {
 	ret := _m.Called(ctx, memoID, userID, approved)

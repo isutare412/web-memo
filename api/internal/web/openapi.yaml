@@ -607,6 +607,7 @@ components:
       description: Search query string
       schema:
         type: string
+      x-go-name: SearchQuery
 
     PinUpdateTimeQuery:
       name: pinUpdateTime

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -28,8 +29,8 @@ func (h *Handler) ListMemos(w http.ResponseWriter, r *http.Request, params gen.L
 		return
 	}
 
-	if params.Q != nil && *params.Q != "" {
-		h.searchMemos(w, r, passport, *params.Q)
+	if params.SearchQuery != nil && *params.SearchQuery != "" {
+		h.searchMemos(ctx, w, r, passport, *params.SearchQuery)
 		return
 	}
 
@@ -82,9 +83,9 @@ func (h *Handler) ListMemos(w http.ResponseWriter, r *http.Request, params gen.L
 	gen.RespondJSON(w, http.StatusOK, resp)
 }
 
-func (h *Handler) searchMemos(w http.ResponseWriter, r *http.Request, passport *middleware.Passport, query string) {
-	ctx := r.Context()
-
+func (h *Handler) searchMemos(ctx context.Context, w http.ResponseWriter, r *http.Request,
+	passport *middleware.Passport, query string,
+) {
 	if !h.embeddingEnabled {
 		gen.RespondError(w, r, pkgerr.Known{
 			Code:      pkgerr.CodeBadRequest,
