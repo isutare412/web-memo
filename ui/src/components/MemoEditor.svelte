@@ -568,7 +568,7 @@
   }
 
   function onHeadingClick() {
-    toggleLinePrefix('### ', /^###\s*/)
+    toggleLinePrefix('## ', /^##\s*/)
   }
 
   function onOrderedListClick() {
