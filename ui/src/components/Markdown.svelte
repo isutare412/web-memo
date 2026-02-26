@@ -63,7 +63,7 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions a11y-no-noninteractive-element-interactions -->
-<article class="prose max-w-none break-words" on:click={handleClick}>
+<article class="prose max-w-none break-words prose-img:mx-auto" on:click={handleClick}>
   {@html sanitizedHtml}
 </article>
 
