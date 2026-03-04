@@ -3,6 +3,7 @@
   import { page } from '$app/stores'
   import Tag from '$components/Tag.svelte'
   import BookmarkIcon from '$components/icons/BookmarkIcon.svelte'
+  import LinkIcon from '$components/icons/LinkIcon.svelte'
   import WebPublishIcon from '$components/icons/WebPublishIcon.svelte'
   import type { User } from '$lib/auth'
   import type { Memo } from '$lib/memo'
@@ -60,7 +61,11 @@
       <div class="w-[12px] text-primary">
         <BookmarkIcon />
       </div>
-    {:else if memo.publishState !== 'private'}
+    {:else if memo.publishState === 'shared'}
+      <div class="w-[17px] text-primary">
+        <LinkIcon />
+      </div>
+    {:else if memo.publishState === 'published'}
       <div class="w-[14px] text-primary">
         <WebPublishIcon />
       </div>

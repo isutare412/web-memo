@@ -75,9 +75,7 @@
   let subscriptionApproveModal: HTMLDialogElement
   $: hasApprovedCollaborators = collaborators.some((c) => c.isApproved)
 
-  let publishConfirmModal: HTMLDialogElement
   let isPublishing = false
-  let pendingPublishState: 'private' | 'shared' | 'published' = 'private'
 
   let deleteConfirmModal: HTMLDialogElement
   let isDeleting = false
@@ -260,9 +258,53 @@
   }
 
   function onShareEvent(event: CustomEvent<{ publishState: 'private' | 'shared' | 'published' }>) {
+    if (memo === undefined) return
+
     const newState = event.detail.publishState
-    pendingPublishState = newState
-    publishConfirmModal.showModal()
+    const memoUrl = pageUrl.toString()
+    isPublishing = true
+
+    const publishMemoPromise = publishMemo({
+      id: memoId,
+      publishState: newState,
+    })
+      .then((rawMemo) => {
+        memo = mapToMemo(rawMemo)
+
+        if (memo.publishState === 'private') {
+          subscriberCount = undefined
+          subscribers = []
+          collaborators = []
+        } else {
+          syncOwnerSubscribers()
+        }
+      })
+      .catch((error) => {
+        addToast(getErrorMessage(error), 'error')
+      })
+      .finally(() => {
+        isPublishing = false
+      })
+
+    if (newState !== 'private') {
+      if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+        navigator.clipboard
+          .write([
+            new ClipboardItem({
+              'text/plain': publishMemoPromise.then(() => memoUrl),
+            }),
+          ])
+          .then(() => {
+            addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
+          })
+      } else {
+        publishMemoPromise.then(() => {
+          navigator.clipboard.writeText(memoUrl).then(() => {
+            addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
+          })
+        })
+      }
+    }
   }
 
   async function onCheckboxToggle(event: CustomEvent<{ index: number }>) {
@@ -290,56 +332,6 @@
       }
     } finally {
       isCheckboxUpdating = false
-    }
-  }
-
-  function onPublishConfirm() {
-    if (memo === undefined) return
-
-    const memoUrl = pageUrl.toString()
-    isPublishing = true
-
-    const publishMemoPromise = publishMemo({
-      id: memoId,
-      publishState: pendingPublishState,
-    })
-      .then((rawMemo) => {
-        memo = mapToMemo(rawMemo)
-
-        if (memo.publishState === 'private') {
-          subscriberCount = undefined
-          subscribers = []
-          collaborators = []
-        } else {
-          syncOwnerSubscribers()
-        }
-
-        isPublishing = false
-        publishConfirmModal.close()
-      })
-      .catch((error) => {
-        addToast(getErrorMessage(error), 'error')
-        isPublishing = false
-      })
-
-    if (pendingPublishState !== 'private') {
-      if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
-        navigator.clipboard
-          .write([
-            new ClipboardItem({
-              'text/plain': publishMemoPromise.then(() => memoUrl),
-            }),
-          ])
-          .then(() => {
-            addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
-          })
-      } else {
-        publishMemoPromise.then(() => {
-          navigator.clipboard.writeText(memoUrl).then(() => {
-            addToast('Copied memo URL!', 'info', { timeout: ToastTimeout.SHORT })
-          })
-        })
-      }
     }
   }
 </script>
@@ -474,9 +466,9 @@
         />
       {/if}
       <LinkShareButton
-        link={pageUrl.toString()}
         shareCount={subscriberCount}
         publishState={memo.publishState}
+        {isPublishing}
         on:share={onShareEvent}
       />
       <LinkCopyButton link={pageUrl.toString()} />
@@ -494,48 +486,6 @@
     <dialog bind:this={subscriptionApproveModal} class="modal">
       <div class="modal-box w-fit min-w-80">
         <SubscriptionApproveTable {subscribers} on:change={onSubscriptionApprove} />
-      </div>
-      <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-      </form>
-    </dialog>
-
-    <dialog bind:this={publishConfirmModal} class="modal">
-      <div class="modal-box">
-        <p class="py-4">
-          {#if pendingPublishState === 'private'}
-            <p>
-              Will you make the memo <span class="font-bold text-primary">private</span>?<br />
-              Only you and collaborators will be able to access the memo.
-            </p>
-          {:else if pendingPublishState === 'shared'}
-            <p>
-              Will you <span class="font-bold text-primary">share</span> the memo?<br />
-              Users with the link can request access. You will approve who can view.
-            </p>
-          {:else}
-            <p>
-              Will you <span class="font-bold text-primary">publish</span> the memo?<br />
-              Anyone with the link will be able to access the memo.
-            </p>
-          {/if}
-        </p>
-        <div class="modal-action flex justify-end">
-          <form method="dialog">
-            <button class="btn btn-outline btn-primary outline-none">Cancel</button>
-          </form>
-          <button
-            on:click={onPublishConfirm}
-            disabled={isPublishing}
-            class="btn btn-primary outline-none"
-          >
-            {#if isPublishing}
-              <span class="loading loading-spinner" />
-            {:else}
-              OK
-            {/if}
-          </button>
-        </div>
       </div>
       <form method="dialog" class="modal-backdrop">
         <button>close</button>
