@@ -137,39 +137,37 @@ func (s *Service) GetMemoDetail(ctx context.Context, memoID uuid.UUID, requester
 
 		resp.Memo = memo
 
-		if requester == nil {
-			return nil
-		}
-
 		viewerCtx := &model.MemoViewerContext{}
 
-		sub, err := s.memoRepository.FindSubscription(ctx, memoID, requester.UserID)
-		switch {
-		case err == nil:
-			viewerCtx.Subscription = &model.ViewerSubscription{IsApproved: sub.Approved}
-		case pkgerr.IsErrNotFound(err):
-			// Not subscribed — leave Subscription nil
-		default:
-			return fmt.Errorf("finding subscription: %w", err)
-		}
+		if requester != nil {
+			sub, err := s.memoRepository.FindSubscription(ctx, memoID, requester.UserID)
+			switch {
+			case err == nil:
+				viewerCtx.Subscription = &model.ViewerSubscription{IsApproved: sub.Approved}
+			case pkgerr.IsErrNotFound(err):
+				// Not subscribed — leave Subscription nil
+			default:
+				return fmt.Errorf("finding subscription: %w", err)
+			}
 
-		collabo, err := s.collaborationRepository.Find(ctx, memoID, requester.UserID)
-		switch {
-		case err == nil:
-			viewerCtx.IsCollaborator = true
-			viewerCtx.IsApproved = collabo.Approved
-		case pkgerr.IsErrNotFound(err):
-			// Not a collaborator — normal expected state
-		default:
-			return fmt.Errorf("finding collaboration: %w", err)
-		}
+			collabo, err := s.collaborationRepository.Find(ctx, memoID, requester.UserID)
+			switch {
+			case err == nil:
+				viewerCtx.IsCollaborator = true
+				viewerCtx.IsApproved = collabo.Approved
+			case pkgerr.IsErrNotFound(err):
+				// Not a collaborator — normal expected state
+			default:
+				return fmt.Errorf("finding collaboration: %w", err)
+			}
 
-		resp.ViewerContext = viewerCtx
+			resp.ViewerContext = viewerCtx
+		}
 
 		// Strip content for unauthorized shared memo access.
-		if memo.PublishState == enum.PublishStateShared && requester != nil {
-			canRead := requester.CanWriteMemo(memo) ||
-				(viewerCtx.Subscription != nil && viewerCtx.Subscription.IsApproved)
+		if memo.PublishState == enum.PublishStateShared {
+			canRead := requester != nil && (requester.CanWriteMemo(memo) ||
+				(viewerCtx.Subscription != nil && viewerCtx.Subscription.IsApproved))
 			if !canRead {
 				resp.Memo.Content = ""
 			}

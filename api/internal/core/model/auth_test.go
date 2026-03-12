@@ -168,6 +168,69 @@ var _ = Describe("Auth", func() {
 			})
 		})
 
+		Context("CanViewMemoLanding", func() {
+			It("passes if published memo without token", func() {
+				var (
+					givenToken *model.AppIDToken = nil
+					givenMemo                    = &ent.Memo{
+						PublishState: enum.PublishStatePublished,
+					}
+				)
+
+				Expect(givenToken.CanViewMemoLanding(givenMemo)).To(BeTrue())
+			})
+
+			It("passes if shared memo without token", func() {
+				var (
+					givenToken *model.AppIDToken = nil
+					givenMemo                    = &ent.Memo{
+						PublishState: enum.PublishStateShared,
+					}
+				)
+
+				Expect(givenToken.CanViewMemoLanding(givenMemo)).To(BeTrue())
+			})
+
+			It("passes if shared memo with token", func() {
+				var (
+					givenToken = &model.AppIDToken{
+						UserID:   uuid.Must(uuid.NewRandom()),
+						UserType: enum.UserTypeClient,
+					}
+					givenMemo = &ent.Memo{
+						PublishState: enum.PublishStateShared,
+					}
+				)
+
+				Expect(givenToken.CanViewMemoLanding(givenMemo)).To(BeTrue())
+			})
+
+			It("fails if private memo without token", func() {
+				var (
+					givenToken *model.AppIDToken = nil
+					givenMemo                    = &ent.Memo{
+						PublishState: enum.PublishStatePrivate,
+					}
+				)
+
+				Expect(givenToken.CanViewMemoLanding(givenMemo)).To(BeFalse())
+			})
+
+			It("fails if private memo with non-owner token", func() {
+				var (
+					givenToken = &model.AppIDToken{
+						UserID:   uuid.Must(uuid.NewRandom()),
+						UserType: enum.UserTypeClient,
+					}
+					givenMemo = &ent.Memo{
+						PublishState: enum.PublishStatePrivate,
+					}
+				)
+
+				Expect(givenToken.CanViewMemoLanding(givenMemo)).To(BeFalse())
+			})
+		})
+
 		Context("IsOwner", func() {
 			It("returns true if owner", func() {
 				var (

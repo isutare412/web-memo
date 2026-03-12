@@ -86,9 +86,6 @@ func (t *AppIDToken) CanViewMemoLanding(memo *ent.Memo) bool {
 	if t.CanReadMemo(memo) {
 		return true
 	}
-	if t == nil {
-		return false
-	}
 	return memo.PublishState == enum.PublishStateShared
 }
 
