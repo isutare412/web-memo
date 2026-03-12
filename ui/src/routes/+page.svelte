@@ -7,6 +7,7 @@
   import SignInStack from '$components/SignInStack.svelte'
   import SortKeySelector from '$components/SortKeySelector.svelte'
   import TagFilter from '$components/TagFilter.svelte'
+  import ClipboardIcon from '$components/icons/ClipboardIcon.svelte'
   import Plus from '$components/icons/Plus.svelte'
   import Refresh from '$components/icons/Refresh.svelte'
   import SearchIcon from '$components/icons/SearchIcon.svelte'
@@ -143,6 +144,47 @@
     }
   }
 
+  const MEMO_PATH_PATTERN = /^\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
+
+  function extractMemoId(text: string): string | null {
+    try {
+      const url = new URL(text.trim())
+      if (url.origin !== window.location.origin) return null
+      const match = url.pathname.match(MEMO_PATH_PATTERN)
+      return match ? match[1].toLowerCase() : null
+    } catch {
+      return null
+    }
+  }
+
+  async function onOpenLinkClick() {
+    if (!navigator.clipboard?.readText) {
+      addToast('Clipboard not supported', 'warning')
+      return
+    }
+
+    let clipboardText: string
+    try {
+      clipboardText = await navigator.clipboard.readText()
+    } catch {
+      addToast('Clipboard access denied', 'warning')
+      return
+    }
+
+    if (clipboardText.trim() === '') {
+      addToast('Clipboard is empty', 'warning')
+      return
+    }
+
+    const memoId = extractMemoId(clipboardText)
+    if (memoId === null) {
+      addToast('No memo link found in clipboard', 'warning')
+      return
+    }
+
+    goto(`/${memoId}`)
+  }
+
   function onSearchKeyDown(event: KeyboardEvent) {
     if (event.key !== 'Enter') return
     if (event.isComposing) {
@@ -261,6 +303,11 @@
           <a href="/new" class="btn btn-circle btn-primary btn-sm">
             <div class="w-[13px]"><Plus /></div>
           </a>
+        </div>
+        <div>
+          <button on:click={onOpenLinkClick} class="btn btn-circle btn-primary btn-sm">
+            <div class="w-[16px]"><ClipboardIcon /></div>
+          </button>
         </div>
         <div>
           <button on:click={onRefreshButtonClick} class="btn btn-circle btn-primary btn-sm">
