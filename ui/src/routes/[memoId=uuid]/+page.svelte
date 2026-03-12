@@ -343,9 +343,7 @@
       property="og:description"
       content={memo.content.length > 200 ? `${memo.content.slice(0, 197)}...` : memo.content}
     />
-    {#if ogImage}
-      <meta property="og:image" content={ogImage} />
-    {/if}
+    <meta property="og:image" content={ogImage ?? '/android-chrome-512x512.png'} />
   {/if}
 </svelte:head>
 
