@@ -3,12 +3,25 @@ const themeKey = 'preferredTheme'
 export const themes = [
   'light',
   'dark',
+  'autumn',
+  'bumblebee',
+  'business',
+  'coffee',
+  'corporate',
   'cupcake',
-  'retro',
-  'halloween',
-  'sunset',
   'dim',
+  'dracula',
+  'fantasy',
+  'forest',
+  'garden',
+  'halloween',
   'lemonade',
+  'night',
+  'nord',
+  'retro',
+  'sunset',
+  'valentine',
+  'winter',
 ] as const
 
 export type Theme = (typeof themes)[number]

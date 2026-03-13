@@ -36,7 +36,7 @@
   <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
   <ul
     tabindex="0"
-    class="menu dropdown-content z-[1] rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+    class="menu dropdown-content z-[1] max-h-64 flex-nowrap overflow-y-auto rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
   >
     {#each themes as theme}
       <li>
