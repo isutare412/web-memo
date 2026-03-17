@@ -80,14 +80,14 @@ $(MOCKERY): $(LOCALBIN)
 .PHONY: ginkgo
 ginkgo: $(GINKGO) ## Install ginkgo.
 $(GINKGO): $(LOCALBIN)
-	@test -s $(GINKGO) || GOBIN=$(LOCALBIN) go install github.com/onsi/ginkgo/v2/ginkgo@v2.20.2
+	@test -s $(GINKGO) || GOBIN=$(LOCALBIN) go install github.com/onsi/ginkgo/v2/ginkgo@v2.28.1
 
 
 .PHONY: golangci-lint
 golangci-lint: ## Check and install golangci-lint if needed
 	if [ ! -f "$(GOLANGCI_LINT)" ]; then \
 		echo "⚠️ golangci-lint not found in $$LOCALBIN. Installing..."; \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(LOCALBIN) v2.9.0 && \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(LOCALBIN) v2.11.3 && \
 		echo "✅ golangci-lint installed successfully."; \
 	else \
 		echo "✅ golangci-lint is already installed."; \
