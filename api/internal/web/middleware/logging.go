@@ -25,7 +25,8 @@ func AccessLog(next http.Handler) http.Handler {
 		accessLog := slog.With(
 			slog.String("logType", "accessLog"),
 			slog.String("method", r.Method),
-			slog.String("url", r.URL.String()),
+			slog.String("path", r.URL.Path),
+			slog.String("query", r.URL.RawQuery),
 			slog.String("addr", r.RemoteAddr),
 			slog.String("proto", r.Proto),
 			slog.Int64("contentLength", r.ContentLength),
