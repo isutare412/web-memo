@@ -124,8 +124,14 @@
     if (!hash) return
 
     // Header ids contain raw (possibly non-ASCII) text; location.hash is
-    // percent-encoded, so decode before looking the element up.
-    const id = decodeURIComponent(hash.slice(1))
+    // percent-encoded, so decode before looking the element up. A malformed
+    // fragment (manually crafted URL) must not throw, so guard the decode.
+    let id: string
+    try {
+      id = decodeURIComponent(hash.slice(1))
+    } catch {
+      return
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   }
 
