@@ -3,6 +3,7 @@
   import { Marked } from '@ts-stack/markdown'
   import DOMPurify from 'isomorphic-dompurify'
   import ImageLightbox from '$components/ImageLightbox.svelte'
+  import { createHeadingRenderer } from '$lib/markdown'
 
   export let content: string
   export let editable: boolean = false
@@ -53,7 +54,7 @@
   }
 
   $: sanitizedHtml = processCheckboxes(
-    DOMPurify.sanitize(Marked.parse(content, { breaks: true }), {
+    DOMPurify.sanitize(Marked.parse(content, { breaks: true, renderer: createHeadingRenderer() }), {
       FORBID_TAGS: forbiddenTags,
       ADD_TAGS: ['input'],
       ADD_ATTR: ['type', 'checked', 'disabled', 'data-checkbox-index'],
