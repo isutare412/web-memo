@@ -6,17 +6,17 @@ FROM base AS deps
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@11 --activate
 
 # Install dependencies based on the preferred package manager
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@11 --activate
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -24,6 +24,7 @@ COPY src src
 COPY static static
 COPY package.json \
     pnpm-lock.yaml \
+    pnpm-workspace.yaml \
     postcss.config.js \
     tailwind.config.js \
     svelte.config.js \
@@ -37,10 +38,10 @@ RUN pnpm run build
 FROM base AS runner
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@11 --activate
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY --from=builder /app/build ./server
 RUN pnpm install --prod --frozen-lockfile
 

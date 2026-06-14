@@ -1,0 +1,7 @@
+# pnpm settings (pnpm 11 moved these out of package.json's "pnpm" field).
+# Allow these dependencies' install/postinstall build scripts to run.
+# esbuild links its platform-native binary in postinstall; without this,
+# pnpm 11 fails the install with ERR_PNPM_IGNORED_BUILDS.
+allowBuilds:
+  esbuild: true
+  svelte-preprocess: true
