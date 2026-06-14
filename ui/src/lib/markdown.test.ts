@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { slugify } from './markdown'
+import { makeSlugger, slugify } from './markdown'
 
 describe('slugify', () => {
   it('kebab-cases an ASCII header', () => {
@@ -24,5 +24,32 @@ describe('slugify', () => {
 
   it('falls back to "section" for slug-less input', () => {
     expect(slugify('🎉')).toBe('section')
+  })
+})
+
+describe('makeSlugger', () => {
+  it('returns the base slug for the first occurrence', () => {
+    const slug = makeSlugger()
+    expect(slug('Notes')).toBe('notes')
+  })
+
+  it('suffixes duplicates with -1, -2, ...', () => {
+    const slug = makeSlugger()
+    expect(slug('Notes')).toBe('notes')
+    expect(slug('Notes')).toBe('notes-1')
+    expect(slug('Notes')).toBe('notes-2')
+  })
+
+  it('avoids colliding with an explicit suffixed header', () => {
+    const slug = makeSlugger()
+    expect(slug('Notes')).toBe('notes')
+    expect(slug('Notes 1')).toBe('notes-1')
+    expect(slug('Notes')).toBe('notes-2')
+  })
+
+  it('de-duplicates the "section" fallback', () => {
+    const slug = makeSlugger()
+    expect(slug('🎉')).toBe('section')
+    expect(slug('🚀')).toBe('section-1')
   })
 })
