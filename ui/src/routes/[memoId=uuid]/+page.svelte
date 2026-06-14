@@ -37,7 +37,7 @@
   import { ToastTimeout, addToast } from '$lib/toast'
   import { formatDate } from '$lib/utils/date'
   import { getErrorMessage } from '$lib/utils/error'
-  import { onMount } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import type { PageData } from './$types'
 
   // Extract first image URL from markdown content for OpenGraph
@@ -84,6 +84,8 @@
 
   onMount(async () => {
     await syncPageData(false)
+    await tick()
+    scrollToHashHeading()
   })
 
   async function syncPageData(forceRefresh: boolean) {
@@ -115,6 +117,16 @@
       isMemoCollaborated = memo.viewerContext.collaboration !== null
       isMemoCollaborateApproved = memo.viewerContext.collaboration?.isApproved ?? false
     }
+  }
+
+  function scrollToHashHeading() {
+    const hash = window.location.hash
+    if (!hash) return
+
+    // Header ids contain raw (possibly non-ASCII) text; location.hash is
+    // percent-encoded, so decode before looking the element up.
+    const id = decodeURIComponent(hash.slice(1))
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   }
 
   async function syncOwnerSubscribers() {
