@@ -1,5 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [sveltekit()],
@@ -7,5 +7,8 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:8412',
     },
+  },
+  test: {
+    include: ['src/**/*.test.ts'],
   },
 })
