@@ -44,6 +44,12 @@
     "isomorphic-dompurify": "^2.3.0",
     "lodash-es": "^4.17.21"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "svelte-preprocess"
+    ]
+  },
   "volta": {
     "node": "24.13.0"
   }
