@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { makeSlugger, slugify } from './markdown'
+import { Marked } from '@ts-stack/markdown'
+import { createHeadingRenderer, makeSlugger, slugify } from './markdown'
 
 describe('slugify', () => {
   it('kebab-cases an ASCII header', () => {
@@ -51,5 +52,29 @@ describe('makeSlugger', () => {
     const slug = makeSlugger()
     expect(slug('🎉')).toBe('section')
     expect(slug('🚀')).toBe('section-1')
+  })
+})
+
+describe('createHeadingRenderer', () => {
+  it('adds slug ids to headings', () => {
+    const html = Marked.parse('# Hello World', { renderer: createHeadingRenderer() })
+    expect(html).toContain('<h1 id="hello-world">')
+  })
+
+  it('produces unique ids for duplicate headers', () => {
+    const html = Marked.parse('# Notes\n\n# Notes', { renderer: createHeadingRenderer() })
+    expect(html).toContain('<h1 id="notes">')
+    expect(html).toContain('<h1 id="notes-1">')
+  })
+
+  it('keeps Korean headers readable', () => {
+    const html = Marked.parse('## 회의 노트', { renderer: createHeadingRenderer() })
+    expect(html).toContain('<h2 id="회의-노트">')
+  })
+
+  it('preserves inline markup in heading text', () => {
+    const html = Marked.parse('# Use `code` here', { renderer: createHeadingRenderer() })
+    expect(html).toContain('id="use-code-here"')
+    expect(html).toContain('<code>code</code>')
   })
 })

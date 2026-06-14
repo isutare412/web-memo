@@ -1,3 +1,5 @@
+import { Renderer } from '@ts-stack/markdown'
+
 /**
  * Convert a header's raw text into a URL-fragment slug.
  *
@@ -39,4 +41,23 @@ export function makeSlugger(): (raw: string) => string {
     used.add(candidate)
     return candidate
   }
+}
+
+/**
+ * Create a markdown renderer that gives every heading a unique slug id.
+ *
+ * Pass a FRESH renderer per parse (each call owns its own slugger) so that
+ * duplicate-header counters reset between renders:
+ *   Marked.parse(content, { renderer: createHeadingRenderer() })
+ */
+export function createHeadingRenderer(): Renderer {
+  const slug = makeSlugger()
+
+  class HeadingRenderer extends Renderer {
+    override heading(text: string, level: number, raw: string): string {
+      return `<h${level} id="${slug(raw)}">${text}</h${level}>\n`
+    }
+  }
+
+  return new HeadingRenderer()
 }
