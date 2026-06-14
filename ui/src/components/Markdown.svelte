@@ -30,6 +30,15 @@
   function handleClick(event: MouseEvent) {
     const target = event.target as HTMLElement
 
+    const heading = target.closest('h1, h2, h3, h4, h5, h6') as HTMLElement | null
+    if (heading && heading.id && !target.closest('a')) {
+      // Reflect the header in the URL without pushing a history entry, so the
+      // back button still leaves the memo instead of walking prior clicks.
+      history.replaceState(history.state, '', `#${heading.id}`)
+      heading.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+
     if (target.tagName === 'INPUT' && target.getAttribute('type') === 'checkbox') {
       const indexStr = target.getAttribute('data-checkbox-index')
       if (indexStr !== null && editable) {
@@ -71,3 +80,25 @@
 {#if lightboxUrl}
   <ImageLightbox src={lightboxUrl} on:close={closeLightbox} />
 {/if}
+
+<style>
+  article :global(h1),
+  article :global(h2),
+  article :global(h3),
+  article :global(h4),
+  article :global(h5),
+  article :global(h6) {
+    cursor: pointer;
+  }
+
+  article :global(h1:hover),
+  article :global(h2:hover),
+  article :global(h3:hover),
+  article :global(h4:hover),
+  article :global(h5:hover),
+  article :global(h6:hover) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+  }
+</style>
