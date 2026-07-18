@@ -5,7 +5,12 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 )
+
+// Chunker behavior is profile-driven; tests exercise the 4b profile.
+var testProfile = modelProfiles[enum.TEIModelQwen3Embedding4B]
 
 var _ = Describe("Chunker", func() {
 	Context("prepareText", func() {
@@ -95,20 +100,20 @@ var _ = Describe("Chunker", func() {
 	Context("mergeSmallChunks", func() {
 		It("merges small parts into chunks within limit", func() {
 			parts := []string{"aaa", "bbb", "ccc"}
-			chunks := mergeSmallChunks(parts)
+			chunks := mergeSmallChunks(parts, testProfile.maxChunkBytes)
 			Expect(chunks).To(Equal([]string{"aaa\nbbb\nccc"}))
 		})
 
 		It("skips empty parts", func() {
 			parts := []string{"aaa", "", "  ", "bbb"}
-			chunks := mergeSmallChunks(parts)
+			chunks := mergeSmallChunks(parts, testProfile.maxChunkBytes)
 			Expect(chunks).To(Equal([]string{"aaa\nbbb"}))
 		})
 
 		It("splits when accumulated size exceeds limit", func() {
-			large := strings.Repeat("x", maxChunkChars)
+			large := strings.Repeat("x", testProfile.maxChunkBytes)
 			parts := []string{large, "overflow"}
-			chunks := mergeSmallChunks(parts)
+			chunks := mergeSmallChunks(parts, testProfile.maxChunkBytes)
 			Expect(chunks).To(HaveLen(2))
 			Expect(chunks[0]).To(Equal(large))
 			Expect(chunks[1]).To(Equal("overflow"))
@@ -117,31 +122,31 @@ var _ = Describe("Chunker", func() {
 
 	Context("applyOverlap", func() {
 		It("returns single chunk unchanged", func() {
-			chunks := applyOverlap([]string{"only one"})
+			chunks := applyOverlap([]string{"only one"}, testProfile.chunkOverlapBytes)
 			Expect(chunks).To(Equal([]string{"only one"}))
 		})
 
 		It("returns empty slice unchanged", func() {
-			chunks := applyOverlap(nil)
+			chunks := applyOverlap(nil, testProfile.chunkOverlapBytes)
 			Expect(chunks).To(BeNil())
 		})
 
 		It("prepends overlap from previous chunk", func() {
-			prev := strings.Repeat("a", chunkOverlapChars+100)
+			prev := strings.Repeat("a", testProfile.chunkOverlapBytes+100)
 			curr := "current chunk"
-			chunks := applyOverlap([]string{prev, curr})
+			chunks := applyOverlap([]string{prev, curr}, testProfile.chunkOverlapBytes)
 
 			Expect(chunks).To(HaveLen(2))
 			Expect(chunks[0]).To(Equal(prev))
 
-			expectedOverlap := prev[len(prev)-chunkOverlapChars:]
+			expectedOverlap := prev[len(prev)-testProfile.chunkOverlapBytes:]
 			Expect(chunks[1]).To(Equal(expectedOverlap + "\n" + curr))
 		})
 
 		It("uses full previous chunk when shorter than overlap size", func() {
 			prev := "short"
 			curr := "next"
-			chunks := applyOverlap([]string{prev, curr})
+			chunks := applyOverlap([]string{prev, curr}, testProfile.chunkOverlapBytes)
 
 			Expect(chunks).To(HaveLen(2))
 			Expect(chunks[0]).To(Equal("short"))
@@ -152,80 +157,80 @@ var _ = Describe("Chunker", func() {
 	Context("chunkText", func() {
 		It("returns single chunk for short text", func() {
 			text := "short text"
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 			Expect(chunks).To(Equal([]string{"short text"}))
 		})
 
 		It("returns single chunk at exactly max size", func() {
-			text := strings.Repeat("x", maxChunkChars)
-			chunks := chunkText(text)
+			text := strings.Repeat("x", testProfile.maxChunkBytes)
+			chunks := chunkText(text, testProfile)
 			Expect(chunks).To(Equal([]string{text}))
 		})
 
 		It("splits long text by headings", func() {
-			section1 := "## Section 1\n" + strings.Repeat("a", maxChunkChars*3/4)
-			section2 := "## Section 2\n" + strings.Repeat("b", maxChunkChars*3/4)
+			section1 := "## Section 1\n" + strings.Repeat("a", testProfile.maxChunkBytes*3/4)
+			section2 := "## Section 2\n" + strings.Repeat("b", testProfile.maxChunkBytes*3/4)
 			text := section1 + "\n" + section2
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 
 			Expect(len(chunks)).To(BeNumerically(">=", 2))
 			Expect(chunks[0]).To(ContainSubstring("Section 1"))
 		})
 
 		It("splits long section by paragraphs", func() {
-			para1 := strings.Repeat("a", maxChunkChars/2)
-			para2 := strings.Repeat("b", maxChunkChars/2)
-			para3 := strings.Repeat("c", maxChunkChars/2)
+			para1 := strings.Repeat("a", testProfile.maxChunkBytes/2)
+			para2 := strings.Repeat("b", testProfile.maxChunkBytes/2)
+			para3 := strings.Repeat("c", testProfile.maxChunkBytes/2)
 			text := para1 + "\n\n" + para2 + "\n\n" + para3
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 
 			Expect(len(chunks)).To(BeNumerically(">=", 2))
 		})
 
 		It("returns single chunk for short Korean text", func() {
 			text := "안녕하세요. 이것은 한국어 테스트입니다."
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 			Expect(chunks).To(Equal([]string{text}))
 		})
 
 		It("splits long Korean text exceeding byte limit", func() {
 			// Each Korean char is 3 bytes in UTF-8.
-			// Build lines of Korean text that together exceed maxChunkChars.
+			// Build lines of Korean text that together exceed maxChunkBytes.
 			koreanLine := strings.Repeat("가", 100) // 300 bytes per line
 			var lines []string
-			for range maxChunkChars/len(koreanLine) + 2 {
+			for range testProfile.maxChunkBytes/len(koreanLine) + 2 {
 				lines = append(lines, koreanLine)
 			}
 			text := strings.Join(lines, "\n")
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 			Expect(len(chunks)).To(BeNumerically(">=", 2))
 		})
 
 		It("splits Korean text by Korean headings", func() {
-			section1 := "## 소개\n" + strings.Repeat("가", maxChunkChars/4)
-			section2 := "## 본론\n" + strings.Repeat("나", maxChunkChars/4)
+			section1 := "## 소개\n" + strings.Repeat("가", testProfile.maxChunkBytes/4)
+			section2 := "## 본론\n" + strings.Repeat("나", testProfile.maxChunkBytes/4)
 			text := section1 + "\n" + section2
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 
 			Expect(len(chunks)).To(BeNumerically(">=", 2))
 			Expect(chunks[0]).To(ContainSubstring("소개"))
 		})
 
 		It("splits Korean paragraphs", func() {
-			para1 := strings.Repeat("가", maxChunkChars/6)
-			para2 := strings.Repeat("나", maxChunkChars/6)
-			para3 := strings.Repeat("다", maxChunkChars/6)
+			para1 := strings.Repeat("가", testProfile.maxChunkBytes/6)
+			para2 := strings.Repeat("나", testProfile.maxChunkBytes/6)
+			para3 := strings.Repeat("다", testProfile.maxChunkBytes/6)
 			text := para1 + "\n\n" + para2 + "\n\n" + para3
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 
 			Expect(len(chunks)).To(BeNumerically(">=", 2))
 		})
 
 		It("handles mixed Korean and English content", func() {
-			section1 := "## Overview 개요\n" + strings.Repeat("가", maxChunkChars/4)
-			section2 := "## Details 상세\n" + strings.Repeat("a", maxChunkChars*3/4)
+			section1 := "## Overview 개요\n" + strings.Repeat("가", testProfile.maxChunkBytes/4)
+			section2 := "## Details 상세\n" + strings.Repeat("a", testProfile.maxChunkBytes*3/4)
 			text := section1 + "\n" + section2
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 
 			Expect(len(chunks)).To(BeNumerically(">=", 2))
 			Expect(chunks[0]).To(ContainSubstring("개요"))
@@ -237,13 +242,13 @@ var _ = Describe("Chunker", func() {
 				lines = append(lines, strings.Repeat("x", 100))
 			}
 			text := strings.Join(lines, "\n")
-			chunks := chunkText(text)
+			chunks := chunkText(text, testProfile)
 
 			Expect(len(chunks)).To(BeNumerically(">=", 2))
 			for _, chunk := range chunks {
 				// Each chunk (before overlap) should be within limit.
 				// After overlap, it may slightly exceed, which is expected.
-				Expect(len(chunk)).To(BeNumerically("<=", maxChunkChars+chunkOverlapChars+1))
+				Expect(len(chunk)).To(BeNumerically("<=", testProfile.maxChunkBytes+testProfile.chunkOverlapBytes+1))
 			}
 		})
 	})

@@ -5,14 +5,6 @@ import (
 	"strings"
 )
 
-// Sizes are UTF-8 bytes, not runes: 8 KiB is roughly 2000 English or 2700
-// Korean tokens, keeping a full teiBatchSize batch within TEI's
-// --max-batch-tokens budget without truncation.
-const (
-	maxChunkChars     = 8192
-	chunkOverlapChars = 512
-)
-
 var (
 	imagePattern = regexp.MustCompile(`!\[[^\]]*\]\([^)]+\)`)
 	urlPattern   = regexp.MustCompile(`https?://\S+`)
@@ -25,8 +17,8 @@ func prepareText(title, content string) string {
 	return strings.TrimSpace(text)
 }
 
-func chunkText(text string) []string {
-	if len(text) <= maxChunkChars {
+func chunkText(text string, prof modelProfile) []string {
+	if len(text) <= prof.maxChunkBytes {
 		return []string{text}
 	}
 
@@ -34,23 +26,23 @@ func chunkText(text string) []string {
 
 	var chunks []string
 	for _, section := range sections {
-		if len(section) <= maxChunkChars {
+		if len(section) <= prof.maxChunkBytes {
 			chunks = append(chunks, section)
 			continue
 		}
-		chunks = append(chunks, splitByParagraphs(section)...)
+		chunks = append(chunks, splitByParagraphs(section, prof.maxChunkBytes)...)
 	}
 
 	refined := make([]string, 0, len(chunks))
 	for _, chunk := range chunks {
-		if len(chunk) <= maxChunkChars {
+		if len(chunk) <= prof.maxChunkBytes {
 			refined = append(refined, chunk)
 			continue
 		}
-		refined = append(refined, splitByNewlines(chunk)...)
+		refined = append(refined, splitByNewlines(chunk, prof.maxChunkBytes)...)
 	}
 
-	return applyOverlap(refined)
+	return applyOverlap(refined, prof.chunkOverlapBytes)
 }
 
 func splitByHeadings(text string) []string {
@@ -75,17 +67,17 @@ func splitByHeadings(text string) []string {
 	return sections
 }
 
-func splitByParagraphs(text string) []string {
+func splitByParagraphs(text string, maxBytes int) []string {
 	paragraphs := strings.Split(text, "\n\n")
-	return mergeSmallChunks(paragraphs)
+	return mergeSmallChunks(paragraphs, maxBytes)
 }
 
-func splitByNewlines(text string) []string {
+func splitByNewlines(text string, maxBytes int) []string {
 	lines := strings.Split(text, "\n")
-	return mergeSmallChunks(lines)
+	return mergeSmallChunks(lines, maxBytes)
 }
 
-func mergeSmallChunks(parts []string) []string {
+func mergeSmallChunks(parts []string, maxBytes int) []string {
 	var chunks []string
 	var current strings.Builder
 
@@ -95,7 +87,7 @@ func mergeSmallChunks(parts []string) []string {
 			continue
 		}
 
-		if current.Len() > 0 && current.Len()+len(part)+1 > maxChunkChars {
+		if current.Len() > 0 && current.Len()+len(part)+1 > maxBytes {
 			chunks = append(chunks, strings.TrimSpace(current.String()))
 			current.Reset()
 		}
@@ -112,7 +104,7 @@ func mergeSmallChunks(parts []string) []string {
 	return chunks
 }
 
-func applyOverlap(chunks []string) []string {
+func applyOverlap(chunks []string, overlapBytes int) []string {
 	if len(chunks) <= 1 {
 		return chunks
 	}
@@ -123,8 +115,8 @@ func applyOverlap(chunks []string) []string {
 	for i := 1; i < len(chunks); i++ {
 		prev := chunks[i-1]
 		overlap := prev
-		if len(overlap) > chunkOverlapChars {
-			overlap = overlap[len(overlap)-chunkOverlapChars:]
+		if len(overlap) > overlapBytes {
+			overlap = overlap[len(overlap)-overlapBytes:]
 		}
 		result[i] = overlap + "\n" + chunks[i]
 	}

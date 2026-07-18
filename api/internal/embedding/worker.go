@@ -117,7 +117,7 @@ func (w *Worker) EnqueueDelete(memoID uuid.UUID) {
 
 func (w *Worker) processEmbed(ctx context.Context, ej model.EmbeddingJob) {
 	text := prepareText(ej.Title, ej.Content)
-	chunks := chunkText(text)
+	chunks := chunkText(text, w.client.profile)
 
 	eg, egCtx := errgroup.WithContext(ctx)
 	var denseEmbeddings [][]float32
