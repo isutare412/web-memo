@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	vectorSize   = 1024
+	vectorSize   = 2560
 	teiBatchSize = 4
 	rrfK         = 2
 )
@@ -273,7 +273,7 @@ func (c *Client) Search(ctx context.Context, query string, ownerIDFilter *uuid.U
 
 	// Qwen3-Embedding models produce better retrieval vectors when queries
 	// include an instruction prefix. Documents are embedded without it.
-	// See https://huggingface.co/Qwen/Qwen3-Embedding-0.6B
+	// See https://huggingface.co/Qwen/Qwen3-Embedding-4B
 	instructQuery := "Instruct: Given a search query, retrieve relevant memos that match the query\nQuery:" + query
 
 	eg, eggCtx := errgroup.WithContext(ctx)

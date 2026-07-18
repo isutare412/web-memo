@@ -127,7 +127,7 @@ var _ = Describe("Chunker", func() {
 		})
 
 		It("prepends overlap from previous chunk", func() {
-			prev := strings.Repeat("a", 300)
+			prev := strings.Repeat("a", chunkOverlapChars+100)
 			curr := "current chunk"
 			chunks := applyOverlap([]string{prev, curr})
 
@@ -163,8 +163,8 @@ var _ = Describe("Chunker", func() {
 		})
 
 		It("splits long text by headings", func() {
-			section1 := "## Section 1\n" + strings.Repeat("a", 3000)
-			section2 := "## Section 2\n" + strings.Repeat("b", 3000)
+			section1 := "## Section 1\n" + strings.Repeat("a", maxChunkChars*3/4)
+			section2 := "## Section 2\n" + strings.Repeat("b", maxChunkChars*3/4)
 			text := section1 + "\n" + section2
 			chunks := chunkText(text)
 
@@ -173,9 +173,9 @@ var _ = Describe("Chunker", func() {
 		})
 
 		It("splits long section by paragraphs", func() {
-			para1 := strings.Repeat("a", 2000)
-			para2 := strings.Repeat("b", 2000)
-			para3 := strings.Repeat("c", 2000)
+			para1 := strings.Repeat("a", maxChunkChars/2)
+			para2 := strings.Repeat("b", maxChunkChars/2)
+			para3 := strings.Repeat("c", maxChunkChars/2)
 			text := para1 + "\n\n" + para2 + "\n\n" + para3
 			chunks := chunkText(text)
 
@@ -193,7 +193,7 @@ var _ = Describe("Chunker", func() {
 			// Build lines of Korean text that together exceed maxChunkChars.
 			koreanLine := strings.Repeat("가", 100) // 300 bytes per line
 			var lines []string
-			for range 20 { // 20 × 300 = 6000 bytes > maxChunkChars
+			for range maxChunkChars/len(koreanLine) + 2 {
 				lines = append(lines, koreanLine)
 			}
 			text := strings.Join(lines, "\n")
@@ -202,8 +202,8 @@ var _ = Describe("Chunker", func() {
 		})
 
 		It("splits Korean text by Korean headings", func() {
-			section1 := "## 소개\n" + strings.Repeat("가", 1200)
-			section2 := "## 본론\n" + strings.Repeat("나", 1200)
+			section1 := "## 소개\n" + strings.Repeat("가", maxChunkChars/4)
+			section2 := "## 본론\n" + strings.Repeat("나", maxChunkChars/4)
 			text := section1 + "\n" + section2
 			chunks := chunkText(text)
 
@@ -212,9 +212,9 @@ var _ = Describe("Chunker", func() {
 		})
 
 		It("splits Korean paragraphs", func() {
-			para1 := strings.Repeat("가", 700)
-			para2 := strings.Repeat("나", 700)
-			para3 := strings.Repeat("다", 700)
+			para1 := strings.Repeat("가", maxChunkChars/6)
+			para2 := strings.Repeat("나", maxChunkChars/6)
+			para3 := strings.Repeat("다", maxChunkChars/6)
 			text := para1 + "\n\n" + para2 + "\n\n" + para3
 			chunks := chunkText(text)
 
@@ -222,8 +222,8 @@ var _ = Describe("Chunker", func() {
 		})
 
 		It("handles mixed Korean and English content", func() {
-			section1 := "## Overview 개요\n" + strings.Repeat("가", 1200)
-			section2 := "## Details 상세\n" + strings.Repeat("a", 3000)
+			section1 := "## Overview 개요\n" + strings.Repeat("가", maxChunkChars/4)
+			section2 := "## Details 상세\n" + strings.Repeat("a", maxChunkChars*3/4)
 			text := section1 + "\n" + section2
 			chunks := chunkText(text)
 
@@ -233,7 +233,7 @@ var _ = Describe("Chunker", func() {
 
 		It("splits long paragraph by newlines", func() {
 			var lines []string
-			for i := 0; i < 100; i++ {
+			for range 100 {
 				lines = append(lines, strings.Repeat("x", 100))
 			}
 			text := strings.Join(lines, "\n")

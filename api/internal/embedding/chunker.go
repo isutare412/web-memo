@@ -5,9 +5,12 @@ import (
 	"strings"
 )
 
+// Sizes are UTF-8 bytes, not runes: 8 KiB is roughly 2000 English or 2700
+// Korean tokens, keeping a full teiBatchSize batch within TEI's
+// --max-batch-tokens budget without truncation.
 const (
-	maxChunkChars     = 4096
-	chunkOverlapChars = 256
+	maxChunkChars     = 8192
+	chunkOverlapChars = 512
 )
 
 var (
