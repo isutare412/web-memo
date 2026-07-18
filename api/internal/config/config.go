@@ -3,6 +3,7 @@ package config
 import (
 	"time"
 
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/service/auth"
 	"github.com/isutare412/web-memo/api/internal/core/service/image"
 	"github.com/isutare412/web-memo/api/internal/cron"
@@ -113,6 +114,7 @@ func (c *Config) ToImageServiceConfig() image.Config {
 
 func (c *Config) ToEmbeddingConfig() embedding.Config {
 	return embedding.Config{
+		TEIModel:             c.Embedding.TEIModel,
 		TEIBaseURL:           c.Embedding.TEIBaseURL,
 		BM25BaseURL:          c.Embedding.BM25BaseURL,
 		QdrantHost:           c.Embedding.QdrantHost,
@@ -165,13 +167,14 @@ type ImageerConfig struct {
 }
 
 type EmbeddingConfig struct {
-	Enabled                 bool    `koanf:"enabled"`
-	TEIBaseURL              string  `koanf:"tei-base-url"`
-	BM25BaseURL             string  `koanf:"bm25-base-url"`
-	QdrantHost              string  `koanf:"qdrant-host"`
-	QdrantPort              int     `koanf:"qdrant-port"`
-	QdrantCollectionName    string  `koanf:"qdrant-collection-name"`
-	JobBufferSize           int     `koanf:"job-buffer-size"`
-	MinSearchScoreThreshold float32 `koanf:"min-search-score-threshold"`
-	MaxSearchResults        int     `koanf:"max-search-results"`
+	Enabled                 bool          `koanf:"enabled"`
+	TEIModel                enum.TEIModel `koanf:"tei-model"`
+	TEIBaseURL              string        `koanf:"tei-base-url"`
+	BM25BaseURL             string        `koanf:"bm25-base-url"`
+	QdrantHost              string        `koanf:"qdrant-host"`
+	QdrantPort              int           `koanf:"qdrant-port"`
+	QdrantCollectionName    string        `koanf:"qdrant-collection-name"`
+	JobBufferSize           int           `koanf:"job-buffer-size"`
+	MinSearchScoreThreshold float32       `koanf:"min-search-score-threshold"`
+	MaxSearchResults        int           `koanf:"max-search-results"`
 }
