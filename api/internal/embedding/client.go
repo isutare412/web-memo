@@ -77,7 +77,11 @@ func (c *Client) EnsureCollection(ctx context.Context) error {
 		return fmt.Errorf("checking collection existence: %w", err)
 	}
 	if exists {
-		return nil
+		info, err := c.qdrantClient.GetCollectionInfo(ctx, c.collectionName)
+		if err != nil {
+			return fmt.Errorf("getting collection info: %w", err)
+		}
+		return validateDenseDimension(info, c.collectionName, c.teiModel, c.profile.vectorSize)
 	}
 
 	if err := c.qdrantClient.CreateCollection(ctx, &qdrant.CreateCollection{
@@ -475,4 +479,22 @@ func (c *Client) searchSparseGroups(ctx context.Context, sparse sparseVector, fi
 		return nil, fmt.Errorf("bm25 search: %w", err)
 	}
 	return groups, nil
+}
+
+// validateDenseDimension guards against reusing a collection created for a
+// different embedding model: vectors of the wrong size are rejected by Qdrant
+// per-upsert, so a mismatch must abort startup instead.
+func validateDenseDimension(info *qdrant.CollectionInfo, collectionName string, model enum.TEIModel, want uint64) error {
+	dense := info.GetConfig().GetParams().GetVectorsConfig().GetParamsMap().GetMap()["dense"]
+	if dense == nil {
+		return fmt.Errorf(
+			"collection %q has no dense vector config; delete the collection and reset is_embedded flags to re-embed",
+			collectionName)
+	}
+	if got := dense.GetSize(); got != want {
+		return fmt.Errorf(
+			"collection %q has dense dimension %d but tei-model %q requires %d; delete the collection and reset is_embedded flags to re-embed",
+			collectionName, got, model, want)
+	}
+	return nil
 }
