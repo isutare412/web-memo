@@ -14,12 +14,12 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/isutare412/web-memo/api/internal/core/enum"
 	"github.com/isutare412/web-memo/api/internal/core/model"
 	"github.com/isutare412/web-memo/api/internal/tracing"
 )
 
 const (
-	vectorSize   = 2560
 	teiBatchSize = 4
 	rrfK         = 2
 )
@@ -30,9 +30,19 @@ type Client struct {
 	qdrantClient   *qdrant.Client
 	collectionName string
 	httpClient     *http.Client
+	teiModel       enum.TEIModel
+	profile        modelProfile
 }
 
 func NewClient(cfg Config) (*Client, error) {
+	if err := cfg.TEIModel.Validate(); err != nil {
+		return nil, fmt.Errorf("validating TEI model: %w", err)
+	}
+	profile, ok := modelProfiles[cfg.TEIModel]
+	if !ok {
+		return nil, fmt.Errorf("no profile registered for TEI model %q", cfg.TEIModel)
+	}
+
 	qdrantClient, err := qdrant.NewClient(&qdrant.Config{
 		Host: cfg.QdrantHost,
 		Port: cfg.QdrantPort,
@@ -47,6 +57,8 @@ func NewClient(cfg Config) (*Client, error) {
 		qdrantClient:   qdrantClient,
 		collectionName: cfg.QdrantCollectionName,
 		httpClient:     &http.Client{},
+		teiModel:       cfg.TEIModel,
+		profile:        profile,
 	}, nil
 }
 
@@ -71,7 +83,7 @@ func (c *Client) EnsureCollection(ctx context.Context) error {
 	if err := c.qdrantClient.CreateCollection(ctx, &qdrant.CreateCollection{
 		CollectionName: c.collectionName,
 		VectorsConfig: qdrant.NewVectorsConfigMap(map[string]*qdrant.VectorParams{
-			"dense": {Size: vectorSize, Distance: qdrant.Distance_Cosine},
+			"dense": {Size: c.profile.vectorSize, Distance: qdrant.Distance_Cosine},
 		}),
 		SparseVectorsConfig: qdrant.NewSparseVectorsConfig(map[string]*qdrant.SparseVectorParams{
 			"sparse": {Modifier: qdrant.Modifier_Idf.Enum()},
