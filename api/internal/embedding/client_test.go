@@ -69,6 +69,7 @@ var _ = Describe("Client", func() {
 			Expect(err.Error()).To(ContainSubstring("1024"))
 			Expect(err.Error()).To(ContainSubstring("2560"))
 			Expect(err.Error()).To(ContainSubstring("memo_chunks"))
+			Expect(err.Error()).To(ContainSubstring("set tei-model"))
 		})
 
 		It("rejects a collection without dense vector config", func() {

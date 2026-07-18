@@ -493,7 +493,7 @@ func validateDenseDimension(info *qdrant.CollectionInfo, collectionName string, 
 	}
 	if got := dense.GetSize(); got != want {
 		return fmt.Errorf(
-			"collection %q has dense dimension %d but tei-model %q requires %d; delete the collection and reset is_embedded flags to re-embed",
+			"collection %q has dense dimension %d but tei-model %q requires %d; delete the collection and reset is_embedded flags to re-embed, or set tei-model to match the model that created the collection",
 			collectionName, got, model, want)
 	}
 	return nil
