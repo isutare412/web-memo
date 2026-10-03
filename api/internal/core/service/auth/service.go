@@ -84,7 +84,21 @@ func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (red
 		return "", fmt.Errorf("getting google callback URL: %w", err)
 	}
 
-	stateID, err := s.generateOAuthStateID(ctx)
+	cli, err := parseCLILogin(req.URL.Query())
+	if err != nil {
+		return "", fmt.Errorf("parsing CLI login: %w", err)
+	}
+
+	stateValue := ""
+	if cli != nil {
+		valueBytes, err := json.Marshal(cli)
+		if err != nil {
+			return "", fmt.Errorf("marshaling CLI login: %w", err)
+		}
+		stateValue = string(valueBytes)
+	}
+
+	stateID, err := s.generateOAuthStateID(ctx, stateValue)
 	if err != nil {
 		return "", fmt.Errorf("generating oauth ID: %w", err)
 	}
@@ -193,9 +207,9 @@ func (s *Service) FinishGoogleSignIn(
 	return redirectURL, appTokenString, nil
 }
 
-func (s *Service) generateOAuthStateID(ctx context.Context) (string, error) {
+func (s *Service) generateOAuthStateID(ctx context.Context, value string) (string, error) {
 	id := uuid.NewString()
-	if err := s.kvRepository.Set(ctx, id, "", s.oauthStateTimeout); err != nil {
+	if err := s.kvRepository.Set(ctx, id, value, s.oauthStateTimeout); err != nil {
 		return "", fmt.Errorf("setting oauth state: %w", err)
 	}
 	return id, nil

@@ -2,6 +2,7 @@ package auth_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -95,6 +96,78 @@ var _ = Describe("Service", func() {
 				Expect(unescapedURL).Should(ContainSubstring(givenAuthConfig.Google.OAuthCallbackPath))
 				Expect(unescapedURL).Should(ContainSubstring(givenAuthConfig.Google.OAuthEndpoint))
 			})
+
+			It("stores CLI login in state value", func(ctx SpecContext) {
+				var (
+					givenHost        = "my-web-memo.com:1234"
+					givenCallback    = "http://127.0.0.1:53682/callback"
+					givenCLIState    = "abcdefghijklmnop"
+					givenHTTPRequest = &http.Request{
+						Host: givenHost,
+						URL: &url.URL{
+							Scheme: "https",
+							Host:   givenHost,
+							RawQuery: url.Values{
+								"cliCallback": []string{givenCallback},
+								"cliState":    []string{givenCLIState},
+							}.Encode(),
+						},
+					}
+					wantValue = `{"cliCallback":"http://127.0.0.1:53682/callback","cliState":"abcdefghijklmnop"}`
+				)
+
+				mockKVRepository.EXPECT().
+					Set(mock.Anything, mock.Anything, wantValue, givenAuthConfig.OAuthStateTimeout).
+					Return(nil)
+
+				redirectURL, err := authService.StartGoogleSignIn(ctx, givenHTTPRequest)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				unescapedURL, err := url.QueryUnescape(redirectURL)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(unescapedURL).ShouldNot(ContainSubstring("cliCallback"))
+				Expect(unescapedURL).ShouldNot(ContainSubstring(givenCallback))
+				Expect(unescapedURL).ShouldNot(ContainSubstring(givenCLIState))
+			})
+
+			DescribeTable("rejects invalid CLI login parameters",
+				func(ctx SpecContext, callback, cliState string) {
+					query := url.Values{}
+					if callback != "" {
+						query.Set("cliCallback", callback)
+					}
+					if cliState != "" {
+						query.Set("cliState", cliState)
+					}
+					givenHTTPRequest := &http.Request{
+						Host: "my-web-memo.com",
+						URL: &url.URL{
+							Scheme:   "https",
+							Host:     "my-web-memo.com",
+							RawQuery: query.Encode(),
+						},
+					}
+
+					_, err := authService.StartGoogleSignIn(ctx, givenHTTPRequest)
+					Expect(err).Should(HaveOccurred())
+
+					var known pkgerr.Known
+					Expect(errors.As(err, &known)).Should(BeTrue())
+					Expect(known.Code).Should(Equal(pkgerr.CodeBadRequest))
+					mockKVRepository.AssertNotCalled(GinkgoT(), "Set",
+						mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+				},
+				Entry("https scheme", "https://127.0.0.1:1/callback", "abcdefghijklmnop"),
+				Entry("non-loopback host", "http://evil.com:1/callback", "abcdefghijklmnop"),
+				Entry("missing port", "http://127.0.0.1/callback", "abcdefghijklmnop"),
+				Entry("wrong path", "http://127.0.0.1:1/other", "abcdefghijklmnop"),
+				Entry("query string", "http://127.0.0.1:1/callback?x=1", "abcdefghijklmnop"),
+				Entry("fragment", "http://127.0.0.1:1/callback#f", "abcdefghijklmnop"),
+				Entry("missing cliState", "http://127.0.0.1:1/callback", ""),
+				Entry("short cliState", "http://127.0.0.1:1/callback", "abcdefghijklmno"),
+				Entry("cliState with dot", "http://127.0.0.1:1/callback", "abcdefghijklmno."),
+				Entry("missing cliCallback", "", "abcdefghijklmnop"),
+			)
 		})
 
 		Context("FinishGoogleSignIn", func() {

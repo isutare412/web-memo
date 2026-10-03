@@ -26,6 +26,24 @@ paths:
       security: []
       tags:
         - Auth
+      parameters:
+        - name: cliCallback
+          in: query
+          required: false
+          description: >-
+            Loopback URL (http://127.0.0.1:<port>/callback) that receives the
+            app token after sign-in. Used by the webmemo CLI. Must be sent
+            together with cliState.
+          schema:
+            type: string
+        - name: cliState
+          in: query
+          required: false
+          description: >-
+            Random nonce (at least 16 characters) echoed back to cliCallback.
+            Must be sent together with cliCallback.
+          schema:
+            type: string
       responses:
         '302':
           description: Redirecting to Google Sign-In

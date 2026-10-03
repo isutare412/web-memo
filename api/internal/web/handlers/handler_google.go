@@ -12,7 +12,7 @@ import (
 
 // StartGoogleSignIn initiates the Google OAuth2 sign-in flow by redirecting
 // the user to Google's authorization page.
-func (h *Handler) StartGoogleSignIn(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) StartGoogleSignIn(w http.ResponseWriter, r *http.Request, params gen.StartGoogleSignInParams) {
 	ctx, span := tracing.StartSpan(r.Context(), "web.handlers.StartGoogleSignIn")
 	defer span.End()
 
