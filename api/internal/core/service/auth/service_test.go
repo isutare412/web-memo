@@ -130,6 +130,31 @@ var _ = Describe("Service", func() {
 				Expect(unescapedURL).ShouldNot(ContainSubstring(givenCLIState))
 			})
 
+			It("accepts localhost CLI callback", func(ctx SpecContext) {
+				var (
+					givenHost        = "my-web-memo.com:1234"
+					givenHTTPRequest = &http.Request{
+						Host: givenHost,
+						URL: &url.URL{
+							Scheme: "https",
+							Host:   givenHost,
+							RawQuery: url.Values{
+								"cliCallback": []string{"http://localhost:53682/callback"},
+								"cliState":    []string{"abcdefghijklmnop"},
+							}.Encode(),
+						},
+					}
+					wantValue = `{"cliCallback":"http://localhost:53682/callback","cliState":"abcdefghijklmnop"}`
+				)
+
+				mockKVRepository.EXPECT().
+					Set(mock.Anything, mock.Anything, wantValue, givenAuthConfig.OAuthStateTimeout).
+					Return(nil)
+
+				_, err := authService.StartGoogleSignIn(ctx, givenHTTPRequest)
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
 			DescribeTable("rejects invalid CLI login parameters",
 				func(ctx SpecContext, callback, cliState string) {
 					query := url.Values{}
@@ -167,6 +192,10 @@ var _ = Describe("Service", func() {
 				Entry("short cliState", "http://127.0.0.1:1/callback", "abcdefghijklmno"),
 				Entry("cliState with dot", "http://127.0.0.1:1/callback", "abcdefghijklmno."),
 				Entry("missing cliCallback", "", "abcdefghijklmnop"),
+				Entry("localhost prefix host", "http://localhost.evil.com:1/callback", "abcdefghijklmnop"),
+				Entry("userinfo host confusion", "http://127.0.0.1:1@evil.com/callback", "abcdefghijklmnop"),
+				Entry("ipv6 loopback", "http://[::1]:1/callback", "abcdefghijklmnop"),
+				Entry("localhost trailing dot", "http://localhost.:1/callback", "abcdefghijklmnop"),
 			)
 		})
 

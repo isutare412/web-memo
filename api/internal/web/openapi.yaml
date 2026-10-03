@@ -31,8 +31,9 @@ paths:
           in: query
           required: false
           description: >-
-            Loopback URL (http://127.0.0.1:<port>/callback) that receives the
-            app token after sign-in. Used by the webmemo CLI. Must be sent
+            Loopback URL (http://127.0.0.1:<port>/callback or
+            http://localhost:<port>/callback) that receives the app token
+            after sign-in. Used by the webmemo CLI. Must be sent
             together with cliState.
           schema:
             type: string

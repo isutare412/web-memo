@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,9 +15,11 @@ const (
 	queryCLICallback = "cliCallback"
 	queryCLIState    = "cliState"
 
-	cliCallbackHost = "127.0.0.1"
 	cliCallbackPath = "/callback"
 )
+
+// cliCallbackHosts are the only hosts accepted for the CLI loopback callback.
+var cliCallbackHosts = []string{"127.0.0.1", "localhost"}
 
 var cliStatePattern = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
 
@@ -49,13 +52,13 @@ func parseCLILogin(q url.Values) (*cliLogin, error) {
 	return &cliLogin{Callback: callback, State: state}, nil
 }
 
-// validateCLICallback accepts only http://127.0.0.1:<port>/callback without
-// userinfo, query or fragment.
+// validateCLICallback accepts only http://127.0.0.1:<port>/callback or
+// http://localhost:<port>/callback without userinfo, query or fragment.
 func validateCLICallback(raw string) error {
 	invalid := func(err error) error {
 		return pkgerr.Known{
 			Code:      pkgerr.CodeBadRequest,
-			ClientMsg: "cliCallback must be http://127.0.0.1:<port>/callback",
+			ClientMsg: "cliCallback must be http://127.0.0.1:<port>/callback or http://localhost:<port>/callback",
 			Origin:    err,
 		}
 	}
@@ -76,7 +79,8 @@ func validateCLICallback(raw string) error {
 
 	if u.Scheme != "http" ||
 		u.User != nil ||
-		u.Host != net.JoinHostPort(cliCallbackHost, u.Port()) ||
+		!slices.Contains(cliCallbackHosts, u.Hostname()) ||
+		u.Host != net.JoinHostPort(u.Hostname(), u.Port()) ||
 		u.Path != cliCallbackPath {
 		return invalid(nil)
 	}
