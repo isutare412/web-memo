@@ -13,7 +13,7 @@ import (
 
 var writeTools = []string{
 	"authorize_member", "create_memo", "delete_memo", "edit_memo", "publish_memo",
-	"request_collaboration", "set_memo_tags", "subscribe_memo", "update_memo",
+	"request_collaboration", "set_memo_tags", "subscribe_memo", "update_memo", "upload_image",
 }
 
 func memoJSON(title, content string, tags []string, version int, state string) string {
@@ -352,6 +352,8 @@ func TestWriteToolDestructiveAnnotations(t *testing.T) {
 		"subscribe_memo":        true,
 		"request_collaboration": true,
 		"authorize_member":      true,
+
+		"upload_image": false,
 	}
 	cs := newTestClient(t, http.NotFoundHandler(), Options{})
 	res, err := cs.ListTools(context.Background(), nil)
@@ -477,6 +479,8 @@ func TestWriteToolsUnauthorized(t *testing.T) {
 		"subscribe_memo":        {"id": testMemoID, "action": "subscribe"},
 		"request_collaboration": {"id": testMemoID, "action": "request"},
 		"authorize_member":      {"id": testMemoID, "user_id": testUserID, "kind": "subscriber", "approve": true},
+
+		"upload_image": {"path": writeTempFile(t, "a.png", pngBytes)},
 	} {
 		res := callTool(t, cs, name, args)
 		if !res.IsError || !strings.Contains(resultText(t, res), "webmemo login") {

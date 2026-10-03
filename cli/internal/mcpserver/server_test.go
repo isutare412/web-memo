@@ -89,16 +89,17 @@ func callTool(t *testing.T, cs *mcp.ClientSession, name string, args any) *mcp.C
 
 var readTools = []string{"get_memo", "list_memo_members", "search_memos", "search_tags"}
 
+var allTools = []string{
+	"authorize_member", "create_memo", "delete_memo", "edit_memo", "get_memo",
+	"list_memo_members", "publish_memo", "request_collaboration", "search_memos",
+	"search_tags", "set_memo_tags", "subscribe_memo", "update_memo", "upload_image",
+}
+
 func TestToolListFull(t *testing.T) {
 	cs := newTestClient(t, http.NotFoundHandler(), Options{})
-	got := make(map[string]bool)
-	for _, name := range toolNames(t, cs) {
-		got[name] = true
-	}
-	for _, name := range readTools {
-		if !got[name] {
-			t.Errorf("tool %q missing from %v", name, got)
-		}
+	got := toolNames(t, cs)
+	if len(allTools) != 14 || strings.Join(got, ",") != strings.Join(allTools, ",") {
+		t.Errorf("tools = %v, want exactly %v", got, allTools)
 	}
 }
 
