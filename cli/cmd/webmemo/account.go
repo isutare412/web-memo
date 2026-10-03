@@ -178,6 +178,41 @@ func runToken(args []string, env func(string) string, store *credential.Store, o
 	return nil
 }
 
+// runRefresh renews the token now, regardless of its expiry. A file login is
+// saved back to the credentials file; a WEBMEMO_TOKEN login cannot be saved, so
+// the new token goes to out alone (for scripts to capture) and a note to errOut.
+func runRefresh(ctx context.Context, args []string, env func(string) string, store *credential.Store, out, errOut io.Writer) error {
+	fs := newFlagSet("refresh")
+	if err := parseFlags(fs, args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			printUsage(fs, out)
+			return nil
+		}
+		return err
+	}
+	cred, src, err := resolveLoggedIn(store, env)
+	if err != nil {
+		return err
+	}
+	sess := session.New(cred, src, store, &http.Client{Timeout: httpTimeout})
+	tok, err := sess.Refresh(ctx)
+	if err != nil {
+		return fmt.Errorf("refresh token: %w", err)
+	}
+
+	if src == credential.SourceEnv {
+		_, _ = fmt.Fprintln(out, tok)
+		_, _ = fmt.Fprintln(errOut, "note: the token came from WEBMEMO_TOKEN, so the new token was not saved; update WEBMEMO_TOKEN with the token printed on stdout")
+		return nil
+	}
+	expiry := "unknown"
+	if exp, ok := credential.TokenExpiry(tok); ok {
+		expiry = exp.Format(time.RFC3339)
+	}
+	_, _ = fmt.Fprintf(out, "token refreshed; expires %s\n", expiry)
+	return nil
+}
+
 func resolveLoggedIn(store *credential.Store, env func(string) string) (credential.Credential, credential.Source, error) {
 	cred, src, err := credential.Resolve(store, env)
 	if err != nil {

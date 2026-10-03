@@ -18,6 +18,7 @@ commands:
   logout   delete the stored credential
   whoami   show the logged-in user and token expiry
   token    print the current token
+  refresh  renew the token now, resetting its expiry
   mcp      run the MCP server on stdio (--read-only for read tools only)
 
 Run "webmemo <command> -h" for command flags.
@@ -53,6 +54,8 @@ func run(ctx context.Context, args []string, env func(string) string, store *cre
 		return runWhoami(ctx, rest, env, store, out)
 	case "token":
 		return runToken(rest, env, store, out)
+	case "refresh":
+		return runRefresh(ctx, rest, env, store, out, os.Stderr)
 	case "mcp":
 		return runMCP(ctx, rest, env, store, out)
 	case "-h", "-help", "--help", "help":

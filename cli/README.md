@@ -58,6 +58,21 @@ names a different server than the saved login, the saved token is not used.
 Other commands: `webmemo whoami` shows the user and token expiry, and
 `webmemo logout` deletes the stored credential.
 
+### Token refresh
+
+Tokens are valid for 30 days. Every command and the MCP server refresh the
+token automatically once it is within 7 days of expiry. To reset the expiry
+on a schedule instead (for example a weekly cron job on an agent host), run:
+
+```sh
+webmemo refresh   # prints "token refreshed; expires <time>"
+```
+
+It exits non-zero when the refresh fails (no login, rejected token, network
+error), so the scheduler can alert. With `WEBMEMO_TOKEN`, the new token cannot
+be saved: `webmemo refresh` prints it alone on stdout and a note on stderr, so
+a script can capture it and update the variable.
+
 ## MCP server
 
 Register it with Claude Code:

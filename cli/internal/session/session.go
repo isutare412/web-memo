@@ -3,6 +3,7 @@
 package session
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -93,6 +94,13 @@ func (s *Session) HTTPClient() *http.Client { return s.base }
 
 // Token returns the current token, which may have been refreshed.
 func (s *Session) Token() string { return s.tr.token() }
+
+// Refresh renews the token now, regardless of its expiry, and returns the new
+// token. Like the automatic refresh it saves the token when it came from the
+// credentials file, but unlike it every failure, including a failed save, is
+// returned. It returns ErrUnauthorized when there is no token or the server
+// rejects it.
+func (s *Session) Refresh(ctx context.Context) (string, error) { return s.tr.forceRefresh(ctx) }
 
 // CheckStatus converts an HTTP status and body into an error: nil for 2xx,
 // ErrUnauthorized for 401, otherwise an error carrying the API error message.
@@ -247,30 +255,62 @@ func (t *authTransport) currentToken(req *http.Request) string {
 		return t.cred.Token
 	}
 
-	newTok, err := t.refresh(req)
+	newTok, err := t.refresh(req.Context())
 	if err != nil {
 		t.retryAfter = t.now().Add(refreshRetryDelay)
 		slog.Warn("token refresh failed; continuing with current token", "error", err)
 		return t.cred.Token
 	}
-	t.cred.Token = newTok
-	if t.src == credential.SourceFile && t.store != nil {
-		if err := t.store.Save(t.cred); err != nil {
-			slog.Warn("could not save refreshed token", "error", err)
-		}
+	if err := t.adopt(newTok); err != nil {
+		slog.Warn("could not save refreshed token", "error", err)
 	}
 	return t.cred.Token
+}
+
+// forceRefresh refreshes the token regardless of its expiry and returns every
+// failure to the caller.
+func (t *authTransport) forceRefresh(ctx context.Context) (string, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.reloadFromFile(false)
+	if t.cred.Token == "" {
+		return "", ErrUnauthorized
+	}
+	newTok, err := t.refresh(ctx)
+	if err != nil {
+		return "", err
+	}
+	if err := t.adopt(newTok); err != nil {
+		return "", fmt.Errorf("save refreshed token: %w", err)
+	}
+	return newTok, nil
+}
+
+// adopt switches to a refreshed token and saves it when it came from the
+// credentials file. The caller must hold t.mu.
+func (t *authTransport) adopt(newTok string) error {
+	t.cred.Token = newTok
+	t.retryAfter = time.Time{}
+	if t.src != credential.SourceFile || t.store == nil {
+		return nil
+	}
+	if err := t.store.Save(t.cred); err != nil {
+		return err
+	}
+	t.lastSig = fileSignature(t.store.Path)
+	return nil
 }
 
 // refresh calls the refresh endpoint directly on the underlying transport, so
 // refresh logic is never applied to the refresh request itself. The caller
 // must hold t.mu.
-func (t *authTransport) refresh(orig *http.Request) (string, error) {
+func (t *authTransport) refresh(ctx context.Context) (string, error) {
 	r, err := gen.NewRefreshTokenRequest(t.apiURL)
 	if err != nil {
 		return "", fmt.Errorf("build refresh request: %w", err)
 	}
-	r = r.WithContext(orig.Context())
+	r = r.WithContext(ctx)
 	r.Header.Set("Authorization", "Bearer "+t.cred.Token)
 
 	resp, err := t.next.RoundTrip(r)
@@ -278,6 +318,9 @@ func (t *authTransport) refresh(orig *http.Request) (string, error) {
 		return "", fmt.Errorf("refresh request: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode == http.StatusUnauthorized {
+		return "", ErrUnauthorized
+	}
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("refresh request: status %d", resp.StatusCode)
 	}
