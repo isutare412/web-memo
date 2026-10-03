@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -114,27 +115,49 @@ func (s *Store) Delete() error {
 	return nil
 }
 
+// SameServer reports whether two server URLs are the same apart from
+// trailing slashes. An empty URL means DefaultServer.
+func SameServer(a, b string) bool {
+	norm := func(u string) string {
+		if u == "" {
+			u = DefaultServer
+		}
+		return strings.TrimRight(u, "/")
+	}
+	return norm(a) == norm(b)
+}
+
 // Resolve combines environment and file credentials. The server is taken from
 // WEBMEMO_SERVER, then the file, then DefaultServer. The token is taken from
 // WEBMEMO_TOKEN (SourceEnv), then the file (SourceFile), else SourceNone.
+//
+// The file token is not used when WEBMEMO_SERVER names a different server than
+// the file does, so a token is never sent to a server it was not issued by.
+// An unreadable file is an error unless WEBMEMO_TOKEN is set, in which case
+// the file is ignored.
 func Resolve(s *Store, getenv func(string) string) (Credential, Source, error) {
+	envTok := getenv(envToken)
 	file, err := s.Load()
 	if err != nil {
-		return Credential{}, SourceNone, err
+		if envTok == "" {
+			return Credential{}, SourceNone, err
+		}
+		file = Credential{}
 	}
 
 	server := DefaultServer
 	if file.Server != "" {
 		server = file.Server
 	}
-	if v := getenv(envServer); v != "" {
-		server = v
+	envSrv := getenv(envServer)
+	if envSrv != "" {
+		server = envSrv
 	}
 
 	switch {
-	case getenv(envToken) != "":
-		return Credential{Server: server, Token: getenv(envToken)}, SourceEnv, nil
-	case file.Token != "":
+	case envTok != "":
+		return Credential{Server: server, Token: envTok}, SourceEnv, nil
+	case file.Token != "" && (envSrv == "" || SameServer(envSrv, file.Server)):
 		return Credential{Server: server, Token: file.Token}, SourceFile, nil
 	default:
 		return Credential{Server: server}, SourceNone, nil

@@ -9,12 +9,19 @@ import (
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/isutare412/web-memo/cli/internal/credential"
 )
 
 // connectMCP builds the server for args and connects an in-memory client.
 func connectMCP(t *testing.T, args []string, env func(string) string) *mcp.ClientSession {
 	t.Helper()
-	srv, err := newMCPServer(args, env, newStore(t))
+	return connectMCPStore(t, args, env, newStore(t))
+}
+
+func connectMCPStore(t *testing.T, args []string, env func(string) string, store *credential.Store) *mcp.ClientSession {
+	t.Helper()
+	srv, err := newMCPServer(args, env, store)
 	if err != nil {
 		t.Fatalf("newMCPServer: %v", err)
 	}
@@ -105,5 +112,36 @@ func TestMcpCommandStartsWithoutToken(t *testing.T) {
 func TestMcpCommandRejectsArgs(t *testing.T) {
 	if _, err := newMCPServer([]string{"extra"}, noEnv, newStore(t)); err == nil {
 		t.Error("want error for positional argument")
+	}
+}
+
+func TestMcpPicksUpLoginWhileRunning(t *testing.T) {
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer fresh" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"memos":[],"paging":{"page":1,"pageSize":10,"lastPage":1,"totalMemoCount":0}}`))
+	}))
+	t.Cleanup(api.Close)
+	store := newStore(t)
+	cs := connectMCPStore(t, nil, envOf(map[string]string{"WEBMEMO_SERVER": api.URL}), store)
+	call := func() *mcp.CallToolResult {
+		res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "search_memos", Arguments: map[string]any{}})
+		if err != nil {
+			t.Fatalf("CallTool: %v", err)
+		}
+		return res
+	}
+
+	if !call().IsError {
+		t.Fatal("first call should fail: not logged in")
+	}
+	if err := store.Save(credential.Credential{Server: api.URL, Token: "fresh"}); err != nil {
+		t.Fatal(err)
+	}
+	if res := call(); res.IsError {
+		t.Fatalf("call after login failed: %+v", res.Content)
 	}
 }

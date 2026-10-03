@@ -146,7 +146,8 @@ func TestResolvePrecedence(t *testing.T) {
 	}{
 		{"file only", s, nil, "A", "fileTok", SourceFile},
 		{"env token wins", s, map[string]string{"WEBMEMO_TOKEN": "envTok"}, "A", "envTok", SourceEnv},
-		{"env server wins", s, map[string]string{"WEBMEMO_SERVER": "B"}, "B", "fileTok", SourceFile},
+		{"env server differing from file drops file token", s, map[string]string{"WEBMEMO_SERVER": "B"}, "B", "", SourceNone},
+		{"env server equal to file keeps file token", s, map[string]string{"WEBMEMO_SERVER": "A/"}, "A/", "fileTok", SourceFile},
 		{"env both", s, map[string]string{"WEBMEMO_TOKEN": "envTok", "WEBMEMO_SERVER": "B"}, "B", "envTok", SourceEnv},
 		{"nothing", newTestStore(t), nil, DefaultServer, "", SourceNone},
 		{"env server only", newTestStore(t), map[string]string{"WEBMEMO_SERVER": "B"}, "B", "", SourceNone},
@@ -165,7 +166,23 @@ func TestResolvePrecedence(t *testing.T) {
 	}
 }
 
-func TestResolveCorruptFile(t *testing.T) {
+func TestResolveDefaultServerFile(t *testing.T) {
+	s := newTestStore(t)
+	if err := s.Save(Credential{Token: "fileTok"}); err != nil { // no server stored: default
+		t.Fatal(err)
+	}
+	got, src, err := Resolve(s, envFrom(map[string]string{"WEBMEMO_SERVER": DefaultServer}))
+	if err != nil || src != SourceFile || got.Token != "fileTok" {
+		t.Fatalf("got (%+v, %v, %v)", got, src, err)
+	}
+	_, src, err = Resolve(s, envFrom(map[string]string{"WEBMEMO_SERVER": "https://other.test"}))
+	if err != nil || src != SourceNone {
+		t.Fatalf("other server: src = %v, err = %v", src, err)
+	}
+}
+
+func writeCorrupt(t *testing.T) *Store {
+	t.Helper()
 	s := newTestStore(t)
 	if err := os.MkdirAll(filepath.Dir(s.Path), 0o700); err != nil {
 		t.Fatal(err)
@@ -173,7 +190,21 @@ func TestResolveCorruptFile(t *testing.T) {
 	if err := os.WriteFile(s.Path, []byte("{"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := Resolve(s, envFrom(nil)); err == nil {
+	return s
+}
+
+func TestResolveCorruptFile(t *testing.T) {
+	if _, _, err := Resolve(writeCorrupt(t), envFrom(nil)); err == nil {
 		t.Fatal("expected error")
+	}
+}
+
+func TestResolveCorruptFileIgnoredWithEnvToken(t *testing.T) {
+	got, src, err := Resolve(writeCorrupt(t), envFrom(map[string]string{"WEBMEMO_TOKEN": "envTok"}))
+	if err != nil {
+		t.Fatalf("Resolve: %v", err)
+	}
+	if src != SourceEnv || got.Token != "envTok" || got.Server != DefaultServer {
+		t.Fatalf("got (%+v, %v)", got, src)
 	}
 }

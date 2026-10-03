@@ -299,3 +299,231 @@ func TestRefreshRequestItselfIsNotRefreshed(t *testing.T) {
 		t.Fatalf("refresh Authorization = %q, want old bearer", f.refreshAuth)
 	}
 }
+
+func newFileStore(t *testing.T) *credential.Store {
+	t.Helper()
+	return &credential.Store{Path: filepath.Join(t.TempDir(), "webmemo", "credentials.json")}
+}
+
+func TestAdoptsTokenWrittenAfterStart(t *testing.T) {
+	f := newFakeAPI(t, "", http.StatusOK)
+	store := newFileStore(t)
+	s := session.New(credential.Credential{Server: f.srv.URL}, credential.SourceNone, store, nil)
+
+	callAPI(t, s)
+	if err := store.Save(credential.Credential{Server: f.srv.URL, Token: "loginTok"}); err != nil {
+		t.Fatal(err)
+	}
+	callAPI(t, s)
+
+	got := f.auths()
+	if len(got) != 2 || got[0] != "" || got[1] != "Bearer loginTok" {
+		t.Fatalf("auth headers = %q, want [\"\", Bearer loginTok]", got)
+	}
+	if s.Token() != "loginTok" {
+		t.Fatalf("Token() = %q", s.Token())
+	}
+}
+
+func TestAdoptsChangedFileToken(t *testing.T) {
+	f := newFakeAPI(t, "", http.StatusOK)
+	store := newFileStore(t)
+	cred := credential.Credential{Server: f.srv.URL, Token: "old"}
+	if err := store.Save(cred); err != nil {
+		t.Fatal(err)
+	}
+	s := session.New(cred, credential.SourceFile, store, nil)
+
+	callAPI(t, s)
+	if err := store.Save(credential.Credential{Server: f.srv.URL, Token: "new"}); err != nil {
+		t.Fatal(err)
+	}
+	callAPI(t, s)
+
+	got := f.auths()
+	if len(got) != 2 || got[0] != "Bearer old" || got[1] != "Bearer new" {
+		t.Fatalf("auth headers = %q", got)
+	}
+}
+
+func TestEnvSourceIgnoresFile(t *testing.T) {
+	f := newFakeAPI(t, "", http.StatusOK)
+	store := newFileStore(t)
+	s := session.New(credential.Credential{Server: f.srv.URL, Token: "envTok"}, credential.SourceEnv, store, nil)
+	if err := store.Save(credential.Credential{Server: f.srv.URL, Token: "fileTok"}); err != nil {
+		t.Fatal(err)
+	}
+
+	callAPI(t, s)
+
+	if got := f.auths(); len(got) != 1 || got[0] != "Bearer envTok" {
+		t.Fatalf("auth headers = %q", got)
+	}
+}
+
+func TestFileForOtherServerNotAdopted(t *testing.T) {
+	f := newFakeAPI(t, "", http.StatusOK)
+	store := newFileStore(t)
+	s := session.New(credential.Credential{Server: f.srv.URL}, credential.SourceNone, store, nil)
+	if err := store.Save(credential.Credential{Server: "https://other.example", Token: "prodTok"}); err != nil {
+		t.Fatal(err)
+	}
+
+	callAPI(t, s)
+
+	if got := f.auths(); len(got) != 1 || got[0] != "" {
+		t.Fatalf("auth headers = %q, want none", got)
+	}
+}
+
+// unauthAPI answers /users/me with 401 unless the bearer token is want, and
+// records every Authorization header and request body.
+type unauthAPI struct {
+	srv    *httptest.Server
+	mu     sync.Mutex
+	auths  []string
+	bodies []string
+}
+
+func newUnauthAPI(t *testing.T, want string) *unauthAPI {
+	t.Helper()
+	u := &unauthAPI{}
+	u.srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, _ := io.ReadAll(r.Body)
+		u.mu.Lock()
+		u.auths = append(u.auths, r.Header.Get("Authorization"))
+		u.bodies = append(u.bodies, string(b))
+		u.mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
+		if r.Header.Get("Authorization") != "Bearer "+want {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	t.Cleanup(u.srv.Close)
+	return u
+}
+
+func (u *unauthAPI) seen() ([]string, []string) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	return append([]string(nil), u.auths...), append([]string(nil), u.bodies...)
+}
+
+// saveHidden writes c to the store but restores the previous mtime so the
+// cheap change check cannot notice (sizes must match).
+func saveHidden(t *testing.T, store *credential.Store, c credential.Credential) {
+	t.Helper()
+	info, err := os.Stat(store.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Save(c); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chtimes(store.Path, info.ModTime(), info.ModTime()); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestUnauthorizedRetriesWhenFileTokenChanged(t *testing.T) {
+	u := newUnauthAPI(t, "new")
+	store := newFileStore(t)
+	cred := credential.Credential{Server: u.srv.URL, Token: "old"}
+	if err := store.Save(cred); err != nil {
+		t.Fatal(err)
+	}
+	s := session.New(cred, credential.SourceFile, store, nil)
+	saveHidden(t, store, credential.Credential{Server: u.srv.URL, Token: "new"})
+
+	res, err := s.API().CreateMemoWithBody(context.Background(), "application/json", strings.NewReader(`{"a":1}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = res.Body.Close()
+
+	auths, bodies := u.seen()
+	if len(auths) != 2 || auths[0] != "Bearer old" || auths[1] != "Bearer new" {
+		t.Fatalf("auth headers = %q, want one retry with the new token", auths)
+	}
+	if bodies[0] != `{"a":1}` || bodies[1] != `{"a":1}` {
+		t.Fatalf("bodies = %q, want the body replayed", bodies)
+	}
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200 from the retry", res.StatusCode)
+	}
+}
+
+func TestUnauthorizedNoRetryWhenTokenUnchanged(t *testing.T) {
+	u := newUnauthAPI(t, "never")
+	store := newFileStore(t)
+	cred := credential.Credential{Server: u.srv.URL, Token: "old"}
+	if err := store.Save(cred); err != nil {
+		t.Fatal(err)
+	}
+	s := session.New(cred, credential.SourceFile, store, nil)
+
+	res, err := s.API().GetCurrentUser(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = res.Body.Close()
+
+	if auths, _ := u.seen(); len(auths) != 1 {
+		t.Fatalf("requests = %d, want 1 (no retry)", len(auths))
+	}
+	if res.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", res.StatusCode)
+	}
+}
+
+func TestUnauthorizedNoRetryWithoutReplayableBody(t *testing.T) {
+	u := newUnauthAPI(t, "new")
+	store := newFileStore(t)
+	cred := credential.Credential{Server: u.srv.URL, Token: "old"}
+	if err := store.Save(cred); err != nil {
+		t.Fatal(err)
+	}
+	s := session.New(cred, credential.SourceFile, store, nil)
+	saveHidden(t, store, credential.Credential{Server: u.srv.URL, Token: "new"})
+
+	// A plain io.Reader gives the request no GetBody.
+	body := io.NopCloser(strings.NewReader(`{"a":1}`))
+	res, err := s.API().CreateMemoWithBody(context.Background(), "application/json", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = res.Body.Close()
+
+	if auths, _ := u.seen(); len(auths) != 1 {
+		t.Fatalf("requests = %d, want 1 (body not replayable)", len(auths))
+	}
+	if res.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", res.StatusCode)
+	}
+}
+
+func TestNoAuthorizationOnOtherHost(t *testing.T) {
+	var gotAuth string
+	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("Authorization")
+	}))
+	t.Cleanup(other.Close)
+	// Redirect from the API host to another host, as a cross-host redirect
+	// would.
+	redirecting := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, other.URL, http.StatusFound)
+	}))
+	t.Cleanup(redirecting.Close)
+	s := session.New(credential.Credential{Server: redirecting.URL, Token: "tok"}, credential.SourceEnv, nil, nil)
+
+	res, err := s.API().GetCurrentUser(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = res.Body.Close()
+
+	if gotAuth != "" {
+		t.Fatalf("Authorization sent to another host: %q", gotAuth)
+	}
+}
