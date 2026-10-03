@@ -26,7 +26,9 @@ func New(s *session.Session, opts Options) *mcp.Server {
 
 	t := &tools{session: s}
 	t.registerRead(srv)
-	// Tools that modify data must only be registered when !opts.ReadOnly.
+	if !opts.ReadOnly {
+		t.registerWrite(srv)
+	}
 
 	return srv
 }
