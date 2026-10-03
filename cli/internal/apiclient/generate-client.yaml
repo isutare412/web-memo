@@ -1,0 +1,13 @@
+package: gen
+generate:
+  client: true
+  models: true
+compatibility:
+  always-prefix-enum-values: true
+output: gen/client.go
+output-options:
+  name-normalizer: ToCamelCaseWithInitialisms
+  skip-prune: true
+  response-type-suffix: Result
+  overlay:
+    path: overlay.yaml

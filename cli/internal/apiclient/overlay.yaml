@@ -1,0 +1,21 @@
+overlay: 1.0.0
+info:
+  title: Strip api-internal Go type bindings
+  version: 1.0.0
+actions:
+  - target: $.components.schemas.MemoSortKey.x-go-type
+    remove: true
+  - target: $.components.schemas.MemoSortKey.x-go-import
+    remove: true
+  - target: $.components.schemas.PublishState.x-go-type
+    remove: true
+  - target: $.components.schemas.PublishState.x-go-import
+    remove: true
+  - target: $.components.schemas.ImageFormat.x-go-type
+    remove: true
+  - target: $.components.schemas.ImageFormat.x-go-import
+    remove: true
+  - target: $.components.schemas.ImageState.x-go-type
+    remove: true
+  - target: $.components.schemas.ImageState.x-go-import
+    remove: true
