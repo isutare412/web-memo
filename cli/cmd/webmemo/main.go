@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -19,6 +18,7 @@ commands:
   logout   delete the stored credential
   whoami   show the logged-in user and token expiry
   token    print the current token
+  mcp      run the MCP server on stdio (--read-only for read tools only)
 
 Run "webmemo <command> -h" for command flags.
 `
@@ -41,7 +41,7 @@ func main() {
 // run dispatches args to a subcommand.
 func run(ctx context.Context, args []string, env func(string) string, store *credential.Store, out io.Writer) error {
 	if len(args) == 0 {
-		return errors.New("missing command\n\n" + usage)
+		return fmt.Errorf("missing command\n\n%s", usage)
 	}
 	cmd, rest := args[0], args[1:]
 	switch cmd {
@@ -53,7 +53,8 @@ func run(ctx context.Context, args []string, env func(string) string, store *cre
 		return runWhoami(ctx, rest, env, store, out)
 	case "token":
 		return runToken(rest, env, store, out)
-	// "mcp" is added by the MCP server task.
+	case "mcp":
+		return runMCP(ctx, rest, env, store, out)
 	case "-h", "-help", "--help", "help":
 		_, _ = io.WriteString(out, usage)
 		return nil
