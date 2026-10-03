@@ -20,6 +20,11 @@ WebMemo supports hybrid search that combines:
 Search results are fused with Reciprocal Rank Fusion (RRF), so both semantic
 similarity and exact keyword signals contribute to ranking.
 
+## CLI and MCP Server
+
+The [`webmemo` CLI](cli/README.md) logs in to WebMemo and runs an MCP server
+on stdio, so AI agents such as Claude Code can search, create, and edit memos.
+
 ## Screenshots
 
 ### Memo Edit
