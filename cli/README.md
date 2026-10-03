@@ -17,7 +17,7 @@ agents such as Claude Code can search and edit your memos.
 go install github.com/isutare412/web-memo/cli/cmd/webmemo@latest
 ```
 
-Or build from this directory with `make build` (writes `bin/webmemo`).
+Or, from a checkout, run `make install` in this directory (or `make install-cli` at the repo root) to install into `GOBIN` (default `~/go/bin`), or `make build` / `make build-cli` to write `cli/bin/webmemo`.
 
 ## Log in
 

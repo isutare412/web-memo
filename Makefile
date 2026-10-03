@@ -68,6 +68,16 @@ push-ui: ## Push docker image of UI module.
 	echo $(DOCKER_PASSWORD) | docker login -u $(DOCKER_USER) --password-stdin
 	docker push $(IMAGE_UI)
 
+##@ CLI
+
+.PHONY: build-cli
+build-cli: ## Build webmemo CLI binary into cli/bin.
+	$(MAKE) -C cli build
+
+.PHONY: install-cli
+install-cli: ## Install webmemo CLI into GOBIN (default ~/go/bin).
+	$(MAKE) -C cli install
+
 ##@ Docker Compose
 
 .PHONY: up

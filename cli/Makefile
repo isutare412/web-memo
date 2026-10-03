@@ -41,6 +41,10 @@ generate: ## Generate the OpenAPI client from the api module's spec.
 build: ## Build the webmemo binary into bin/.
 	go build -o bin/webmemo ./cmd/webmemo
 
+.PHONY: install
+install: ## Install the webmemo binary into GOBIN (default ~/go/bin).
+	go install ./cmd/webmemo
+
 ##@ Tool Dependencies
 
 ## Location to install dependencies to.

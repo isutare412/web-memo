@@ -24,6 +24,8 @@ similarity and exact keyword signals contribute to ranking.
 
 The [`webmemo` CLI](cli/README.md) logs in to WebMemo and runs an MCP server
 on stdio, so AI agents such as Claude Code can search, create, and edit memos.
+Install it from a checkout with `make install-cli` (into `GOBIN`, default
+`~/go/bin`), or build `cli/bin/webmemo` with `make build-cli`.
 
 ## Screenshots
 
