@@ -26,19 +26,25 @@ func (h *Handler) StartGoogleSignIn(w http.ResponseWriter, r *http.Request, para
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
-// FinishGoogleSignIn completes the Google OAuth2 sign-in flow, sets the
-// authentication cookie, and redirects the user.
+// FinishGoogleSignIn completes the Google OAuth2 sign-in flow and redirects
+// the user. Web logins get the authentication cookie; CLI logins get the token
+// in the loopback callback URL instead.
 func (h *Handler) FinishGoogleSignIn(w http.ResponseWriter, r *http.Request, params gen.FinishGoogleSignInParams) {
 	ctx, span := tracing.StartSpan(r.Context(), "web.handlers.FinishGoogleSignIn")
 	defer span.End()
 
-	redirectURL, appToken, err := h.authService.FinishGoogleSignIn(ctx, r)
+	result, err := h.authService.FinishGoogleSignIn(ctx, r)
 	if err != nil {
 		gen.RespondError(w, r, fmt.Errorf("finishing google sign-in: %w", err))
 		return
 	}
 
-	slog.Info("finished google sign-in", "redirectURL", redirectURL)
-	http.SetCookie(w, auth.NewWebMemoCookie(appToken, h.cookieExpiration))
-	http.Redirect(w, r, redirectURL, http.StatusFound)
+	if result.SetCookie {
+		slog.Info("finished google sign-in", "redirectURL", result.RedirectURL)
+		http.SetCookie(w, auth.NewWebMemoCookie(result.AppToken, h.cookieExpiration))
+	} else {
+		// The redirect URL of a CLI login carries the app token.
+		slog.Info("finished google sign-in for cli")
+	}
+	http.Redirect(w, r, result.RedirectURL, http.StatusFound)
 }

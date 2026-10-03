@@ -200,40 +200,35 @@ var _ = Describe("Service", func() {
 		})
 
 		Context("FinishGoogleSignIn", func() {
-			It("signs app ID token using google tokens", func(ctx SpecContext) {
-				var (
-					givenHost     = "localhost:42"
-					givenStateID  = uuid.NewString()
-					givenReferer  = "http://localhost:1234/foo/page"
-					givenState    = fmt.Sprintf(`{"id":"%s","referer":"%s"}`, givenStateID, givenReferer)
-					givenAuthCode = "auth-code-from-google"
-					givenURLQuery = url.Values{
-						"state": []string{givenState},
-						"code":  []string{givenAuthCode},
-					}
-					givenHTTPRequest = &http.Request{
-						Host: givenHost,
-						URL: &url.URL{
-							RawQuery: givenURLQuery.Encode(),
-						},
-					}
-					givenGoogleIDToken = "id-token-from-google"
-					givenUser          = &ent.User{
-						ID:         uuid.New(),
-						Email:      "foo@gmail.com",
-						UserName:   "Alice Bob",
-						GivenName:  "Alice",
-						FamilyName: "Bob",
-						PhotoURL:   "https://my-pic.com/foo",
-						Type:       enum.UserTypeClient,
-					}
-					givenAppIDToken = "app-id-token"
-				)
+			var (
+				givenHost       = "localhost:42"
+				givenAuthCode   = "auth-code-from-google"
+				givenGoogleID   = "id-token-from-google"
+				givenAppIDToken = "app-id-token"
+				givenUser       = &ent.User{
+					ID:         uuid.New(),
+					Email:      "foo@gmail.com",
+					UserName:   "Alice Bob",
+					GivenName:  "Alice",
+					FamilyName: "Bob",
+					PhotoURL:   "https://my-pic.com/foo",
+					Type:       enum.UserTypeClient,
+				}
+			)
 
-				mockKVRepository.EXPECT().
-					GetThenDelete(mock.Anything, givenStateID).
-					Return("", nil)
+			newRequest := func(stateID, referer string) *http.Request {
+				state := fmt.Sprintf(`{"id":"%s","referer":"%s"}`, stateID, referer)
+				query := url.Values{
+					"state": []string{state},
+					"code":  []string{givenAuthCode},
+				}
+				return &http.Request{
+					Host: givenHost,
+					URL:  &url.URL{RawQuery: query.Encode()},
+				}
+			}
 
+			expectSignIn := func() {
 				mockGoogleClient.EXPECT().
 					ExchangeAuthCode(mock.Anything, givenAuthCode, mock.Anything).
 					RunAndReturn(func(_ context.Context, _, redirectURI string) (model.GoogleTokenResponse, error) {
@@ -243,12 +238,12 @@ var _ = Describe("Service", func() {
 						Expect(redirectURI).Should(Equal(callbackURL))
 
 						return model.GoogleTokenResponse{
-							IDToken: givenGoogleIDToken,
+							IDToken: givenGoogleID,
 						}, nil
 					})
 
 				mockJWTClient.EXPECT().
-					ParseGoogleIDTokenUnverified(givenGoogleIDToken).
+					ParseGoogleIDTokenUnverified(givenGoogleID).
 					Return(&model.GoogleIDToken{
 						Email:      givenUser.Email,
 						Name:       givenUser.UserName,
@@ -282,11 +277,74 @@ var _ = Describe("Service", func() {
 						Expect(t.PhotoURL).Should(Equal(givenUser.PhotoURL))
 						return nil, givenAppIDToken, nil
 					})
+			}
 
-				redirectURL, appIDToken, err := authService.FinishGoogleSignIn(ctx, givenHTTPRequest)
+			It("signs app ID token using google tokens", func(ctx SpecContext) {
+				var (
+					givenStateID = uuid.NewString()
+					givenReferer = "http://localhost:1234/foo/page"
+				)
+
+				mockKVRepository.EXPECT().
+					GetThenDelete(mock.Anything, givenStateID).
+					Return("", nil)
+				expectSignIn()
+
+				result, err := authService.FinishGoogleSignIn(ctx, newRequest(givenStateID, givenReferer))
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(redirectURL).Should(Equal(givenReferer))
-				Expect(appIDToken).Should(Equal(givenAppIDToken))
+				Expect(result.RedirectURL).Should(Equal(givenReferer))
+				Expect(result.AppToken).Should(Equal(givenAppIDToken))
+				Expect(result.SetCookie).Should(BeTrue())
+			})
+
+			It("redirects CLI login to loopback callback with token", func(ctx SpecContext) {
+				var (
+					givenStateID  = uuid.NewString()
+					givenCallback = "http://127.0.0.1:53682/callback"
+					givenCLIState = "abcdefghijklmnop"
+					givenValue    = fmt.Sprintf(`{"cliCallback":"%s","cliState":"%s"}`, givenCallback, givenCLIState)
+				)
+
+				mockKVRepository.EXPECT().
+					GetThenDelete(mock.Anything, givenStateID).
+					Return(givenValue, nil)
+				expectSignIn()
+
+				result, err := authService.FinishGoogleSignIn(ctx, newRequest(givenStateID, "http://localhost:1234/foo/page"))
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(result.SetCookie).Should(BeFalse())
+				Expect(result.AppToken).Should(Equal(givenAppIDToken))
+
+				redirect, err := url.Parse(result.RedirectURL)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(redirect.Scheme).Should(Equal("http"))
+				Expect(redirect.Host).Should(Equal("127.0.0.1:53682"))
+				Expect(redirect.Path).Should(Equal("/callback"))
+				Expect(redirect.Query().Get("token")).Should(Equal(givenAppIDToken))
+				Expect(redirect.Query().Get("state")).Should(Equal(givenCLIState))
+			})
+
+			It("fails when state value is not valid JSON", func(ctx SpecContext) {
+				givenStateID := uuid.NewString()
+
+				mockKVRepository.EXPECT().
+					GetThenDelete(mock.Anything, givenStateID).
+					Return("{", nil)
+
+				_, err := authService.FinishGoogleSignIn(ctx, newRequest(givenStateID, ""))
+				Expect(err).Should(HaveOccurred())
+			})
+
+			It("fails when stored CLI callback is not a loopback address", func(ctx SpecContext) {
+				givenStateID := uuid.NewString()
+				givenValue := `{"cliCallback":"http://evil.com:1/callback","cliState":"abcdefghijklmnop"}`
+
+				mockKVRepository.EXPECT().
+					GetThenDelete(mock.Anything, givenStateID).
+					Return(givenValue, nil)
+
+				_, err := authService.FinishGoogleSignIn(ctx, newRequest(givenStateID, ""))
+				Expect(err).Should(HaveOccurred())
 			})
 		})
 	})

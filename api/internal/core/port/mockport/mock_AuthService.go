@@ -24,38 +24,31 @@ func (_m *MockAuthService) EXPECT() *MockAuthService_Expecter {
 }
 
 // FinishGoogleSignIn provides a mock function with given fields: _a0, _a1
-func (_m *MockAuthService) FinishGoogleSignIn(_a0 context.Context, _a1 *http.Request) (string, string, error) {
+func (_m *MockAuthService) FinishGoogleSignIn(_a0 context.Context, _a1 *http.Request) (model.GoogleSignInResult, error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FinishGoogleSignIn")
 	}
 
-	var r0 string
-	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, *http.Request) (string, string, error)); ok {
+	var r0 model.GoogleSignInResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *http.Request) (model.GoogleSignInResult, error)); ok {
 		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *http.Request) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *http.Request) model.GoogleSignInResult); ok {
 		r0 = rf(_a0, _a1)
 	} else {
-		r0 = ret.Get(0).(string)
+		r0 = ret.Get(0).(model.GoogleSignInResult)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *http.Request) string); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *http.Request) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
-		r1 = ret.Get(1).(string)
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, *http.Request) error); ok {
-		r2 = rf(_a0, _a1)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // MockAuthService_FinishGoogleSignIn_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FinishGoogleSignIn'
@@ -77,12 +70,12 @@ func (_c *MockAuthService_FinishGoogleSignIn_Call) Run(run func(_a0 context.Cont
 	return _c
 }
 
-func (_c *MockAuthService_FinishGoogleSignIn_Call) Return(redirectURL string, appToken string, err error) *MockAuthService_FinishGoogleSignIn_Call {
-	_c.Call.Return(redirectURL, appToken, err)
+func (_c *MockAuthService_FinishGoogleSignIn_Call) Return(_a0 model.GoogleSignInResult, _a1 error) *MockAuthService_FinishGoogleSignIn_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockAuthService_FinishGoogleSignIn_Call) RunAndReturn(run func(context.Context, *http.Request) (string, string, error)) *MockAuthService_FinishGoogleSignIn_Call {
+func (_c *MockAuthService_FinishGoogleSignIn_Call) RunAndReturn(run func(context.Context, *http.Request) (model.GoogleSignInResult, error)) *MockAuthService_FinishGoogleSignIn_Call {
 	_c.Call.Return(run)
 	return _c
 }

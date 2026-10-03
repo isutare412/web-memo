@@ -124,43 +124,49 @@ func (s *Service) StartGoogleSignIn(ctx context.Context, req *http.Request) (red
 func (s *Service) FinishGoogleSignIn(
 	ctx context.Context,
 	req *http.Request,
-) (redirectURL, appTokenString string, err error) {
+) (model.GoogleSignInResult, error) {
 	state, err := parseGoogleOAuthState(req.URL.Query())
 	if err != nil {
-		return "", "", fmt.Errorf("getting google oauth state: %w", err)
+		return model.GoogleSignInResult{}, fmt.Errorf("getting google oauth state: %w", err)
 	}
 
-	if _, err := s.kvRepository.GetThenDelete(ctx, state.ID); err != nil {
+	stateValue, err := s.kvRepository.GetThenDelete(ctx, state.ID)
+	if err != nil {
 		if pkgerr.IsErrNotFound(err) {
-			return "", "", pkgerr.Known{
+			return model.GoogleSignInResult{}, pkgerr.Known{
 				Code:      pkgerr.CodeBadRequest,
 				ClientMsg: "OAuth2.0 state not found",
 				Origin:    err,
 			}
 		}
-		return "", "", fmt.Errorf("get then deleting state: %w", err)
+		return model.GoogleSignInResult{}, fmt.Errorf("get then deleting state: %w", err)
+	}
+
+	cli, err := parseStoredCLILogin(stateValue)
+	if err != nil {
+		return model.GoogleSignInResult{}, fmt.Errorf("parsing stored CLI login: %w", err)
 	}
 
 	authCode := req.URL.Query().Get("code")
 	if authCode == "" {
-		return "", "", pkgerr.Known{
+		return model.GoogleSignInResult{}, pkgerr.Known{
 			ClientMsg: "no authorization code",
 		}
 	}
 
 	callbackURL, err := s.getGoogleCallbackURL(req)
 	if err != nil {
-		return "", "", fmt.Errorf("getting google callback URL: %w", err)
+		return model.GoogleSignInResult{}, fmt.Errorf("getting google callback URL: %w", err)
 	}
 
 	tokenResp, err := s.googleClient.ExchangeAuthCode(ctx, authCode, callbackURL)
 	if err != nil {
-		return "", "", fmt.Errorf("exchanging auth code: %w", err)
+		return model.GoogleSignInResult{}, fmt.Errorf("exchanging auth code: %w", err)
 	}
 
 	idToken, err := s.jwtClient.ParseGoogleIDTokenUnverified(tokenResp.IDToken)
 	if err != nil {
-		return "", "", fmt.Errorf("parsing google ID token: %w", err)
+		return model.GoogleSignInResult{}, fmt.Errorf("parsing google ID token: %w", err)
 	}
 
 	var userUpserted *ent.User
@@ -191,20 +197,28 @@ func (s *Service) FinishGoogleSignIn(
 		return nil
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("during transaction: %w", err)
+		return model.GoogleSignInResult{}, fmt.Errorf("during transaction: %w", err)
 	}
 
-	_, appTokenString, err = s.jwtClient.SignAppIDToken(model.NewAppIDToken(userUpserted))
+	_, appTokenString, err := s.jwtClient.SignAppIDToken(model.NewAppIDToken(userUpserted))
 	if err != nil {
-		return "", "", fmt.Errorf("signing app ID token: %w", err)
+		return model.GoogleSignInResult{}, fmt.Errorf("signing app ID token: %w", err)
 	}
 
-	redirectURL = getBaseURL(req)
+	if cli != nil {
+		redirectURL, err := cli.redirectURL(appTokenString)
+		if err != nil {
+			return model.GoogleSignInResult{}, fmt.Errorf("building CLI redirect URL: %w", err)
+		}
+		return model.GoogleSignInResult{RedirectURL: redirectURL, AppToken: appTokenString}, nil
+	}
+
+	redirectURL := getBaseURL(req)
 	if state.Referer != "" {
 		redirectURL = state.Referer
 	}
 
-	return redirectURL, appTokenString, nil
+	return model.GoogleSignInResult{RedirectURL: redirectURL, AppToken: appTokenString, SetCookie: true}, nil
 }
 
 func (s *Service) generateOAuthStateID(ctx context.Context, value string) (string, error) {

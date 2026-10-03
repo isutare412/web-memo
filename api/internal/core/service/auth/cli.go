@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"encoding/json"
+	"fmt"
 	"net"
 	"net/url"
 	"regexp"
@@ -50,6 +52,42 @@ func parseCLILogin(q url.Values) (*cliLogin, error) {
 	}
 
 	return &cliLogin{Callback: callback, State: state}, nil
+}
+
+// parseStoredCLILogin decodes the Redis OAuth state value. It returns nil for
+// the empty value stored by web logins. The stored callback is re-validated
+// because the token is about to be placed in a URL.
+func parseStoredCLILogin(value string) (*cliLogin, error) {
+	if value == "" {
+		return nil, nil
+	}
+
+	var cli cliLogin
+	if err := json.Unmarshal([]byte(value), &cli); err != nil {
+		return nil, fmt.Errorf("unmarshaling CLI login: %w", err)
+	}
+
+	if err := validateCLICallback(cli.Callback); err != nil {
+		return nil, fmt.Errorf("validating stored CLI callback: %w", err)
+	}
+
+	return &cli, nil
+}
+
+// redirectURL returns the loopback callback URL carrying the app token and the
+// CLI-provided state.
+func (c *cliLogin) redirectURL(appToken string) (string, error) {
+	u, err := url.Parse(c.Callback)
+	if err != nil {
+		return "", fmt.Errorf("parsing CLI callback: %w", err)
+	}
+
+	q := u.Query()
+	q.Set("token", appToken)
+	q.Set("state", c.State)
+	u.RawQuery = q.Encode()
+
+	return u.String(), nil
 }
 
 // validateCLICallback accepts only http://127.0.0.1:<port>/callback or

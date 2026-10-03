@@ -49,13 +49,17 @@ func (h *googleHandler) googleSignInFinish(w http.ResponseWriter, r *http.Reques
 	ctx, span := tracing.StartSpan(r.Context(), "http.googleHandler.googleSignInFinish")
 	defer span.End()
 
-	redirectURL, appToken, err := h.authService.FinishGoogleSignIn(ctx, r)
+	result, err := h.authService.FinishGoogleSignIn(ctx, r)
 	if err != nil {
 		responseError(w, r, fmt.Errorf("finishing google sign-in: %w", err))
 		return
 	}
 
-	slog.Info("finished google sign-in", "redirectURL", redirectURL)
-	http.SetCookie(w, newWebMemoCookie(appToken, h.cookieExpiration))
-	http.Redirect(w, r, redirectURL, http.StatusFound)
+	if result.SetCookie {
+		slog.Info("finished google sign-in", "redirectURL", result.RedirectURL)
+		http.SetCookie(w, newWebMemoCookie(result.AppToken, h.cookieExpiration))
+	} else {
+		slog.Info("finished google sign-in for cli")
+	}
+	http.Redirect(w, r, result.RedirectURL, http.StatusFound)
 }
