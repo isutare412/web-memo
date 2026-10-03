@@ -76,7 +76,7 @@ func (l *Loopback) Run(ctx context.Context, out io.Writer) (string, error) {
 			_, _ = fmt.Fprintf(out, "Could not open a browser automatically (%v); open the URL above manually.\n", err)
 		}
 	}
-	_, _ = fmt.Fprintln(out, "Waiting for login to complete...")
+	_, _ = fmt.Fprintln(out, "Waiting for login to complete... (if the browser shows an error or you cancel the consent, press Ctrl-C)")
 
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()

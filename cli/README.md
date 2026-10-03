@@ -4,10 +4,12 @@
 and runs an [MCP](https://modelcontextprotocol.io) server on stdio, so AI
 agents such as Claude Code can search and edit your memos.
 
-> **Server deployment required.** Browser login, `webmemo token` on a
-> logged-in machine, and token refresh depend on API changes that ship with the
-> server. Until that api change is deployed to your server, only
-> `webmemo login --token <T>` works.
+> **Server deployment required for browser login.** `webmemo login` (the
+> browser flow) depends on an API change that ships with the server. Until it
+> is deployed to your server, use `webmemo login --token <T>`, where `<T>` is
+> the value of the `wmToken` cookie of memo.redshore.me (browser devtools,
+> Application/Storage, Cookies). Token refresh and the other commands work
+> without that change.
 
 ## Install
 
@@ -29,7 +31,14 @@ This opens the browser, finishes the login through a local loopback callback,
 and stores the credential in `$XDG_CONFIG_HOME/webmemo/credentials.json`
 (default `~/.config/webmemo/credentials.json`). Use `--no-browser` to print the
 login URL instead of opening it, and `--server <URL>` for a server other than
-the default.
+the default. If the browser shows an error or you cancel the Google consent,
+press Ctrl-C; otherwise the CLI waits 5 minutes.
+
+The callback is the loopback address of the machine running `webmemo login`.
+Over SSH with `--no-browser`, forward the port the CLI reports
+(`ssh -L <port>:127.0.0.1:<port> <host>`) so your local browser can reach it, or
+skip the browser flow: run `webmemo token` on your PC and `webmemo login
+--token <T>` on the server.
 
 On a headless server, get a token on your PC and hand it over:
 
@@ -43,7 +52,8 @@ webmemo login --token <T>
 
 Alternatively set `WEBMEMO_TOKEN` (and `WEBMEMO_SERVER` if needed) in the
 environment. The environment takes precedence over the credentials file, and
-a token from the environment is never written to disk.
+a token from the environment is never written to disk. If `WEBMEMO_SERVER`
+names a different server than the saved login, the saved token is not used.
 
 Other commands: `webmemo whoami` shows the user and token expiry, and
 `webmemo logout` deletes the stored credential.
@@ -63,8 +73,12 @@ claude mcp add webmemo -- webmemo mcp --read-only
 ```
 
 The server starts even when you are not logged in; tool calls then return a
-message asking you to run `webmemo login`. stdout carries only the MCP
-protocol, so any diagnostics go to stderr.
+message asking you to run `webmemo login`. After such a 401 (not logged in or
+token expired), run `webmemo login`: the running MCP server picks up the new
+token from the credentials file automatically, with no restart. If
+`WEBMEMO_TOKEN` is set it overrides the file, so update it and restart the MCP
+server instead. stdout carries only the MCP protocol, so any diagnostics go to
+stderr.
 
 ### Tools
 

@@ -84,6 +84,9 @@ func TestLoopbackSuccess(t *testing.T) {
 	if strings.Contains(out.String(), "tok\n") {
 		t.Fatalf("output must not contain the token: %q", out.String())
 	}
+	if !strings.Contains(out.String(), "Ctrl-C") {
+		t.Fatalf("output should tell how to cancel: %q", out.String())
+	}
 }
 
 func TestLoopbackIgnoresStray(t *testing.T) {
