@@ -32,7 +32,7 @@ const (
 
 // ErrUnauthorized is returned when the server rejects the token or none is set.
 // A running process picks up the new token after `webmemo login`.
-var ErrUnauthorized = errors.New("webmemo: not logged in or token expired; run `webmemo login` (headless: `webmemo login --token <T>`)")
+var ErrUnauthorized = errors.New("not logged in or token expired; run `webmemo login` (headless: `webmemo login --token <T>`)")
 
 // Session holds the credential and builds API clients that authenticate with it.
 type Session struct {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -86,4 +87,11 @@ func TestForceRefreshFailures(t *testing.T) {
 			t.Fatalf("refresh endpoint called without a token")
 		}
 	})
+}
+
+// main prefixes every error with "webmemo: ", so the message must not.
+func TestErrUnauthorizedHasNoPrefix(t *testing.T) {
+	if msg := session.ErrUnauthorized.Error(); strings.HasPrefix(msg, "webmemo:") {
+		t.Fatalf("ErrUnauthorized = %q, must not start with the webmemo: prefix", msg)
+	}
 }
