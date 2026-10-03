@@ -91,10 +91,13 @@ var readTools = []string{"get_memo", "list_memo_members", "search_memos", "searc
 
 func TestToolListFull(t *testing.T) {
 	cs := newTestClient(t, http.NotFoundHandler(), Options{})
-	got := strings.Join(toolNames(t, cs), ",")
+	got := make(map[string]bool)
+	for _, name := range toolNames(t, cs) {
+		got[name] = true
+	}
 	for _, name := range readTools {
-		if !strings.Contains(got, name) {
-			t.Errorf("tool %q missing from %s", name, got)
+		if !got[name] {
+			t.Errorf("tool %q missing from %v", name, got)
 		}
 	}
 }
@@ -108,7 +111,7 @@ func TestToolListReadOnly(t *testing.T) {
 }
 
 func TestReadToolsAreReadOnlyHinted(t *testing.T) {
-	cs := newTestClient(t, http.NotFoundHandler(), Options{})
+	cs := newTestClient(t, http.NotFoundHandler(), Options{ReadOnly: true})
 	res, err := cs.ListTools(context.Background(), nil)
 	if err != nil {
 		t.Fatal(err)

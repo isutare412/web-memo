@@ -3,6 +3,7 @@ package mcpserver
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,9 +19,10 @@ func (t *tools) registerRead(srv *mcp.Server) {
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "search_memos",
 		Description: "List or search the user's memos. With query, runs a hybrid semantic + keyword search " +
-			"(results include relevance scores); without it, lists memos by sort order. " +
-			"tags keeps only memos that have the given tags. sort is createTime or updateTime (default updateTime). " +
-			"Results are paged (page starts at 1) and contain a content preview, not the full body; use get_memo for the full content.",
+			"(results include relevance scores); in that mode tags, sort, page, and page_size are ignored and the paging fields are null. " +
+			"Without query, lists memos filtered by tags (only memos having the given tags), ordered by sort " +
+			"(createTime or updateTime; default createTime), newest first, paged (page starts at 1). " +
+			"Results contain a content preview, not the full body; use get_memo for the full content.",
 		Annotations: readOnlyAnnotations,
 	}, t.searchMemos)
 
@@ -44,11 +46,11 @@ func (t *tools) registerRead(srv *mcp.Server) {
 }
 
 type searchMemosInput struct {
-	Query    string   `json:"query,omitempty" jsonschema:"search text; omit to list memos without searching"`
-	Tags     []string `json:"tags,omitempty" jsonschema:"only memos having these tags"`
-	Sort     string   `json:"sort,omitempty" jsonschema:"createTime or updateTime (default updateTime)"`
-	Page     int      `json:"page,omitempty" jsonschema:"page number starting at 1"`
-	PageSize int      `json:"page_size,omitempty" jsonschema:"number of memos per page"`
+	Query    string   `json:"query,omitempty" jsonschema:"search text; omit to list memos without searching. When set, tags/sort/page/page_size are ignored"`
+	Tags     []string `json:"tags,omitempty" jsonschema:"only memos having these tags (list mode only)"`
+	Sort     string   `json:"sort,omitempty" jsonschema:"createTime or updateTime, newest first (default createTime; list mode only)"`
+	Page     int      `json:"page,omitempty" jsonschema:"page number starting at 1 (list mode only)"`
+	PageSize int      `json:"page_size,omitempty" jsonschema:"number of memos per page (list mode only)"`
 }
 
 type memoSummary struct {
@@ -89,7 +91,11 @@ func (t *tools) searchMemos(ctx context.Context, _ *mcp.CallToolRequest, in sear
 		params.PageSize = &in.PageSize
 	}
 
-	res, err := t.session.API().ListMemosWithResponse(ctx, params)
+	var editors []gen.RequestEditorFn
+	if len(in.Tags) == 0 {
+		editors = append(editors, dropEmptyTagParam)
+	}
+	res, err := t.session.API().ListMemosWithResponse(ctx, params, editors...)
 	if err != nil {
 		return errorResult(err), nil, nil
 	}
@@ -124,6 +130,15 @@ func (t *tools) searchMemos(ctx context.Context, _ *mcp.CallToolRequest, in sear
 		})
 	}
 	return respond(out)
+}
+
+// dropEmptyTagParam removes the `tag=` the generated client sends for a nil tag
+// list. The API reads it as the single tag "" and would match no memos.
+func dropEmptyTagParam(_ context.Context, req *http.Request) error {
+	q := req.URL.Query()
+	q.Del("tag")
+	req.URL.RawQuery = q.Encode()
+	return nil
 }
 
 type memoIDInput struct {

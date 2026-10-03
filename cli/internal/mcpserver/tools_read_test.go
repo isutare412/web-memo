@@ -22,14 +22,12 @@ func writeJSON(w http.ResponseWriter, status int, body string) {
 	_, _ = w.Write([]byte(body))
 }
 
-func TestSearchMemosPreview(t *testing.T) {
-	content := strings.Repeat("가", 300)
-	var gotQuery url.Values
-	cs := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func memosHandler(t *testing.T, got *url.Values, content string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/memos" {
 			t.Errorf("path = %s", r.URL.Path)
 		}
-		gotQuery = r.URL.Query()
+		*got = r.URL.Query()
 		body, _ := json.Marshal(map[string]any{
 			"page": 2, "pageSize": 5, "lastPage": 3, "totalMemoCount": 11,
 			"memos": []map[string]any{{
@@ -40,36 +38,35 @@ func TestSearchMemosPreview(t *testing.T) {
 			}},
 		})
 		writeJSON(w, http.StatusOK, string(body))
-	}), Options{})
-
-	res := callTool(t, cs, "search_memos", map[string]any{
-		"query": "hello", "tags": []string{"go", "mcp"}, "sort": "updateTime", "page": 2, "page_size": 5,
 	})
+}
+
+type searchMemosResult struct {
+	Page, PageSize, LastPage, TotalMemoCount int
+	Memos                                    []struct {
+		ID, Title, Preview, PublishState string
+		Tags                             []string
+		Scores                           map[string]float64
+		Content                          *string
+	}
+}
+
+func TestSearchMemosQueryMode(t *testing.T) {
+	content := strings.Repeat("가", 300)
+	var gotQuery url.Values
+	cs := newTestClient(t, memosHandler(t, &gotQuery, content), Options{})
+
+	res := callTool(t, cs, "search_memos", map[string]any{"query": "hello"})
 	if res.IsError {
 		t.Fatalf("unexpected error: %s", resultText(t, res))
 	}
-
-	want := url.Values{
-		"q": {"hello"}, "tag": {"go", "mcp"}, "sort": {"updateTime"}, "page": {"2"}, "pageSize": {"5"},
-	}
-	if !reflect.DeepEqual(gotQuery, want) {
+	if want := (url.Values{"q": {"hello"}}); !reflect.DeepEqual(gotQuery, want) {
 		t.Errorf("query = %v, want %v", gotQuery, want)
 	}
 
-	var out struct {
-		Page, PageSize, LastPage, TotalMemoCount int
-		Memos                                    []struct {
-			ID, Title, Preview, PublishState string
-			Tags                             []string
-			Scores                           map[string]float64
-			Content                          *string
-		}
-	}
+	var out searchMemosResult
 	if err := json.Unmarshal([]byte(resultText(t, res)), &out); err != nil {
 		t.Fatalf("decode: %v", err)
-	}
-	if out.Page != 2 || out.PageSize != 5 || out.LastPage != 3 || out.TotalMemoCount != 11 {
-		t.Errorf("paging = %+v", out)
 	}
 	if len(out.Memos) != 1 {
 		t.Fatalf("memos = %d", len(out.Memos))
@@ -87,8 +84,35 @@ func TestSearchMemosPreview(t *testing.T) {
 	if m.Content != nil {
 		t.Errorf("search result must not include full content")
 	}
-	if m.Scores["rrf"] != 0.5 {
+	if m.Scores["rrf"] != 0.5 || m.Scores["bm25"] != 1.5 || m.Scores["semantic"] != 0.25 {
 		t.Errorf("scores = %v", m.Scores)
+	}
+}
+
+func TestSearchMemosListMode(t *testing.T) {
+	var gotQuery url.Values
+	cs := newTestClient(t, memosHandler(t, &gotQuery, "short"), Options{})
+
+	res := callTool(t, cs, "search_memos", map[string]any{
+		"tags": []string{"go", "mcp"}, "sort": "updateTime", "page": 2, "page_size": 5,
+	})
+	if res.IsError {
+		t.Fatalf("unexpected error: %s", resultText(t, res))
+	}
+	want := url.Values{"tag": {"go", "mcp"}, "sort": {"updateTime"}, "page": {"2"}, "pageSize": {"5"}}
+	if !reflect.DeepEqual(gotQuery, want) {
+		t.Errorf("query = %v, want %v", gotQuery, want)
+	}
+
+	var out searchMemosResult
+	if err := json.Unmarshal([]byte(resultText(t, res)), &out); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if out.Page != 2 || out.PageSize != 5 || out.LastPage != 3 || out.TotalMemoCount != 11 {
+		t.Errorf("paging = %+v", out)
+	}
+	if len(out.Memos) != 1 || out.Memos[0].Preview != "short" {
+		t.Errorf("memos = %+v", out.Memos)
 	}
 }
 
@@ -227,5 +251,20 @@ func TestPreview(t *testing.T) {
 				t.Errorf("preview() = %q, want %q", got, tc.want)
 			}
 		})
+	}
+}
+
+// The generated client sends `tag=` for a nil tag list, which the API reads as
+// a filter on the empty tag name.
+func TestSearchMemosWithoutTagsSendsNoTagParam(t *testing.T) {
+	var gotQuery url.Values
+	cs := newTestClient(t, memosHandler(t, &gotQuery, "short"), Options{})
+
+	res := callTool(t, cs, "search_memos", map[string]any{})
+	if res.IsError {
+		t.Fatalf("unexpected error: %s", resultText(t, res))
+	}
+	if _, ok := gotQuery["tag"]; ok || len(gotQuery) != 0 {
+		t.Errorf("query = %v, want empty", gotQuery)
 	}
 }
