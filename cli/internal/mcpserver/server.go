@@ -28,6 +28,7 @@ func New(s *session.Session, opts Options) *mcp.Server {
 	t.registerRead(srv)
 	if !opts.ReadOnly {
 		t.registerWrite(srv)
+		t.registerMember(srv)
 	}
 
 	return srv

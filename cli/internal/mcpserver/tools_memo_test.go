@@ -11,7 +11,10 @@ import (
 	"testing"
 )
 
-var writeTools = []string{"create_memo", "delete_memo", "edit_memo", "publish_memo", "set_memo_tags", "update_memo"}
+var writeTools = []string{
+	"authorize_member", "create_memo", "delete_memo", "edit_memo", "publish_memo",
+	"request_collaboration", "set_memo_tags", "subscribe_memo", "update_memo",
+}
 
 func memoJSON(title, content string, tags []string, version int, state string) string {
 	b, _ := json.Marshal(map[string]any{
@@ -345,6 +348,10 @@ func TestWriteToolDestructiveAnnotations(t *testing.T) {
 		"set_memo_tags": true,
 		"publish_memo":  true,
 		"delete_memo":   true,
+
+		"subscribe_memo":        true,
+		"request_collaboration": true,
+		"authorize_member":      true,
 	}
 	cs := newTestClient(t, http.NotFoundHandler(), Options{})
 	res, err := cs.ListTools(context.Background(), nil)
@@ -466,6 +473,10 @@ func TestWriteToolsUnauthorized(t *testing.T) {
 		"delete_memo":   {"id": testMemoID},
 		"set_memo_tags": {"id": testMemoID, "tags": []string{}},
 		"publish_memo":  {"id": testMemoID, "state": "private"},
+
+		"subscribe_memo":        {"id": testMemoID, "action": "subscribe"},
+		"request_collaboration": {"id": testMemoID, "action": "request"},
+		"authorize_member":      {"id": testMemoID, "user_id": testUserID, "kind": "subscriber", "approve": true},
 	} {
 		res := callTool(t, cs, name, args)
 		if !res.IsError || !strings.Contains(resultText(t, res), "webmemo login") {
