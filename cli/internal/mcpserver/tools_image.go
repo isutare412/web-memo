@@ -128,7 +128,7 @@ func readImageFile(path string) ([]byte, gen.ImageFormat, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("cannot read image file: %w", err)
 	}
-	format, err := detectImageFormat(data[:min(len(data), 16)])
+	format, err := detectImageFormat(data[:min(len(data), imageHeadSize)])
 	if err != nil {
 		return nil, "", err
 	}

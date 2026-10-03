@@ -2,6 +2,7 @@ package mcpserver
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 
 	"github.com/isutare412/web-memo/cli/internal/apiclient/gen"
@@ -16,10 +17,14 @@ const (
 	formatHEIC gen.ImageFormat = "HEIC"
 )
 
+// imageHeadSize is how many leading bytes detectImageFormat can make use of.
+const imageHeadSize = 128
+
 var errUnsupportedImage = errors.New("unsupported image format: file content is not JPEG, PNG, WEBP, AVIF or HEIC")
 
 // detectImageFormat identifies the image format from the file's leading bytes
-// (the first 12 are enough).
+// (the first 12 bytes decide all formats but HEIF-family files, whose ftyp
+// box lists compatible brands that may follow; pass up to imageHeadSize bytes).
 func detectImageFormat(head []byte) (gen.ImageFormat, error) {
 	switch {
 	case bytes.HasPrefix(head, []byte{0xFF, 0xD8, 0xFF}):
@@ -33,9 +38,31 @@ func detectImageFormat(head []byte) (gen.ImageFormat, error) {
 		switch string(head[8:12]) {
 		case "avif", "avis":
 			return formatAVIF, nil
-		case "heic", "heix", "mif1", "msf1":
+		case "heic", "heix":
 			return formatHEIC, nil
+		case "mif1", "msf1":
+			// Generic HEIF brands: the compatible brands tell AVIF from HEIC.
+			return heifFormatFromCompatibleBrands(head), nil
 		}
 	}
 	return "", errUnsupportedImage
+}
+
+// heifFormatFromCompatibleBrands scans the compatible brands of the ftyp box
+// at the start of head (bounded by the box size and the bytes available).
+// The first recognised brand decides; with no hint it is HEIC.
+func heifFormatFromCompatibleBrands(head []byte) gen.ImageFormat {
+	end := len(head)
+	if size := int(binary.BigEndian.Uint32(head[:4])); size >= 16 && size < end {
+		end = size
+	}
+	for i := 16; i+4 <= end; i += 4 {
+		switch string(head[i : i+4]) {
+		case "avif", "avis":
+			return formatAVIF
+		case "heic", "heix", "hevc", "hevx":
+			return formatHEIC
+		}
+	}
+	return formatHEIC
 }
