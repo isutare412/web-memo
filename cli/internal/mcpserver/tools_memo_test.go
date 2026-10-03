@@ -337,20 +337,38 @@ func TestDeleteMemo(t *testing.T) {
 	}
 }
 
-func TestDeleteMemoAnnotation(t *testing.T) {
+func TestWriteToolDestructiveAnnotations(t *testing.T) {
+	want := map[string]bool{
+		"create_memo":   false,
+		"update_memo":   true,
+		"edit_memo":     true,
+		"set_memo_tags": true,
+		"publish_memo":  true,
+		"delete_memo":   true,
+	}
 	cs := newTestClient(t, http.NotFoundHandler(), Options{})
 	res, err := cs.ListTools(context.Background(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+	seen := 0
 	for _, tool := range res.Tools {
-		destructive := tool.Annotations != nil && tool.Annotations.DestructiveHint != nil && *tool.Annotations.DestructiveHint
-		if tool.Name == "delete_memo" && !destructive {
-			t.Errorf("delete_memo DestructiveHint is not true: %+v", tool.Annotations)
+		w, ok := want[tool.Name]
+		if !ok {
+			continue
 		}
-		if tool.Name != "delete_memo" && destructive {
-			t.Errorf("%s must not be destructive", tool.Name)
+		seen++
+		if tool.Annotations == nil || tool.Annotations.DestructiveHint == nil {
+			t.Errorf("%s: DestructiveHint unset, want %v", tool.Name, w)
+		} else if *tool.Annotations.DestructiveHint != w {
+			t.Errorf("%s: DestructiveHint = %v, want %v", tool.Name, *tool.Annotations.DestructiveHint, w)
 		}
+		if tool.Annotations != nil && tool.Annotations.ReadOnlyHint {
+			t.Errorf("%s: must not be read-only", tool.Name)
+		}
+	}
+	if seen != len(want) {
+		t.Errorf("found %d of %d write tools", seen, len(want))
 	}
 }
 

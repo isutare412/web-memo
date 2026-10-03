@@ -12,35 +12,36 @@ import (
 )
 
 // MCP clients assume a non-read-only tool is destructive unless told
-// otherwise, so the hint is set explicitly on every write tool.
+// otherwise, so the hint is set explicitly on every write tool. Tools that
+// overwrite or remove existing data are destructive; create_memo only adds.
 var (
-	destructive    = true
-	nonDestructive = false
+	hintTrue  = true
+	hintFalse = false
 
-	writeAnnotations       = &mcp.ToolAnnotations{DestructiveHint: &nonDestructive}
-	destructiveAnnotations = &mcp.ToolAnnotations{DestructiveHint: &destructive}
+	additiveAnnotations    = &mcp.ToolAnnotations{DestructiveHint: &hintFalse}
+	destructiveAnnotations = &mcp.ToolAnnotations{DestructiveHint: &hintTrue}
 )
 
 func (t *tools) registerWrite(srv *mcp.Server) {
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "create_memo",
 		Description: "Create a new memo. Returns the created memo (private until published). Tags are free-form names; use search_tags to reuse existing ones.",
-		Annotations: writeAnnotations,
+		Annotations: additiveAnnotations,
 	}, t.createMemo)
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "update_memo",
-		Description: "Replace fields of a memo. Omitted fields keep their current value; an empty string or empty tags array clears that field. " +
+		Description: "Replace fields of a memo. Omitted fields keep their current value; an empty content string or empty tags array clears that field (the title cannot be blank). " +
 			"version defaults to the memo's current version; pass the version you read to fail instead of overwriting a concurrent change. " +
 			"For small changes to the content prefer edit_memo. Returns the updated memo.",
-		Annotations: writeAnnotations,
+		Annotations: destructiveAnnotations,
 	}, t.updateMemo)
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "edit_memo",
 		Description: "Edit a memo's content by replacing old_string with new_string (exact match, whitespace included). " +
 			"old_string must match exactly once unless replace_all is true. Returns the updated memo.",
-		Annotations: writeAnnotations,
+		Annotations: destructiveAnnotations,
 	}, t.editMemo)
 
 	mcp.AddTool(srv, &mcp.Tool{
@@ -52,14 +53,17 @@ func (t *tools) registerWrite(srv *mcp.Server) {
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "set_memo_tags",
 		Description: "Replace all tags of a memo with the given list (an empty list removes every tag). Returns the updated memo.",
-		Annotations: writeAnnotations,
+		Annotations: destructiveAnnotations,
 	}, t.setMemoTags)
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "publish_memo",
-		Description: "Set who can see a memo: private (owner only), shared (people with the link), or published (public). " +
+		Description: "Set a memo's publish state. private: only the owner and collaborators can see it. " +
+			"shared: anyone can open a landing page, but the content is visible only to the owner, collaborators, and approved subscribers " +
+			"(subscription requests wait for approval). published: anyone can read the content; going from shared to published approves all pending subscriptions. " +
+			"WARNING: changing shared or published to private permanently removes all subscribers and collaborators; this cannot be undone. " +
 			"Returns the updated memo.",
-		Annotations: writeAnnotations,
+		Annotations: destructiveAnnotations,
 	}, t.publishMemo)
 }
 
