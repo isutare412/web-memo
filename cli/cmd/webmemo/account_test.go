@@ -90,6 +90,62 @@ func TestLoginWithTokenRejected(t *testing.T) {
 	}
 }
 
+func TestLoginWithCorruptFile(t *testing.T) {
+	tok := makeJWT(1893456000)
+	srv := fakeAPI(t, tok)
+	store := newStore(t)
+	if err := os.MkdirAll(filepath.Dir(store.Path), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(store.Path, []byte("{"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var out strings.Builder
+	env := func(k string) string {
+		if k == "WEBMEMO_SERVER" {
+			return srv.URL
+		}
+		return ""
+	}
+
+	if err := runLogin(context.Background(), []string{"--token", tok}, env, store, &out); err != nil {
+		t.Fatalf("runLogin: %v", err)
+	}
+	got, err := store.Load()
+	if err != nil {
+		t.Fatalf("file should be rewritten: %v", err)
+	}
+	if got.Server != srv.URL || got.Token != tok {
+		t.Fatalf("stored credential = %+v", got)
+	}
+	if !strings.Contains(out.String(), "unreadable") {
+		t.Fatalf("output should mention the unreadable file: %q", out.String())
+	}
+}
+
+func TestLoginNotesEnvToken(t *testing.T) {
+	tok := makeJWT(1893456000)
+	srv := fakeAPI(t, tok)
+	var out strings.Builder
+	env := func(k string) string {
+		if k == "WEBMEMO_TOKEN" {
+			return "other"
+		}
+		return ""
+	}
+
+	err := runLogin(context.Background(), []string{"--server", srv.URL, "--token", tok}, env, newStore(t), &out)
+	if err != nil {
+		t.Fatalf("runLogin: %v", err)
+	}
+	if !strings.Contains(out.String(), "WEBMEMO_TOKEN is set") {
+		t.Fatalf("output should note WEBMEMO_TOKEN: %q", out.String())
+	}
+	if strings.Contains(out.String(), "other") {
+		t.Fatalf("output leaks the env token: %q", out.String())
+	}
+}
+
 func TestLoginBrowser(t *testing.T) {
 	tok := makeJWT(1893456000)
 	srv := fakeAPI(t, tok)

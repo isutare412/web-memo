@@ -65,7 +65,12 @@ func runLogin(ctx context.Context, args []string, env func(string) string, store
 	if server == "" {
 		cred, _, err := credential.Resolve(store, env)
 		if err != nil {
-			return err
+			// login overwrites the file, so a damaged one must not block it.
+			_, _ = fmt.Fprintf(out, "Note: ignoring unreadable credentials file (it will be overwritten): %v\n", err)
+			cred.Server = credential.DefaultServer
+			if v := env("WEBMEMO_SERVER"); v != "" {
+				cred.Server = v
+			}
 		}
 		server = cred.Server
 	}
@@ -99,6 +104,9 @@ func runLogin(ctx context.Context, args []string, env func(string) string, store
 		return err
 	}
 	_, _ = fmt.Fprintf(out, "Logged in as %s <%s> on %s\n", user.UserName, user.Email, server)
+	if env("WEBMEMO_TOKEN") != "" {
+		_, _ = fmt.Fprintln(out, "Note: WEBMEMO_TOKEN is set and overrides the saved login; unset or update it to use this token.")
+	}
 	return nil
 }
 
