@@ -41,6 +41,9 @@ service:
   type: ClusterIP
   port: 80
 
+# Environment variables for the container (list of EnvVar, valueFrom allowed).
+envs: []
+
 resources:
   limits:
     cpu: 200m
