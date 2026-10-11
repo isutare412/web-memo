@@ -3,6 +3,7 @@ package config_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -180,6 +181,25 @@ imageer:
 			cfg, err := config.LoadValidated(givenConfigDir)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(*cfg).Should(Equal(wantConfig))
+		})
+
+		It("accepts a supported postgres ssl-mode", func() {
+			text := strings.Replace(givenConfigText, "  database: fake\n", "  database: fake\n  ssl-mode: require\n", 1)
+			err := os.WriteFile(filepath.Join(givenConfigDir, "config.yaml"), []byte(text), 0644)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			cfg, err := config.LoadValidated(givenConfigDir)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(cfg.Postgres.SSLMode).Should(Equal("require"))
+		})
+
+		It("rejects an unsupported postgres ssl-mode", func() {
+			text := strings.Replace(givenConfigText, "  database: fake\n", "  database: fake\n  ssl-mode: verify-full\n", 1)
+			err := os.WriteFile(filepath.Join(givenConfigDir, "config.yaml"), []byte(text), 0644)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = config.LoadValidated(givenConfigDir)
+			Expect(err).Should(HaveOccurred())
 		})
 
 		It("loads config overwritten by env", func() {

@@ -15,13 +15,21 @@ type Client struct {
 }
 
 func NewClient(cfg Config) (*Client, error) {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database)
-	client, err := ent.Open("postgres", dsn, buildEntOptions(cfg.QueryLog)...)
+	client, err := ent.Open("postgres", buildDSN(cfg), buildEntOptions(cfg.QueryLog)...)
 	if err != nil {
 		return nil, fmt.Errorf("opening PostgreSQL connection: %w", err)
 	}
 
 	return &Client{entClient: client}, nil
+}
+
+func buildDSN(cfg Config) string {
+	sslMode := cfg.SSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, sslMode)
 }
 
 func (c *Client) Shutdown(ctx context.Context) error {
