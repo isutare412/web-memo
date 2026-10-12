@@ -29,6 +29,7 @@ postgres:
 redis:
   addr: localhost:28200
   password: webmemooo
+  key-prefix: "webmemo:local:"
 
 google:
   endpoints:

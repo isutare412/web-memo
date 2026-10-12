@@ -14,12 +14,14 @@ import (
 )
 
 type KVRepository struct {
-	client *redis.Client
+	client    *redis.Client
+	keyPrefix string
 }
 
 func NewKVRepository(client *Client) *KVRepository {
 	return &KVRepository{
-		client: client.innerClient,
+		client:    client.innerClient,
+		keyPrefix: client.keyPrefix,
 	}
 }
 
@@ -29,7 +31,7 @@ func (r *KVRepository) Get(ctx context.Context, key string) (string, error) {
 		trace.WithAttributes(tracing.PeerServiceRedis))
 	defer span.End()
 
-	val, err := r.client.Get(ctx, key).Result()
+	val, err := r.client.Get(ctx, r.prefixed(key)).Result()
 	switch {
 	case errors.Is(err, redis.Nil):
 		return "", pkgerr.Known{
@@ -50,7 +52,7 @@ func (r *KVRepository) GetThenDelete(ctx context.Context, key string) (string, e
 		trace.WithAttributes(tracing.PeerServiceRedis))
 	defer span.End()
 
-	val, err := r.client.GetDel(ctx, key).Result()
+	val, err := r.client.GetDel(ctx, r.prefixed(key)).Result()
 	switch {
 	case errors.Is(err, redis.Nil):
 		return "", pkgerr.Known{
@@ -71,7 +73,7 @@ func (r *KVRepository) Set(ctx context.Context, key, val string, exp time.Durati
 		trace.WithAttributes(tracing.PeerServiceRedis))
 	defer span.End()
 
-	_, err := r.client.Set(ctx, key, val, exp).Result()
+	_, err := r.client.Set(ctx, r.prefixed(key), val, exp).Result()
 	if err != nil {
 		return fmt.Errorf("setting key-value: %w", err)
 	}
@@ -84,9 +86,18 @@ func (r *KVRepository) Delete(ctx context.Context, keys ...string) (delCount int
 		trace.WithAttributes(tracing.PeerServiceRedis))
 	defer span.End()
 
-	count, err := r.client.Del(ctx, keys...).Result()
+	prefixedKeys := make([]string, 0, len(keys))
+	for _, key := range keys {
+		prefixedKeys = append(prefixedKeys, r.prefixed(key))
+	}
+
+	count, err := r.client.Del(ctx, prefixedKeys...).Result()
 	if err != nil {
 		return 0, fmt.Errorf("deleting keys: %w", err)
 	}
 	return count, nil
+}
+
+func (r *KVRepository) prefixed(key string) string {
+	return r.keyPrefix + key
 }

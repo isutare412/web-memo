@@ -43,7 +43,9 @@ postgres:
   database: fake
 redis:
   addr: localhost:4120
+  username: tester
   password: memcached
+  key-prefix: "webmemo:test:"
 google:
   endpoints:
     token: https://oauth2.googleapis.com/token
@@ -141,8 +143,10 @@ imageer:
 						Database: "fake",
 					},
 					Redis: redis.Config{
-						Addr:     "localhost:4120",
-						Password: "memcached",
+						Addr:      "localhost:4120",
+						Username:  "tester",
+						Password:  "memcached",
+						KeyPrefix: "webmemo:test:",
 					},
 					Google: config.GoogleConfig{
 						Endpoints: config.GoogleEndpointsConfig{
@@ -237,8 +241,10 @@ imageer:
 						Database: "fake",
 					},
 					Redis: redis.Config{
-						Addr:     "localhost:4120",
-						Password: "memcached",
+						Addr:      "localhost:4120",
+						Username:  "tester",
+						Password:  "memcached",
+						KeyPrefix: "webmemo:test:",
 					},
 					Google: config.GoogleConfig{
 						Endpoints: config.GoogleEndpointsConfig{
@@ -318,8 +324,10 @@ oauth:
 						Database: "fake",
 					},
 					Redis: redis.Config{
-						Addr:     "localhost:4120",
-						Password: "memcached",
+						Addr:      "localhost:4120",
+						Username:  "tester",
+						Password:  "memcached",
+						KeyPrefix: "webmemo:test:",
 					},
 					Google: config.GoogleConfig{
 						Endpoints: config.GoogleEndpointsConfig{

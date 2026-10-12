@@ -9,16 +9,19 @@ import (
 
 type Client struct {
 	innerClient *redis.Client
+	keyPrefix   string
 }
 
 func NewClient(cfg Config) *Client {
 	client := redis.NewClient(&redis.Options{
 		Addr:     cfg.Addr,
+		Username: cfg.Username,
 		Password: cfg.Password,
 	})
 
 	return &Client{
 		innerClient: client,
+		keyPrefix:   cfg.KeyPrefix,
 	}
 }
 

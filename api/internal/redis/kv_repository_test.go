@@ -119,4 +119,55 @@ var _ = Describe("KvRepository", func() {
 			Expect(count).To(BeEquivalentTo(len(givenKeys)))
 		})
 	})
+
+	Context("with key prefix", func() {
+		var givenPrefix = "webmemo:test:"
+
+		BeforeEach(func() {
+			redisClient, mock := redismock.NewClientMock()
+			client := &Client{innerClient: redisClient, keyPrefix: givenPrefix}
+
+			kvRepository = NewKVRepository(client)
+			mockRedis = mock
+		})
+
+		It("prefixes key on Get", func(ctx SpecContext) {
+			mockRedis.
+				ExpectGet(givenPrefix + "foo").
+				SetVal("bar")
+
+			value, err := kvRepository.Get(ctx, "foo")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(value).To(Equal("bar"))
+		})
+
+		It("prefixes key on GetThenDelete", func(ctx SpecContext) {
+			mockRedis.
+				ExpectGetDel(givenPrefix + "foo").
+				SetVal("bar")
+
+			value, err := kvRepository.GetThenDelete(ctx, "foo")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(value).To(Equal("bar"))
+		})
+
+		It("prefixes key on Set", func(ctx SpecContext) {
+			mockRedis.
+				ExpectSet(givenPrefix+"foo", "bar", time.Hour).
+				SetVal("OK")
+
+			err := kvRepository.Set(ctx, "foo", "bar", time.Hour)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("prefixes keys on Delete", func(ctx SpecContext) {
+			mockRedis.
+				ExpectDel(givenPrefix+"foo", givenPrefix+"bar").
+				SetVal(2)
+
+			count, err := kvRepository.Delete(ctx, "foo", "bar")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(count).To(BeEquivalentTo(2))
+		})
+	})
 })

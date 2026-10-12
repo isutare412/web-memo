@@ -25,8 +25,8 @@ services:
       APP_DB_USER: ${APP_DB_USER}
       APP_DB_PASSWORD: ${APP_DB_PASSWORD}
 
-  redis:
-    image: redis:8
+  valkey:
+    image: valkey/valkey:9-trixie
     networks:
       app-tier:
     ports:
