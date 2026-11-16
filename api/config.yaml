@@ -43,7 +43,7 @@ jwt:
   expiration: 720h
   active-key-pair: v1
   key-pairs:
-    - name: v1
+    v1:
       private: <private_key>
       public: <public_key>
 

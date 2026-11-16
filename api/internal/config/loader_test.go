@@ -57,7 +57,7 @@ jwt:
   expiration: 720h
   active-key-pair: test
   key-pairs:
-    - name: 'test'
+    test:
       private: |
         -----BEGIN RSA PRIVATE KEY-----
         MIIEpQIBAAKCAQEAv+oq9v//ugc1cjhRlxJgd+R8wo72XtlfI5VWkKZNq/bnpsCo
@@ -160,8 +160,7 @@ imageer:
 					},
 					JWT: jwt.Config{
 						ActiveKeyPair: "test",
-						KeyPairs: []jwt.RSAKeyBytesPair{{
-							Name:    "test",
+						KeyPairs: map[string]jwt.RSAKeyBytesPair{"test": {
 							Private: "-----BEGIN RSA PRIVATE KEY-----\nMIIEpQIBAAKCAQEAv+oq9v//ugc1cjhRlxJgd+R8wo72XtlfI5VWkKZNq/bnpsCo\nbOE11viKPrakQS9fwh8WKvesOz63y/RIMGPmRVydo9kZoPTlefTjENiNSHDH0T+Y\nL8JAscbczHgNvfqfy0UM+eC21/T435zShNKcUUyyGR6s99fhZVIzlby3H1A/cQoV\nTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d9ycjoO74QP5RQdwLU87b3TXLSopa\nmCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+o0oHxOwz56neM+plxYKvLKmUsdyE\nUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4zQIDAQABAoIBAQCGH7fLS/qDHoqh\nuu56sGMvJ0ZyCsvwWeZ9zd7j1PYvmq0nAzoybercxHKJhcehruQznNo3SUTbWufE\n6IKTHx5Nl36shgu9S6oc46LVoSKMYBWmDdXketQP6rVhSP4BqeiHfUimUgA3SYOt\nc8JFBZQt1XYazC+CPyPNVferTGqGvK7X8jZkPCQyQxj+EAZ7k0cvZLz8ifCyf/E9\nqQh1sl8qdgAZuf+1KQUNEND9soD0R4RkbftiJjUltI1mFmuiEIb0MF88Of1MGcF1\n2Aku5CVyr8FQRhvbRSS8ZPDnOEnjfFTBF4P/bP5ToPdEpx7G3PMgm6pCQ0rXgFUe\nF500fxcBAoGBAOItTIye/dycARhZUyWwv8pG5gBqqddIehjmLqo7euaWws1YcJL9\nq8MXKIR51c75SjpC4ya9qSYHzc9SBP77S++l7ROT7C9hfwRDtNuNxM1FDyOiZq7F\n0yJqqKDQ1VRf/Zen5Jg0raQtKMND/m1S+dA/qgGoZV6MaE+XM2AATvYhAoGBANk4\nVRRkLtoVNl3vRx82EBTA40nPqX4P9j/80isXlTkD3ynwfASHS5FL24uwW6Fe4bEu\nATDhEiDnNROMHSq3H0OfYpO6YJ70zzfwZ1aKu6CU5cnxfuPzvnnea3JplkPIvFo8\n3OXOViIYoz34rU0ilWEFjuFovY4p4ob907amOdUtAoGBALpMkccqlvSGU6iYuxJK\nmk+lQoKJWUiI3Hlx8HIr+DnDaMX32RJafIZ/ptIoAOMxF+ERg0U/5/n5Z58jchYN\nLClDxRnhOCR27Ea49ln6Vma2QZgahvXi4Nxyel+sZGvRfXLTyklM6tJWmELu2L14\nIWlVZ1ViPc05Xhpg8uJanq/BAoGBAIfo3CrXCA2BijO528kmfWdOzKdJHCZ4/D1L\nBYDaz44N4xqNkjsPH/P3/5TmMl7ES/gc7bfUixA1OZtSZolsbE5WMkp2KbArQmAg\ntbeLNBwkLaZtyFP+FOaRiK7ca51bwqW/QQM0V+Ybfj/vERebFNXQsXZNn5SMlmSZ\n+lZkqPi9AoGAOEiNa31aeFN+h9mMwIGpEZLXQe+EJXPKPL4Svaa4UMviGgxfpHss\nacuOiZsNxxGDhzRrz4YhqfCTcnoc4gL3TVwQN38fzOTVkQtD73ENAI+fUyZ32gLK\nEppZW3NlC2IZVtJMB9jAk1WlsppD0plFZDmy4IB8WbfVARmo0DWhTE4=\n-----END RSA PRIVATE KEY-----\n",
 							Public:  "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv+oq9v//ugc1cjhRlxJg\nd+R8wo72XtlfI5VWkKZNq/bnpsCobOE11viKPrakQS9fwh8WKvesOz63y/RIMGPm\nRVydo9kZoPTlefTjENiNSHDH0T+YL8JAscbczHgNvfqfy0UM+eC21/T435zShNKc\nUUyyGR6s99fhZVIzlby3H1A/cQoVTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d\n9ycjoO74QP5RQdwLU87b3TXLSopamCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+\no0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4\nzQIDAQAB\n-----END PUBLIC KEY-----\n",
 						}},
@@ -195,6 +194,37 @@ imageer:
 			cfg, err := config.LoadValidated(givenConfigDir)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(cfg.Postgres.SSLMode).Should(Equal("require"))
+		})
+
+		It("loads JWT key pairs from env", func() {
+			full, err := config.LoadValidated(givenConfigDir)
+			Expect(err).ShouldNot(HaveOccurred())
+			want := full.JWT.KeyPairs["test"]
+			Expect(want.Private).ShouldNot(BeEmpty())
+
+			start := strings.Index(givenConfigText, "  key-pairs:\n")
+			end := strings.Index(givenConfigText, "\noauth:\n") + 1
+			Expect(start).Should(BeNumerically(">", 0))
+			text := givenConfigText[:start] + givenConfigText[end:]
+			err = os.WriteFile(filepath.Join(givenConfigDir, "config.yaml"), []byte(text), 0644)
+			Expect(err).ShouldNot(HaveOccurred())
+			GinkgoT().Setenv("APP_JWT_KEY-PAIRS_TEST_PRIVATE", want.Private)
+			GinkgoT().Setenv("APP_JWT_KEY-PAIRS_TEST_PUBLIC", want.Public)
+
+			cfg, err := config.LoadValidated(givenConfigDir)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(cfg.JWT.KeyPairs).Should(Equal(map[string]jwt.RSAKeyBytesPair{"test": want}))
+		})
+
+		It("rejects a config without JWT key pairs", func() {
+			start := strings.Index(givenConfigText, "  key-pairs:\n")
+			end := strings.Index(givenConfigText, "\noauth:\n") + 1
+			text := givenConfigText[:start] + givenConfigText[end:]
+			err := os.WriteFile(filepath.Join(givenConfigDir, "config.yaml"), []byte(text), 0644)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = config.LoadValidated(givenConfigDir)
+			Expect(err).Should(HaveOccurred())
 		})
 
 		It("rejects an unsupported postgres ssl-mode", func() {
@@ -258,8 +288,7 @@ imageer:
 					},
 					JWT: jwt.Config{
 						ActiveKeyPair: "test",
-						KeyPairs: []jwt.RSAKeyBytesPair{{
-							Name:    "test",
+						KeyPairs: map[string]jwt.RSAKeyBytesPair{"test": {
 							Private: "-----BEGIN RSA PRIVATE KEY-----\nMIIEpQIBAAKCAQEAv+oq9v//ugc1cjhRlxJgd+R8wo72XtlfI5VWkKZNq/bnpsCo\nbOE11viKPrakQS9fwh8WKvesOz63y/RIMGPmRVydo9kZoPTlefTjENiNSHDH0T+Y\nL8JAscbczHgNvfqfy0UM+eC21/T435zShNKcUUyyGR6s99fhZVIzlby3H1A/cQoV\nTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d9ycjoO74QP5RQdwLU87b3TXLSopa\nmCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+o0oHxOwz56neM+plxYKvLKmUsdyE\nUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4zQIDAQABAoIBAQCGH7fLS/qDHoqh\nuu56sGMvJ0ZyCsvwWeZ9zd7j1PYvmq0nAzoybercxHKJhcehruQznNo3SUTbWufE\n6IKTHx5Nl36shgu9S6oc46LVoSKMYBWmDdXketQP6rVhSP4BqeiHfUimUgA3SYOt\nc8JFBZQt1XYazC+CPyPNVferTGqGvK7X8jZkPCQyQxj+EAZ7k0cvZLz8ifCyf/E9\nqQh1sl8qdgAZuf+1KQUNEND9soD0R4RkbftiJjUltI1mFmuiEIb0MF88Of1MGcF1\n2Aku5CVyr8FQRhvbRSS8ZPDnOEnjfFTBF4P/bP5ToPdEpx7G3PMgm6pCQ0rXgFUe\nF500fxcBAoGBAOItTIye/dycARhZUyWwv8pG5gBqqddIehjmLqo7euaWws1YcJL9\nq8MXKIR51c75SjpC4ya9qSYHzc9SBP77S++l7ROT7C9hfwRDtNuNxM1FDyOiZq7F\n0yJqqKDQ1VRf/Zen5Jg0raQtKMND/m1S+dA/qgGoZV6MaE+XM2AATvYhAoGBANk4\nVRRkLtoVNl3vRx82EBTA40nPqX4P9j/80isXlTkD3ynwfASHS5FL24uwW6Fe4bEu\nATDhEiDnNROMHSq3H0OfYpO6YJ70zzfwZ1aKu6CU5cnxfuPzvnnea3JplkPIvFo8\n3OXOViIYoz34rU0ilWEFjuFovY4p4ob907amOdUtAoGBALpMkccqlvSGU6iYuxJK\nmk+lQoKJWUiI3Hlx8HIr+DnDaMX32RJafIZ/ptIoAOMxF+ERg0U/5/n5Z58jchYN\nLClDxRnhOCR27Ea49ln6Vma2QZgahvXi4Nxyel+sZGvRfXLTyklM6tJWmELu2L14\nIWlVZ1ViPc05Xhpg8uJanq/BAoGBAIfo3CrXCA2BijO528kmfWdOzKdJHCZ4/D1L\nBYDaz44N4xqNkjsPH/P3/5TmMl7ES/gc7bfUixA1OZtSZolsbE5WMkp2KbArQmAg\ntbeLNBwkLaZtyFP+FOaRiK7ca51bwqW/QQM0V+Ybfj/vERebFNXQsXZNn5SMlmSZ\n+lZkqPi9AoGAOEiNa31aeFN+h9mMwIGpEZLXQe+EJXPKPL4Svaa4UMviGgxfpHss\nacuOiZsNxxGDhzRrz4YhqfCTcnoc4gL3TVwQN38fzOTVkQtD73ENAI+fUyZ32gLK\nEppZW3NlC2IZVtJMB9jAk1WlsppD0plFZDmy4IB8WbfVARmo0DWhTE4=\n-----END RSA PRIVATE KEY-----\n",
 							Public:  "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv+oq9v//ugc1cjhRlxJg\nd+R8wo72XtlfI5VWkKZNq/bnpsCobOE11viKPrakQS9fwh8WKvesOz63y/RIMGPm\nRVydo9kZoPTlefTjENiNSHDH0T+YL8JAscbczHgNvfqfy0UM+eC21/T435zShNKc\nUUyyGR6s99fhZVIzlby3H1A/cQoVTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d\n9ycjoO74QP5RQdwLU87b3TXLSopamCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+\no0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4\nzQIDAQAB\n-----END PUBLIC KEY-----\n",
 						}},
@@ -341,8 +370,7 @@ oauth:
 					},
 					JWT: jwt.Config{
 						ActiveKeyPair: "test",
-						KeyPairs: []jwt.RSAKeyBytesPair{{
-							Name:    "test",
+						KeyPairs: map[string]jwt.RSAKeyBytesPair{"test": {
 							Private: "-----BEGIN RSA PRIVATE KEY-----\nMIIEpQIBAAKCAQEAv+oq9v//ugc1cjhRlxJgd+R8wo72XtlfI5VWkKZNq/bnpsCo\nbOE11viKPrakQS9fwh8WKvesOz63y/RIMGPmRVydo9kZoPTlefTjENiNSHDH0T+Y\nL8JAscbczHgNvfqfy0UM+eC21/T435zShNKcUUyyGR6s99fhZVIzlby3H1A/cQoV\nTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d9ycjoO74QP5RQdwLU87b3TXLSopa\nmCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+o0oHxOwz56neM+plxYKvLKmUsdyE\nUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4zQIDAQABAoIBAQCGH7fLS/qDHoqh\nuu56sGMvJ0ZyCsvwWeZ9zd7j1PYvmq0nAzoybercxHKJhcehruQznNo3SUTbWufE\n6IKTHx5Nl36shgu9S6oc46LVoSKMYBWmDdXketQP6rVhSP4BqeiHfUimUgA3SYOt\nc8JFBZQt1XYazC+CPyPNVferTGqGvK7X8jZkPCQyQxj+EAZ7k0cvZLz8ifCyf/E9\nqQh1sl8qdgAZuf+1KQUNEND9soD0R4RkbftiJjUltI1mFmuiEIb0MF88Of1MGcF1\n2Aku5CVyr8FQRhvbRSS8ZPDnOEnjfFTBF4P/bP5ToPdEpx7G3PMgm6pCQ0rXgFUe\nF500fxcBAoGBAOItTIye/dycARhZUyWwv8pG5gBqqddIehjmLqo7euaWws1YcJL9\nq8MXKIR51c75SjpC4ya9qSYHzc9SBP77S++l7ROT7C9hfwRDtNuNxM1FDyOiZq7F\n0yJqqKDQ1VRf/Zen5Jg0raQtKMND/m1S+dA/qgGoZV6MaE+XM2AATvYhAoGBANk4\nVRRkLtoVNl3vRx82EBTA40nPqX4P9j/80isXlTkD3ynwfASHS5FL24uwW6Fe4bEu\nATDhEiDnNROMHSq3H0OfYpO6YJ70zzfwZ1aKu6CU5cnxfuPzvnnea3JplkPIvFo8\n3OXOViIYoz34rU0ilWEFjuFovY4p4ob907amOdUtAoGBALpMkccqlvSGU6iYuxJK\nmk+lQoKJWUiI3Hlx8HIr+DnDaMX32RJafIZ/ptIoAOMxF+ERg0U/5/n5Z58jchYN\nLClDxRnhOCR27Ea49ln6Vma2QZgahvXi4Nxyel+sZGvRfXLTyklM6tJWmELu2L14\nIWlVZ1ViPc05Xhpg8uJanq/BAoGBAIfo3CrXCA2BijO528kmfWdOzKdJHCZ4/D1L\nBYDaz44N4xqNkjsPH/P3/5TmMl7ES/gc7bfUixA1OZtSZolsbE5WMkp2KbArQmAg\ntbeLNBwkLaZtyFP+FOaRiK7ca51bwqW/QQM0V+Ybfj/vERebFNXQsXZNn5SMlmSZ\n+lZkqPi9AoGAOEiNa31aeFN+h9mMwIGpEZLXQe+EJXPKPL4Svaa4UMviGgxfpHss\nacuOiZsNxxGDhzRrz4YhqfCTcnoc4gL3TVwQN38fzOTVkQtD73ENAI+fUyZ32gLK\nEppZW3NlC2IZVtJMB9jAk1WlsppD0plFZDmy4IB8WbfVARmo0DWhTE4=\n-----END RSA PRIVATE KEY-----\n",
 							Public:  "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv+oq9v//ugc1cjhRlxJg\nd+R8wo72XtlfI5VWkKZNq/bnpsCobOE11viKPrakQS9fwh8WKvesOz63y/RIMGPm\nRVydo9kZoPTlefTjENiNSHDH0T+YL8JAscbczHgNvfqfy0UM+eC21/T435zShNKc\nUUyyGR6s99fhZVIzlby3H1A/cQoVTiyuuWU5DdH/TT1ejx/kbpFtC+RHTPddoO0d\n9ycjoO74QP5RQdwLU87b3TXLSopamCJIk47QddBvV491QCSUURzY7HkUgZu0OB8+\no0oHxOwz56neM+plxYKvLKmUsdyEUl2anNn7qCHkxRq5HBQR1myWGAtNg1vF9AO4\nzQIDAQAB\n-----END PUBLIC KEY-----\n",
 						}},

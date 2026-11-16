@@ -22,7 +22,7 @@ func NewClient(cfg Config) (*Client, error) {
 		activeKeyPair *rsaKeyPair
 		keyChain      = make(rsaKeyChain, len(cfg.KeyPairs))
 	)
-	for _, kp := range cfg.KeyPairs {
+	for name, kp := range cfg.KeyPairs {
 		prv, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(kp.Private))
 		if err != nil {
 			return nil, fmt.Errorf("parsing RSA private key: %w", err)
@@ -34,7 +34,7 @@ func NewClient(cfg Config) (*Client, error) {
 		}
 
 		keyPair := rsaKeyPair{
-			name:    kp.Name,
+			name:    name,
 			private: prv,
 			public:  pub,
 		}

@@ -117,10 +117,10 @@ config:
   jwt:
     expiration: 720h
     active-key-pair: v1
-    key-pairs:
-      - name: v1
-        private: <private_key>
-        public: <public_key>
+    # No default key pair: a key shipped in this public chart would be accepted in every
+    # deployment. Set key-pairs.<name>.private/public per deployment, e.g. through env
+    # APP_JWT_KEY-PAIRS_<NAME>_PRIVATE from a Secret (names lowercase, no "_").
+    key-pairs: {}
   oauth:
     state-timeout: 10m
     callback-path: /api/v1/google/sign-in/finish
