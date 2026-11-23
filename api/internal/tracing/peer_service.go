@@ -1,6 +1,6 @@
 package tracing
 
-import semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
+import semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 
 var (
 	PeerServiceGoogleOIDC = semconv.ServicePeerName("google-oidc")
